@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin/
+
+// Replace when domain gotten
+Sitemap: https://yoursite.com/sitemap.xml
