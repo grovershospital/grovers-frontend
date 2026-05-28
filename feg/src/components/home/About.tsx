@@ -3,7 +3,7 @@ import aboutImg from "../../assets/aboutImg.png";
 export function About() {
     return (
         <section className="w-full bg-white py-16 md:py-24">
-            <div className="mx-auto grid w-[65%] grid-cols-1 items-center gap-10 px-4 md:px-8 lg:grid-cols-2 lg:gap-16">
+            <div className="mx-auto grid max-w-content grid-cols-1 items-center gap-10 px-4 md:px-8 lg:w-[80%] lg:grid-cols-2 lg:gap-16">
                 {/* Left: text column */}
                 <div className={'text-left lg:text-right'}>
                     <p className="mb-4 text-xs font-bold leading-snug text-brand-ink/70">
