@@ -1,12 +1,13 @@
-// src/pages/HomePage.tsx
 import { Hero } from "../components/home/Hero";
-// later: TrustBar, About, Services, Emergency, Screening, CTA, Testimonials
+import {TrustBar} from "../components/home/TrustBar.tsx";
+import {About} from "../components/home/About";
 
 export default function HomePage() {
     return (
         <>
             <Hero />
-            {/* TrustBar, About, ... go here as we build them */}
+            <TrustBar />
+            <About />
         </>
     );
 }

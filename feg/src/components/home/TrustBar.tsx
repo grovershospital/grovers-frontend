@@ -14,15 +14,15 @@
 // stay crisp and you can add/remove partners without re-exporting everything.
 
 const LOGOS = [
-    { src: "morgan.svg", alt: "Morgan Holdings" },
-    { src: "firstbank.svg", alt: "FirstBank" },
-    { src: "kpmg.svg", alt: "KPMG" },
-    { src: "seplat.svg", alt: "Seplat Energy" },
-    { src: "bua.svg", alt: "BUA Group" },
-    { src: "dangote.svg", alt: "Dangote" },
-    { src: "zenith.svg", alt: "Zenith Bank" },
-    { src: "leadway.svg", alt: "Leadway Health" },
-    { src: "avon.svg", alt: "Avon HMO" },
+    { src: "morgan.png", alt: "Morgan Holdings" },
+    { src: "firstbank.png", alt: "FirstBank" },
+    { src: "kpmg.png", alt: "KPMG" },
+    { src: "seplat.png", alt: "Seplat Energy" },
+    { src: "bua.png", alt: "BUA Group" },
+    { src: "dangote.png", alt: "Dangote" },
+    { src: "zenith.png", alt: "Zenith Bank" },
+    { src: "leadway.png", alt: "Leadway Health" },
+    { src: "avon.png", alt: "Avon HMO" },
 ];
 
 // Vite: import.meta.glob eager-loads every file in the logos folder so we can
