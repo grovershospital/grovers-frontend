@@ -1,4 +1,5 @@
 import {type ReactNode} from 'react';
+import {Link} from "react-router-dom";
 
 type Variant = "primary" | "light" | "outline" | "red" | "green";
 
@@ -38,6 +39,17 @@ export function Button({
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
 
     const classes = `${base} ${VARIANTS[variant]} ${className}`;
+
+    const isExternal = href && /^(https?:|tel:|mailto:|#)/.test(href);
+
+    if (href && isExternal) {
+        return <a href={href} className={classes}>{children}</a>;
+    }
+    if (href) {
+        return <Link to={href} className={classes}>{children}</Link>;
+    }
+
+    return <button type="button" onClick={onClick} className={classes}>{children}</button>;
 
     if (href) {
         return (

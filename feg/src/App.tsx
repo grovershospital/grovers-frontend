@@ -2,10 +2,12 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import HomePage from "./pages/HomePage";
+import ScrollToTop from "./components/ScrollToTop.tsx";
 
 export default function App() {
     return (
         <BrowserRouter>
+            <ScrollToTop />
             <Routes>
                 {/* Everything inside here gets TopBar + Navbar + Footer */}
                 <Route element={<Layout />}>

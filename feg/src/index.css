@@ -17,3 +17,17 @@
 .animate-marquee {
     animation: marquee 30s linear infinite;
 }
+
+html {
+    scroll-behavior: smooth;
+}
+
+/* offset so anchored sections don't hide under the sticky navbar (see #4) */
+section[id] {
+    scroll-margin-top: 96px;
+}
+
+/* respect users who prefer no motion */
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+}
