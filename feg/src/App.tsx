@@ -4,6 +4,7 @@ import Layout from "./components/Layout";
 import HomePage from "./pages/HomePage";
 import About from "./pages/About";
 import ScrollToTop from "./components/ScrollToTop.tsx";
+import Services from "./pages/Services.tsx";
 
 export default function App() {
     return (
@@ -14,12 +15,11 @@ export default function App() {
                 <Route element={<Layout/>}>
                     <Route path="/" element={<HomePage/>}/>
                     <Route path={"/about"} element={<About/>}/>
-                    {/* <Route path="/about" element={<AboutPage />} /> */}
-                    {/* <Route path="/contact" element={<ContactPage />} /> */}
+                    <Route path={"/services"} element={<Services />}/>
+
                 </Route>
 
-                {/* Routes that should NOT have the chrome go out here, e.g.: */}
-                {/* <Route path="/login" element={<LoginPage />} /> */}
+
             </Routes>
         </BrowserRouter>
     );
