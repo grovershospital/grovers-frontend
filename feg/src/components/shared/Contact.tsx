@@ -1,6 +1,6 @@
 // src/components/home/Contact.tsx
-import {SITE} from "../../data/site";
-import {Button} from "../../ui/Button";
+import {SITE} from "../../data/site.ts";
+import {Button} from "../../ui/Button.tsx";
 import emailIcon from "../../assets/emailIcon.png"
 import clockIcon from "../../assets/clockIcon.png"
 import callIcon from '../../assets/callIcon.png'

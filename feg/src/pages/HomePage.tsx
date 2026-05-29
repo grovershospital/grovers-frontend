@@ -7,7 +7,7 @@ import {Emergency} from "../components/home/Emergency.tsx";
 import {Screening} from "../components/home/Screening.tsx";
 import {CTA} from "../components/home/CTA.tsx";
 import {Testimonials} from "../components/home/Testimonials.tsx";
-import {Contact} from "../components/home/Contact.tsx";
+import {Contact} from "../components/shared/Contact.tsx";
 
 export default function HomePage() {
     return (
