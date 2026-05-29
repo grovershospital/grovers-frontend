@@ -1,7 +1,6 @@
 import {TESTIMONIALS} from "../../data/site";
 import ctaBg2 from '../../assets/ctaBg2.jpg';
 
-
 const CARD_CLIP =
     "M0.59594 0.0 L0.14729 0.0 C0.06593 0.0 0.0 0.0563 0.0 0.12578 " +
     "L0.0 0.87422 C0.0 0.9437 0.06593 1.0 0.14729 1.0 L0.85277 1.0 " +
