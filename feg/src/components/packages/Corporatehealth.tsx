@@ -13,7 +13,7 @@ export default function CorporateHealth() {
     return (
         <section
             id="corporate-health"
-            className="bg-[#f9f7f0]"
+            className="bg-[#f9f7f0] pb-16 sm:pb-20 lg:pb-32"
             aria-labelledby="corporate-health-heading"
         >
             {/* 2-col grid lives on the section directly so the image column can */}

@@ -35,7 +35,7 @@ export default function PackageHelp() {
                 </defs>
             </svg>
 
-            <div className="mx-auto w-full max-w-content px-6 py-12 sm:py-16 lg:px-10 lg:py-20">
+            <div className="mx-auto w-full lg:w-[70%] max-w-content px-6 py-12 sm:py-16 lg:px-10 lg:py-32">
                 {/* Card sits in the LEFT column. Mirror of DepartmentHelp which */}
                 {/* uses ml-auto for right-positioning — here we leave it at the */}
                 {/* default left position. */}
@@ -52,7 +52,7 @@ export default function PackageHelp() {
                         >
                             Not sure where to start?
                         </h2>
-                        <p className="mt-6 text-sm leading-relaxed text-brand-ink/80 sm:text-base">
+                        <p className="mt-6 text-sm lg:w-[69%] leading-relaxed text-brand-ink/80 sm:text-base">
                             Call us and we will point you in the right direction.
                         </p>
 
@@ -61,7 +61,7 @@ export default function PackageHelp() {
                         <div className="mt-8">
                             <a
                                 href="/contact"
-                                className="inline-flex items-center justify-center rounded-full bg-violet-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-violet-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
+                                className="inline-flex items-center justify-center rounded-full bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-violet-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
                             >
                                 Book a Screening
                             </a>
