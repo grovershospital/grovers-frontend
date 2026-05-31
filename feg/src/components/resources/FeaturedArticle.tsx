@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { Button } from "../../ui/Button";
-import { fetchFeaturedArticle, type Article } from "../../data/articles";
+import {
+    fetchFeaturedArticle,
+    getCategoryStyle,
+    type Article,
+} from "../../data/articles";
 
 export default function FeaturedArticle() {
     const [article, setArticle] = useState<Article | null>(null);
@@ -34,7 +38,7 @@ export default function FeaturedArticle() {
             className="bg-[#f9f7f0] py-16 sm:py-20 lg:py-24"
             aria-labelledby="featured-heading"
         >
-            <div className="mx-auto w-full max-w-content px-6 lg:px-10">
+            <div className="mx-auto w-full lg:w-[70%] max-w-content px-6 lg:px-10">
                 <h2
                     id="featured-heading"
                     className="text-3xl font-extrabold text-brand-red sm:text-4xl"
@@ -60,8 +64,11 @@ export default function FeaturedArticle() {
                     <div className="mt-10 grid gap-10 lg:grid-cols-2 lg:items-center">
                         {/* Content column */}
                         <div>
-                            {/* Category pill — same solid green style as the Packages hero. */}
-                            <span className="inline-flex items-center rounded-full bg-brand-green px-4 py-1.5 text-xs font-medium tracking-wide text-white">
+                            {/* Category pill — color driven by getCategoryStyle so different */}
+                            {/* categories get different colors per the design. */}
+                            <span
+                                className={`inline-flex items-center rounded-md px-5 py-2.5 text-xs font-medium tracking-wide text-white ${getCategoryStyle(article.category).bg}`}
+                            >
                 {article.category}
               </span>
 
@@ -78,7 +85,7 @@ export default function FeaturedArticle() {
                             </p>
 
                             <div className="mt-8">
-                                <Button variant="primary" href={`/resources/${article.slug}`}>
+                                <Button variant="primary" className={'px-12'} href={`/resources/${article.slug}`}>
                                     Read Article
                                 </Button>
                             </div>

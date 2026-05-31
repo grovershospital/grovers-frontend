@@ -27,6 +27,25 @@ export type Article = {
     featured?: boolean;
 };
 
+// ─── Category pill styling ───────────────────────────────────
+// Maps category names to Tailwind background classes for the pill badges
+// used in FeaturedArticle and ArticleCard.tsx. Categories are stored as strings
+// so admins can create new ones freely — unknown categories fall back to a
+// neutral gray rather than crashing.
+type CategoryStyle = { bg: string };
+
+const CATEGORY_STYLES: Record<string, CategoryStyle> = {
+    "Lifestyle Diseases": { bg: "bg-brand-green" },
+    "Screening and Packages": { bg: "bg-brand-red" },
+    "General Health": { bg: "bg-violet-600" },
+};
+
+const DEFAULT_CATEGORY_STYLE: CategoryStyle = { bg: "bg-neutral-500" };
+
+export function getCategoryStyle(category: string): CategoryStyle {
+    return CATEGORY_STYLES[category] ?? DEFAULT_CATEGORY_STYLE;
+}
+
 // ─── Local image resolution (delete when backend lands) ──────
 // Eager-loads every article hero image so the stub data can reference them
 // by filename and we still get hashed asset URLs in production builds.
@@ -55,7 +74,7 @@ const STUB_ARTICLES: Article[] = [
             'High blood pressure, or hypertension, is a "silent killer" with no symptoms until serious damage occurs. Factors include genetics, diet, inactivity, stress, obesity, alcohol, and smoking. It\'s diagnosed by measuring blood pressure, with readings over 130/80 mmHg considered high. Management involves lifestyle changes like a balanced diet, exercise, and stress reduction, along with possible medication. Regular monitoring and check-ups are essential for effective management.',
         category: "Lifestyle Diseases",
         readMinutes: 4,
-        heroImage: resolveLocal("high-blood-pressure.jpg"),
+        heroImage: resolveLocal("featuredImage.jpg"),
         body: "",
         publishedAt: "2026-05-01",
         featured: true,
@@ -68,7 +87,7 @@ const STUB_ARTICLES: Article[] = [
             "What the test involves, which package to choose and what to expect on the day.",
         category: "Screening and Packages",
         readMinutes: 5,
-        heroImage: resolveLocal("pre-employment.jpg"),
+        heroImage: resolveLocal("preEmployment.png"),
         body: "",
         publishedAt: "2026-04-20",
     },
@@ -79,7 +98,7 @@ const STUB_ARTICLES: Article[] = [
             "How to recognise malaria, when to treat at home and when to see a doctor.",
         category: "General Health",
         readMinutes: 4,
-        heroImage: resolveLocal("malaria.jpg"),
+        heroImage: resolveLocal("preEmployment.png"),
         body: "",
         publishedAt: "2026-04-15",
     },
@@ -90,7 +109,7 @@ const STUB_ARTICLES: Article[] = [
             "What tests to run, which package covers what and how to book.",
         category: "Screening and Packages",
         readMinutes: 4,
-        heroImage: resolveLocal("domestic-staff.jpg"),
+        heroImage: resolveLocal("preEmployment.png"),
         body: "",
         publishedAt: "2026-04-10",
     },
@@ -101,7 +120,7 @@ const STUB_ARTICLES: Article[] = [
             "What the wellness test covers, what to expect and how to pick the right tier.",
         category: "Screening and Packages",
         readMinutes: 5,
-        heroImage: resolveLocal("annual-health.jpg"),
+        heroImage: resolveLocal("preEmployment.png"),
         body: "",
         publishedAt: "2026-04-01",
     },
