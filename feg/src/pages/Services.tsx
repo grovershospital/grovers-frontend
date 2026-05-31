@@ -5,6 +5,8 @@ import {CLINIC_DETAILS} from "../data/clinic-details.ts"
 import CriticalCare from "../components/services/CriticalCare.tsx";
 import Diagnostics from "../components/services/Diagnostics.tsx";
 import DepartmentHelp from "../components/services/DepartmentHelp.tsx";
+import {Contact} from '../components/shared/Contact.tsx'
+
 export default function Services() {
     return (
         <>
@@ -16,6 +18,7 @@ export default function Services() {
             <CriticalCare />
             <Diagnostics/>
             <DepartmentHelp />
+            <Contact />
         </>
     )
 }
