@@ -38,7 +38,7 @@ export default function DepartmentHelp() {
                 </defs>
             </svg>
 
-            <div className="mx-auto w-full max-w-content px-6 py-12 sm:py-16 lg:px-10 lg:py-20">
+            <div className="mx-auto w-full lg:w-[80%] max-w-content px-6  py-12 sm:py-16 lg:px-10 lg:py-20">
                 {/* Card sits in the right column on desktop, full-width on mobile. */}
                 {/* bg-white/80 is much more opaque than LabaCare's card because the */}
                 {/* content here is dark text — needs a near-white surface to read. */}
@@ -46,16 +46,16 @@ export default function DepartmentHelp() {
                     className="ml-auto w-full max-w-md bg-white/80 backdrop-blur-md"
                     style={{ clipPath: "url(#department-help-clip)" }}
                 >
-                    <div className="px-8 py-10 sm:px-10 sm:py-12">
+                    <div className="px-8 py-10 sm:px-10 sm:py-12 items-center">
                         {/* Heading width is capped so it wraps clear of the top-right */}
                         {/* chamfer — same gotcha as Founders / LabaCare. */}
                         <h2
                             id="department-help-heading"
-                            className="max-w-[16rem] text-2xl font-extrabold leading-tight text-brand-ink sm:text-3xl"
+                            className="max-w-[16rem] text-2xl lg:w-[75%] font-extrabold leading-tight text-brand-ink sm:text-3xl"
                         >
                             Not sure which department is right for you?
                         </h2>
-                        <div className="mt-6 space-y-4 text-sm leading-relaxed text-brand-ink/80 sm:text-base">
+                        <div className="mt-6 space-y-4 text-sm leading-relaxed text-brand-ink/80 lg:w-[60%] sm:text-base">
                             <p>Our Family Medicine team is the best place to start.</p>
                             <p>
                                 They will assess your condition, run any necessary tests and
