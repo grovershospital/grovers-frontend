@@ -19,23 +19,23 @@ export default function Hero() {
             {/* reads through clearly. */}
             <div className="absolute inset-0 -z-10 bg-black/40" aria-hidden="true" />
 
-            <div className="mx-auto w-full max-w-content px-6 py-20 sm:py-24 lg:px-10 lg:py-28">
+            <div className="mx-auto w-full lg:w-[80%] max-w-content px-6 py-20 sm:py-24 lg:px-10 lg:py-28">
                 {/* Content column — left-aligned (no lg:ml-auto, unlike Services). */}
-                <div className="max-w-md">
+                <div className="max-w-md ">
                     {/* Green pill badge — solid fill, border adds visual definition */}
                     {/* against the photo bg. Variant of the About hero's bordered */}
                     {/* pill, but in green. */}
-                    <span className="inline-flex items-center rounded-full border border-brand-green bg-brand-green px-5 py-1.5 text-xs font-medium tracking-wide text-white">
+                    <span className="inline-flex items-center rounded-md  border-white border-1  bg-brand-green px-5 py-3 text-xs font-medium tracking-wide text-white">
             Health Screening Packages
           </span>
 
                     {/* Headline — two distinct lines per the design. */}
                     <h1
                         id="packages-hero-heading"
-                        className="mt-6 text-4xl font-extrabold leading-[1.1] tracking-tight text-white sm:text-5xl"
+                        className="mt-6 text-4xl text-left  font-extrabold leading-[1.1] tracking-tight text-white sm:text-5xl"
                     >
                         Know your health.
-                        <br />
+                        <br/>
                         Protect your people.
                     </h1>
 
