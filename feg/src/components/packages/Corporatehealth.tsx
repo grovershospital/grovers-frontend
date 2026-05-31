@@ -1,5 +1,5 @@
 import { Button } from "../../ui/Button";
-import buildingPhoto from "../../assets/packages/corporate-health.jpg";
+import wwo from "../../assets/packages-page/wwo.jpg";
 
 const WHAT_WE_OFFER = [
     "Pre-employment screening for new hires",
@@ -24,7 +24,7 @@ export default function CorporateHealth() {
                 {/* Rounded corner on the right (facing the content). */}
                 <div className="h-72 sm:h-96 lg:h-auto">
                     <img
-                        src={buildingPhoto}
+                        src={wwo}
                         alt=""
                         aria-hidden="true"
                         className="block h-full w-full object-cover lg:rounded-r-[2rem]"
@@ -67,7 +67,7 @@ export default function CorporateHealth() {
                         </ul>
 
                         <div className="mt-8">
-                            <Button variant="primary" href="/contact">
+                            <Button variant="primary" href="/contact" className={"lg:px-10"}>
                                 Talk To Us
                             </Button>
                         </div>

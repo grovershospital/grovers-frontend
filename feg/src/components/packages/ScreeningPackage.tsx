@@ -32,8 +32,8 @@ const HEADING_TEXT: Record<ColorTone, string> = {
     red: "text-brand-red",
 };
 const PRICING_HEADER_BG: Record<ColorTone, string> = {
-    red: "bg-red-800",
-    green: "bg-green-800",
+    red: "bg-brand-red",
+    green: "bg-brand-green",
 };
 const PRICING_TIER_BG: Record<ColorTone, string> = {
     red: "bg-brand-red",
@@ -54,7 +54,7 @@ export default function ScreeningPackage({
             className="bg-[#f9f7f0] py-16 sm:py-20 lg:py-24"
             aria-labelledby={`${pkg.slug}-heading`}
         >
-            <div className="mx-auto w-full max-w-content px-6 lg:px-10">
+            <div className="mx-auto w-full lg:w-[80%] max-w-content px-6 lg:px-10">
                 <div className="lg:grid lg:grid-cols-5 lg:gap-12">
                     {/* Left column — content + pricing table */}
                     <div className="lg:col-span-2">
@@ -120,7 +120,7 @@ export default function ScreeningPackage({
                         <div className="overflow-x-auto overflow-hidden rounded-lg">
                             <table className="w-full border-collapse bg-brand-blue text-sm">
                                 <thead>
-                                <tr className="bg-blue-900 text-white">
+                                <tr className="bg-brand-blue text-white">
                                     <th className="whitespace-nowrap px-4 py-3 text-left font-extrabold">
                                         Test
                                     </th>
