@@ -16,7 +16,7 @@ export default function Diagnostics() {
             className="bg-[#f9f7f0] py-16 sm:py-20 lg:py-24"
             aria-labelledby="diagnostics-heading"
         >
-            <div className="mx-auto w-full max-w-content px-6 lg:px-10">
+            <div className="mx-auto w-full lg:w-[80%] max-w-content px-6 lg:px-10">
                 {/* Heading + intro */}
                 <h2
                     id="diagnostics-heading"
@@ -36,7 +36,7 @@ export default function Diagnostics() {
                     {DIAGNOSTIC_CARDS.map((card) => (
                         <div
                             key={card.title}
-                            className="rounded-2xl border border-neutral-400/60 p-8 text-center"
+                            className="rounded-2xl border-2 border-neutral-400/60 p-8 text-center"
                         >
                             <h3 className="text-base font-extrabold text-brand-ink">
                                 {card.title}

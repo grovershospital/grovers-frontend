@@ -28,14 +28,14 @@ export default function CriticalCare() {
     return (
         <section
             id="critical-care"
-            className="bg-[#f9f7f0] py-16 sm:py-20 lg:py-24"
+            className="bg-[#f9f7f0] py-16 sm:py-20 lg:py-32"
             aria-labelledby="critical-care-heading"
         >
-            <div className="mx-auto w-full max-w-content px-6 lg:px-10">
+            <div className="mx-auto w-full lg:w-[80%] max-w-content px-6 lg:px-10">
                 {/* Heading + intro */}
                 <h2
                     id="critical-care-heading"
-                    className="mx-auto max-w-2xl text-center text-3xl font-extrabold leading-tight text-brand-green sm:text-4xl"
+                    className="mx-auto max-w-2xl text-center text-3xl font-extrabold leading-tight text-brand-green lg:w-[30%] sm:text-4xl"
                 >
                     When it matters most, we are ready for you.
                 </h2>
@@ -51,7 +51,7 @@ export default function CriticalCare() {
                     {ICU_CARDS.map((card) => (
                         <div
                             key={card.title}
-                            className="rounded-2xl border border-neutral-400/60 p-8 text-center"
+                            className="rounded-2xl border-2  border-neutral-400/60 p-8 text-center"
                         >
                             <h3 className="text-base font-extrabold text-brand-ink">
                                 {card.title}
