@@ -140,3 +140,59 @@ export const DOMESTIC_STAFF: ScreeningPackageData = {
     ctaLabel: "Book Domestic Staff Screening",
     // headingTone defaults to "green", pricingTone defaults to "red"
 };
+
+export const FOOD_HANDLERS: ScreeningPackageData = {
+    slug: "food-handlers",
+    headline: "Keep your kitchen and your customers safe.",
+    body:
+        "Food handlers in Nigeria are required to hold valid health certifications. Our Food Handlers Test covers all the necessary checks and provides the documentation your business needs. A Fit-to-Work Form is included free from Standard+ upward.",
+    whoThisIsFor:
+        "Restaurants, hotels, catering businesses and any establishment employing food handlers.",
+    tiers: ["Basic", "Standard", "Standard+", "Deluxe", "Deluxe+", "Premium"],
+    tests: [
+        { name: "VDRL (Syphilis)", included: [true, true, true, true, true, true] },
+        {
+            name: "Stool Microscopy (including Typhoid)",
+            included: [true, true, true, true, true, true],
+        },
+        { name: "Urinalysis", included: [true, true, true, true, true, true] },
+        { name: "Hepatitis B", included: [true, true, true, true, true, true] },
+        { name: "HIV Screening", included: [true, true, true, true, true, true] },
+        { name: "X-Ray Chest", included: [true, true, true, true, true, true] },
+        // Basic gets Serum TB; higher tiers get Sputum Microscopy instead.
+        {
+            name: "Serum Tuberculosis (TB)",
+            included: [true, false, false, false, false, false],
+        },
+        {
+            name: "Sputum Microscopy",
+            included: [false, true, true, true, true, true],
+        },
+        { name: "Pregnancy Test", included: [false, true, true, true, true, true] },
+        {
+            name: "General Consultation and Report",
+            included: [false, false, true, true, true, true],
+        },
+        { name: "Fit-to-Work Form", included: [false, false, true, true, true, true] },
+        // Blood Group / Blood Sugar / Hep C skip the Deluxe+ tier — matches design.
+        { name: "Blood Group", included: [false, false, false, true, false, true] },
+        { name: "Blood Sugar", included: [false, false, false, true, false, true] },
+        { name: "Hepatitis C", included: [false, false, false, true, false, true] },
+        {
+            name: "Toxicology (Drug Abuse Panel)",
+            included: [false, false, false, false, true, true],
+        },
+    ],
+    pricing: [
+        { tier: "Basic", male: "\u20a650,000", female: "\u20a650,000" },
+        { tier: "Standard", male: "\u20a665,000", female: "\u20a670,000" },
+        { tier: "Standard+", male: "\u20a685,000", female: "\u20a690,000" },
+        { tier: "Deluxe", male: "\u20a695,000", female: "\u20a6100,000" },
+        { tier: "Deluxe+", male: "\u20a6105,000", female: "\u20a6110,000" },
+        { tier: "Premium", male: "\u20a6125,000", female: "\u20a6130,000" },
+    ],
+    footerNote: "Fit-to-Work Form is included free from Standard+ upward.",
+    ctaLabel: "Book Food Handlers Test",
+    headingTone: "red",
+    pricingTone: "green",
+};
