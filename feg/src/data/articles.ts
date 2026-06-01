@@ -91,7 +91,7 @@ This is not primarily a story about access to treatment. It is a story about a g
  
 ## Why urban professionals are at higher risk
  
-<img src="https://placehold.co/600x400/667eea/ffffff?text=Inline+Image" alt="" class="float-left" />
+<img src="/articles/articleImage.jpg" alt="" class="float-left" />
  
 Hypertension does not develop in a vacuum. It is shaped by the environment we live in and the lives we lead. And for many Lagos professionals, that environment is a near-perfect storm of risk factors. The diet is a significant contributor. Processed foods, high sodium content, irregular eating patterns and the prevalence of convenience food across the city all put consistent pressure on the cardiovascular system. Physical inactivity compounds this. Lagos is not a city built for walking. Long commutes, desk-based work and the sheer exhaustion of navigating the city leave very little time or energy for regular exercise.
  
