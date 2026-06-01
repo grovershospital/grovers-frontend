@@ -35,12 +35,12 @@ export type Article = {
 type CategoryStyle = { bg: string };
 
 const CATEGORY_STYLES: Record<string, CategoryStyle> = {
-    "Lifestyle Diseases": { bg: "bg-brand-green" },
-    "Screening and Packages": { bg: "bg-brand-red" },
-    "General Health": { bg: "bg-violet-600" },
+    "Lifestyle Diseases": {bg: "bg-brand-green"},
+    "Screening and Packages": {bg: "bg-brand-red"},
+    "General Health": {bg: "bg-violet-600"},
 };
 
-const DEFAULT_CATEGORY_STYLE: CategoryStyle = { bg: "bg-neutral-500" };
+const DEFAULT_CATEGORY_STYLE: CategoryStyle = {bg: "bg-neutral-500"};
 
 export function getCategoryStyle(category: string): CategoryStyle {
     return CATEGORY_STYLES[category] ?? DEFAULT_CATEGORY_STYLE;
@@ -51,7 +51,7 @@ export function getCategoryStyle(category: string): CategoryStyle {
 // by filename and we still get hashed asset URLs in production builds.
 const LOCAL_IMAGES = import.meta.glob<{ default: string }>(
     "../assets/resources/articles/*.{jpg,jpeg,png,webp}",
-    { eager: true },
+    {eager: true},
 );
 
 function resolveLocal(filename: string): string {
@@ -75,7 +75,53 @@ const STUB_ARTICLES: Article[] = [
         category: "Lifestyle Diseases",
         readMinutes: 4,
         heroImage: resolveLocal("featuredImage.jpg"),
-        body: "",
+        body: `If you asked most people in Lagos whether they have high blood pressure, the majority would say no. Not because they have been tested and confirmed it. But because they feel fine. And feeling fine, in the Nigerian health consciousness, is broadly understood to mean nothing is wrong. This is the most dangerous assumption in modern healthcare.
+ 
+## The silent progression of hypertension
+ 
+High blood pressure, or hypertension, does not hurt. It does not keep you awake at night. It does not stop you from going to work, exercising or eating well. In its early and even moderate stages, it produces no symptoms that most people would recognise as a reason to see a doctor. What it does instead is work quietly in the background, putting consistent strain on your heart, blood vessels, kidneys and brain over months and years. By the time it makes itself known, through a heart attack, a stroke, kidney failure or vision loss, the damage has been accumulating for a long time.
+ 
+This is not a rare or extreme scenario. It is the most common trajectory of untreated hypertension. And in Nigeria, where routine health checks are not yet a cultural norm, it plays out daily.
+ 
+## Hypertension in Nigeria by the numbers
+ 
+Research on hypertension prevalence in Lagos has found rates significantly higher than global averages. Studies have documented hypertension prevalence of over 50% among adults in Lagos, compared to global averages closer to 30%. More concerning is that a substantial proportion of those individuals are unaware of their condition.
+ 
+This is not primarily a story about access to treatment. It is a story about a gap between how many people have high blood pressure and how many people know they have it. That gap is where the real danger lives.
+ 
+## Why urban professionals are at higher risk
+ 
+<img src="https://placehold.co/600x400/667eea/ffffff?text=Inline+Image" alt="" class="float-left" />
+ 
+Hypertension does not develop in a vacuum. It is shaped by the environment we live in and the lives we lead. And for many Lagos professionals, that environment is a near-perfect storm of risk factors. The diet is a significant contributor. Processed foods, high sodium content, irregular eating patterns and the prevalence of convenience food across the city all put consistent pressure on the cardiovascular system. Physical inactivity compounds this. Lagos is not a city built for walking. Long commutes, desk-based work and the sheer exhaustion of navigating the city leave very little time or energy for regular exercise.
+ 
+Then there is stress. Chronic, sustained stress raises blood pressure directly. It drives behaviours like poor sleep, excessive alcohol consumption and smoking that raise it further. And it is embedded in the fabric of professional life in Lagos in a way that is rarely acknowledged as the health risk it actually is.
+ 
+None of these factors in isolation are enough to cause hypertension. Together, over years, they create the conditions for it.
+ 
+## The danger of symptom-based self-assessment
+ 
+There is a deeply held belief in Nigerian culture that the body will tell you when something is wrong. That if you were seriously ill, you would know it. This belief is understandable. It is also medically incorrect.
+ 
+The body is remarkably good at adapting. It compensates for damage, maintains function under strain and often continues to perform normally long after a problem has taken hold. High blood pressure is the clearest example of this. The cardiovascular system can sustain elevated pressure for years without producing symptoms that register as a warning sign.
+ 
+Feeling fine is not a health status. It is the absence of obvious symptoms. Those are two very different things. And building a health strategy around the former is a significant risk.
+ 
+## What actually needs to change
+ 
+The solution to Nigeria's hypertension problem is not complicated at the individual level. It is a blood pressure reading. A single measurement taken during a routine consultation can identify elevated blood pressure before it has caused significant damage. At that point, the options for management are broad. Lifestyle changes alone, reducing salt, losing weight, exercising more regularly and managing stress, can be enough to bring blood pressure back to a healthy level for many people. For others, medication is needed. Either way, the earlier the intervention, the better the outcome.
+ 
+What needs to change is the assumption that a health check is something you do when you are unwell. The entire point of a health check is that you do it before anything goes wrong. That shift in mindset, from reactive to proactive healthcare, is arguably the most important health decision a Lagos professional can make.
+ 
+## A call for proactive healthcare
+ 
+High blood pressure is not a condition that happens to unhealthy people. It happens to busy people, stressed people, people who are too focused on everything else to pay attention to their own health. It happens to people who feel fine.
+ 
+The most effective thing you can do for your long-term health right now is not a dramatic lifestyle overhaul. It is knowing your numbers. Blood pressure, blood sugar, cholesterol. These three markers tell you more about your cardiovascular risk than almost anything else. And none of them require you to feel unwell to find out.
+ 
+The conversation about hypertension in Nigeria needs to move from treatment to prevention. From the hospital to the annual check-up. From crisis management to informed decision-making.
+ 
+That shift starts with a single appointment.`,
         publishedAt: "2026-05-01",
         featured: true,
     },

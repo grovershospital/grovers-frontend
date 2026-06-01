@@ -28,7 +28,7 @@ export const NAV_LINKS = [
     { label: "Home", href: "/" },
     { label: "About Us", href: "/about" },
     { label: "Our Services", href: "/services" },
-    { label: "Resources.tsx", href: "/resources" },
+    { label: "Resources", href: "/resources" },
     { label: "Contact Us", href: "/contact" },
 ] as const;
 
@@ -176,6 +176,6 @@ export const FOOTER_SERVICES = [
 export const FOOTER_QUICK_LINKS = [
     "About Us",
     "Services and Packages",
-    "Blog and Resources.tsx",
+    "Blog and Resources",
     "Contact Us",
 ] as const;

@@ -7,6 +7,7 @@ import ScrollToTop from "./components/ScrollToTop.tsx";
 import Services from "./pages/Services.tsx";
 import Packages from "./pages/Packages.tsx";
 import Resources from "./pages/Resources.tsx";
+import ArticleDetail from "./pages/ArticleDetail";
 
 export default function App() {
     return (
@@ -19,7 +20,8 @@ export default function App() {
                     <Route path={"/about"} element={<About/>}/>
                     <Route path={"/services"} element={<Services/>}/>
                     <Route path={"/packages"} element={<Packages/>}/>
-                    <Route path={"/resources"} element={<Resources />}/>
+                    <Route path={"/resources"} element={<Resources/>}/>
+                    <Route path={"/resources/:slug"} element={<ArticleDetail/>}/>
                 </Route>
             </Routes>
         </BrowserRouter>
