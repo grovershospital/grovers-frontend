@@ -8,6 +8,7 @@ import Services from "./pages/Services.tsx";
 import Packages from "./pages/Packages.tsx";
 import Resources from "./pages/Resources.tsx";
 import ArticleDetail from "./pages/ArticleDetail";
+import PatientPortal from "./pages/PatientPortal.tsx";
 
 export default function App() {
     return (
@@ -16,6 +17,7 @@ export default function App() {
             <Routes>
                 {/* Everything inside here gets TopBar + Navbar + Footer */}
                 <Route element={<Layout/>}>
+                    <Route path={'/patient-portal'} element={<PatientPortal />}/>
                     <Route path="/" element={<HomePage/>}/>
                     <Route path={"/about"} element={<About/>}/>
                     <Route path={"/services"} element={<Services/>}/>
