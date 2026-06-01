@@ -9,6 +9,9 @@ import Packages from "./pages/Packages.tsx";
 import Resources from "./pages/Resources.tsx";
 import ArticleDetail from "./pages/ArticleDetail";
 import PatientPortal from "./pages/PatientPortal.tsx";
+import Login from "./pages/Login.tsx";
+import Signup from "./pages/Signup.tsx";
+import ForgotPassword from "./pages/ForgotPassword.tsx";
 
 export default function App() {
     return (
@@ -18,6 +21,10 @@ export default function App() {
                 {/* Everything inside here gets TopBar + Navbar + Footer */}
                 <Route element={<Layout/>}>
                     <Route path={'/patient-portal'} element={<PatientPortal />}/>
+                    <Route path={'/patient-portal/login'} element={<Login />}/>
+                    <Route path={'patient-portal/signup'} element={<Signup />}/>
+                    <Route path={'patient-portal/forgot-password'} element={<ForgotPassword />}/>
+
                     <Route path="/" element={<HomePage/>}/>
                     <Route path={"/about"} element={<About/>}/>
                     <Route path={"/services"} element={<Services/>}/>
