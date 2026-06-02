@@ -410,13 +410,55 @@ export async function requestDataDownload(): Promise<void> {
     return Promise.resolve();
 }
 
-export async function deleteAccount(): Promise<void> {
+export async function deleteAccount(password: string): Promise<void> {
     // TODO (backend): replace with
     //   const res = await fetch("/api/portal/profile", {
     //     method: "DELETE",
     //     credentials: "include",
     //   });
     //   if (!res.ok) throw new Error("Failed to delete account");
-    console.log("deleteAccount stub");
+    console.log("deleteAccount stub", {passwordLength: password.length});
+    return Promise.resolve();
+}
+
+// ─── Feedback ────────────────────────────────────────────────
+
+export type FeedbackType = "Compliment" | "Complaint" | "Suggestion" | "General feedback";
+
+export const FEEDBACK_TYPES: ReadonlyArray<FeedbackType> = [
+    "Compliment",
+    "Complaint",
+    "Suggestion",
+    "General feedback",
+];
+
+export type ContactMethod = "None" | "Email" | "Phone" | "WhatsApp";
+
+export const CONTACT_METHODS: ReadonlyArray<ContactMethod> = [
+    "None",
+    "Email",
+    "Phone",
+    "WhatsApp",
+];
+
+export type FeedbackInput = {
+    type: FeedbackType;
+    message: string;          // capped at 500 chars by the form
+    department: string;       // one of DEPARTMENTS
+    wantsResponse: boolean;
+    contactMethod: ContactMethod;
+    rating: number;           // 1-5
+};
+
+export async function submitFeedback(input: FeedbackInput): Promise<void> {
+    // TODO (backend): replace with real POST
+    //   const res = await fetch("/api/portal/feedback", {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //     credentials: "include",
+    //     body: JSON.stringify(input),
+    //   });
+    //   if (!res.ok) throw new Error("Failed to submit feedback");
+    console.log("submitFeedback stub:", input);
     return Promise.resolve();
 }

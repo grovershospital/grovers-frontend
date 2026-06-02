@@ -1,12 +1,11 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { deleteAccount, requestDataDownload } from "../../data/portal";
+import {useState} from "react";
+import {Link, useNavigate} from "react-router-dom";
+import {requestDataDownload} from "../../data/portal.ts";
 
 export default function PrivacyAndData() {
     const navigate = useNavigate();
 
     const [downloading, setDownloading] = useState(false);
-    const [deleting, setDeleting] = useState(false);
     const [downloadMessage, setDownloadMessage] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -26,22 +25,8 @@ export default function PrivacyAndData() {
         }
     }
 
-    async function handleDelete() {
-        const ok = window.confirm(
-            "Are you sure you want to permanently delete your account? This cannot be undone.",
-        );
-        if (!ok) return;
-
-        setError(null);
-        setDeleting(true);
-        try {
-            await deleteAccount();
-            // TODO (backend): once auth is wired up, clear session here too.
-            navigate("/");
-        } catch {
-            setError("Could not delete your account. Please try again.");
-            setDeleting(false);
-        }
+    function handleDelete() {
+        navigate('/patient-portal/delete-account')
     }
 
     return (
@@ -64,10 +49,9 @@ export default function PrivacyAndData() {
                 <button
                     type="button"
                     onClick={handleDelete}
-                    disabled={deleting}
                     className="inline-flex items-center justify-center rounded-full bg-brand-ink px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-red focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-ink disabled:opacity-60"
                 >
-                    {deleting ? "Deleting…" : "Delete my data"}
+                    Delete my data
                 </button>
             </div>
 

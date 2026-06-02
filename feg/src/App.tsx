@@ -17,6 +17,8 @@ import Dashboard from "./pages/Dashboard.tsx";
 import Appointments from "./components/portal/Appointments.tsx";
 import LabResults from "./components/portal/LabResults.tsx";
 import Profile from "./components/portal/Profile.tsx";
+import Feedback from "./components/portal/Feedback.tsx";
+import DeleteAccount from "./components/portal/DeleteAccount.tsx";
 
 export default function App() {
     return (
@@ -41,9 +43,11 @@ export default function App() {
                 {/* Patient portal (logged in) */}
                 <Route element={<DashboardLayout/>}>
                     <Route path={'/patient-portal/dashboard'} element={<Dashboard/>}/>
-                    <Route path={'/patient-portal/appointments'} element={<Appointments />}/>
-                    <Route path={'/patient-portal/lab-results'} element={<LabResults />}/>
-                    <Route path={'/patient-portal/profile'} element={<Profile />} />
+                    <Route path={'/patient-portal/appointments'} element={<Appointments/>}/>
+                    <Route path={'/patient-portal/lab-results'} element={<LabResults/>}/>
+                    <Route path={'/patient-portal/feedback'} element={<Feedback/>}/>
+                    <Route path={'/patient-portal/profile'} element={<Profile/>}/>
+                    <Route path={'/patient-portal/delete-account'} element={<DeleteAccount/>}/>
                 </Route>
             </Routes>
         </BrowserRouter>

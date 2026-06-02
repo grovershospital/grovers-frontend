@@ -1,6 +1,6 @@
-import { useState } from "react";
-import type { FormEvent } from "react";
-import { updatePassword } from "../../data/portal";
+import {useState} from "react";
+import type {FormEvent} from "react";
+import {updatePassword} from "../../data/portal";
 
 export default function ChangePasswordForm() {
     const [currentPassword, setCurrentPassword] = useState("");
@@ -31,7 +31,7 @@ export default function ChangePasswordForm() {
 
         setSubmitting(true);
         try {
-            await updatePassword({ currentPassword, newPassword });
+            await updatePassword({currentPassword, newPassword});
             setSuccess(true);
             setCurrentPassword("");
             setNewPassword("");
@@ -59,7 +59,7 @@ export default function ChangePasswordForm() {
                         autoComplete="current-password"
                         value={currentPassword}
                         onChange={(e) => setCurrentPassword(e.target.value)}
-                        className="w-full rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+                        className="w-full rounded-md border-1 border-neutral-300 bg-white px-4 py-2 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
                     />
                 </Row>
 
@@ -71,7 +71,7 @@ export default function ChangePasswordForm() {
                         autoComplete="new-password"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        className="w-full rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+                        className="w-full rounded-md border-1 border-neutral-300 bg-white px-4 py-2 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
                     />
                 </Row>
 
@@ -83,7 +83,7 @@ export default function ChangePasswordForm() {
                         autoComplete="new-password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="w-full rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+                        className="w-full rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
                     />
                 </Row>
 
@@ -91,7 +91,7 @@ export default function ChangePasswordForm() {
                     <button
                         type="submit"
                         disabled={submitting}
-                        className="inline-flex items-center justify-center rounded-full bg-brand-red px-10 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-blue focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-red disabled:opacity-60"
+                        className="inline-flex items-center justify-center cursor-pointer rounded-full bg-brand-red px-10 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-blue focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-red disabled:opacity-60"
                     >
                         {submitting ? "Updating…" : "Update Password"}
                     </button>

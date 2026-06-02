@@ -1,13 +1,13 @@
-import { useState } from "react";
-import type { FormEvent } from "react";
-import { updateContactDetails, type PortalProfile } from "../../data/portal";
+import {useState} from "react";
+import type {FormEvent} from "react";
+import {updateContactDetails, type PortalProfile} from "../../data/portal";
 
 type Props = {
     profile: PortalProfile;
     onUpdated: (updated: PortalProfile) => void;
 };
 
-export default function ContactDetailsForm({ profile, onUpdated }: Props) {
+export default function ContactDetailsForm({profile, onUpdated}: Props) {
     const [email, setEmail] = useState(profile.email);
     const [phone, setPhone] = useState(profile.phone);
     const [whatsapp, setWhatsapp] = useState(profile.whatsapp);
@@ -22,7 +22,7 @@ export default function ContactDetailsForm({ profile, onUpdated }: Props) {
         setSuccess(false);
         setSubmitting(true);
         try {
-            const updated = await updateContactDetails({ email, phone, whatsapp });
+            const updated = await updateContactDetails({email, phone, whatsapp});
             onUpdated(updated);
             setSuccess(true);
         } catch {
@@ -48,7 +48,7 @@ export default function ContactDetailsForm({ profile, onUpdated }: Props) {
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+                        className="w-full rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
                     />
                 </Row>
 
@@ -59,7 +59,7 @@ export default function ContactDetailsForm({ profile, onUpdated }: Props) {
                         required
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        className="w-full rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+                        className="w-full rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
                     />
                 </Row>
 
@@ -69,7 +69,7 @@ export default function ContactDetailsForm({ profile, onUpdated }: Props) {
                         type="tel"
                         value={whatsapp}
                         onChange={(e) => setWhatsapp(e.target.value)}
-                        className="w-full rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+                        className="w-full rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
                     />
                 </Row>
 
@@ -77,7 +77,7 @@ export default function ContactDetailsForm({ profile, onUpdated }: Props) {
                     <button
                         type="submit"
                         disabled={submitting}
-                        className="inline-flex items-center justify-center rounded-full bg-brand-red px-10 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-blue focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-red disabled:opacity-60"
+                        className="inline-flex items-center justify-center rounded-full bg-brand-red px-10 py-3 text-sm cursor-pointer font-semibold text-white transition-colors hover:bg-brand-blue focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-red disabled:opacity-60"
                     >
                         {submitting ? "Saving…" : "Save Changes"}
                     </button>
