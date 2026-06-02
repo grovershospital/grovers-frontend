@@ -14,6 +14,7 @@ import Signup from "./pages/Signup.tsx";
 import ForgotPassword from "./pages/ForgotPassword.tsx";
 import DashboardLayout from "./layouts/DashboardLayout.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
+import Appointments from "./components/portal/Appointments.tsx";
 
 export default function App() {
     return (
@@ -38,6 +39,7 @@ export default function App() {
                 {/* Patient portal (logged in) */}
                 <Route element={<DashboardLayout/>}>
                     <Route path={'/patient-portal/dashboard'} element={<Dashboard/>}/>
+                    <Route path={'/patient-portal/appointments'} element={<Appointments />}/>
                 </Route>
             </Routes>
         </BrowserRouter>
