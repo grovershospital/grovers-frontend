@@ -273,3 +273,150 @@ export async function fetchRecentLabResults(): Promise<LabResult[]> {
     //   return res.json();
     return Promise.resolve(STUB_LAB_RESULTS);
 }
+
+// ─── Lab result detail ───────────────────────────────────────
+
+export type LabResultFlag = "Normal" | "High" | "Low";
+
+export type LabComponent = {
+    name: string;
+    value: string;
+    unit: string;
+    referenceRange: string;
+    flag: LabResultFlag;
+};
+
+export type LabResultDetail = LabResult & {
+    dateFull: string;       // "15th May 2026" — full version w/ year for the details header
+    components: LabComponent[];
+};
+
+const STUB_LAB_DETAILS: Record<string, LabResultDetail> = {
+    l1: {
+        id: "l1",
+        date: "12th June",
+        dateFull: "12th June 2026",
+        test: "Annual Wellness Test",
+        status: "Ready to view",
+        components: [
+            { name: "Haemoglobin", value: "13.8", unit: "g/dL", referenceRange: "12.0 – 15.5", flag: "Normal" },
+            { name: "Total Cholesterol", value: "245", unit: "mg/dL", referenceRange: "< 200", flag: "High" },
+            { name: "Fasting Glucose", value: "68", unit: "mg/dL", referenceRange: "70 – 99", flag: "Low" },
+        ],
+    },
+    l3: {
+        id: "l3",
+        date: "[Date]",
+        dateFull: "[Date]",
+        test: "[Test]",
+        status: "Ready to view",
+        components: [
+            { name: "[Component]", value: "[Value]", unit: "[Unit]", referenceRange: "[Range]", flag: "Normal" },
+        ],
+    },
+};
+
+export async function fetchLabResultDetail(id: string): Promise<LabResultDetail> {
+    // TODO (backend): replace with
+    //   const res = await fetch(`/api/portal/lab-results/${id}`);
+    //   if (!res.ok) throw new Error("Failed to load lab result detail");
+    //   return res.json();
+    const detail = STUB_LAB_DETAILS[id];
+    if (!detail) return Promise.reject(new Error("Lab result not found"));
+    return Promise.resolve(detail);
+}
+
+export async function downloadLabResultPDF(id: string): Promise<void> {
+    // TODO (backend): replace with
+    //   const res = await fetch(`/api/portal/lab-results/${id}/pdf`);
+    //   if (!res.ok) throw new Error("Failed to download");
+    //   const blob = await res.blob();
+    //   const url = URL.createObjectURL(blob);
+    //   window.open(url, "_blank");
+    console.log("downloadLabResultPDF stub:", id);
+    return Promise.resolve();
+}
+
+// ─── Profile ─────────────────────────────────────────────────
+
+export type PortalProfile = PortalUser & {
+    dateOfBirth: string;    // display string e.g. "19th April 1987"
+    gender: string;
+    whatsapp: string;
+};
+
+const STUB_PROFILE: PortalProfile = {
+    firstName: "Jesse",
+    lastName: "Okache",
+    email: "email@testemail.com",
+    phone: "+2341234567890",
+    memberSince: "June 2026",
+    dateOfBirth: "19th April 1987",
+    gender: "Male",
+    whatsapp: "+2341234567890",
+};
+
+export type ContactDetailsInput = {
+    email: string;
+    phone: string;
+    whatsapp: string;
+};
+
+export type PasswordUpdateInput = {
+    currentPassword: string;
+    newPassword: string;
+};
+
+export async function fetchPortalProfile(): Promise<PortalProfile> {
+    // TODO (backend): replace with
+    //   const res = await fetch("/api/portal/profile");
+    //   if (!res.ok) throw new Error("Failed to load profile");
+    //   return res.json();
+    return Promise.resolve(STUB_PROFILE);
+}
+
+export async function updateContactDetails(input: ContactDetailsInput): Promise<PortalProfile> {
+    // TODO (backend): replace with
+    //   const res = await fetch("/api/portal/profile/contact", {
+    //     method: "PATCH",
+    //     headers: { "Content-Type": "application/json" },
+    //     credentials: "include",
+    //     body: JSON.stringify(input),
+    //   });
+    //   if (!res.ok) throw new Error("Failed to update contact details");
+    //   return res.json();
+    console.log("updateContactDetails stub:", input);
+    return Promise.resolve({ ...STUB_PROFILE, ...input });
+}
+
+export async function updatePassword(input: PasswordUpdateInput): Promise<void> {
+    // TODO (backend): replace with
+    //   const res = await fetch("/api/portal/profile/password", {
+    //     method: "PATCH",
+    //     headers: { "Content-Type": "application/json" },
+    //     credentials: "include",
+    //     body: JSON.stringify(input),
+    //   });
+    //   if (!res.ok) throw new Error("Failed to update password");
+    console.log("updatePassword stub");
+    return Promise.resolve();
+}
+
+export async function requestDataDownload(): Promise<void> {
+    // TODO (backend): replace with
+    //   const res = await fetch("/api/portal/profile/data-export", { method: "POST" });
+    //   if (!res.ok) throw new Error("Failed to request data download");
+    console.log("requestDataDownload stub");
+    return Promise.resolve();
+}
+
+export async function deleteAccount(): Promise<void> {
+    // TODO (backend): replace with
+    //   const res = await fetch("/api/portal/profile", {
+    //     method: "DELETE",
+    //     credentials: "include",
+    //   });
+    //   if (!res.ok) throw new Error("Failed to delete account");
+    console.log("deleteAccount stub");
+    return Promise.resolve();
+}
