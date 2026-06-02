@@ -12,6 +12,8 @@ import PatientPortal from "./pages/PatientPortal.tsx";
 import Login from "./pages/Login.tsx";
 import Signup from "./pages/Signup.tsx";
 import ForgotPassword from "./pages/ForgotPassword.tsx";
+import DashboardLayout from "./layouts/DashboardLayout.tsx";
+import Dashboard from "./pages/Dashboard.tsx";
 
 export default function App() {
     return (
@@ -20,10 +22,10 @@ export default function App() {
             <Routes>
                 {/* Everything inside here gets TopBar + Navbar + Footer */}
                 <Route element={<Layout/>}>
-                    <Route path={'/patient-portal'} element={<PatientPortal />}/>
-                    <Route path={'/patient-portal/login'} element={<Login />}/>
-                    <Route path={'patient-portal/signup'} element={<Signup />}/>
-                    <Route path={'patient-portal/forgot-password'} element={<ForgotPassword />}/>
+                    <Route path={'/patient-portal'} element={<PatientPortal/>}/>
+                    <Route path={'/patient-portal/login'} element={<Login/>}/>
+                    <Route path={'patient-portal/signup'} element={<Signup/>}/>
+                    <Route path={'patient-portal/forgot-password'} element={<ForgotPassword/>}/>
 
                     <Route path="/" element={<HomePage/>}/>
                     <Route path={"/about"} element={<About/>}/>
@@ -31,6 +33,11 @@ export default function App() {
                     <Route path={"/packages"} element={<Packages/>}/>
                     <Route path={"/resources"} element={<Resources/>}/>
                     <Route path={"/resources/:slug"} element={<ArticleDetail/>}/>
+                </Route>
+
+                {/* Patient portal (logged in) */}
+                <Route element={<DashboardLayout/>}>
+                    <Route path={'/patient-portal/dashboard'} element={<Dashboard/>}/>
                 </Route>
             </Routes>
         </BrowserRouter>
