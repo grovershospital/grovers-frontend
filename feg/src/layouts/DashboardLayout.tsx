@@ -2,32 +2,38 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { X } from "lucide-react";
 import DashboardTopBar from "../components/portal/DashboardTopBar";
+import DashboardFooter from "../components/portal/DashboardFooter";
 import Sidebar from "../components/portal/Sidebar";
 
 export default function DashboardLayout() {
     const [drawerOpen, setDrawerOpen] = useState(false);
 
     return (
-        <div className="min-h-screen bg-[#f9f7f0]">
-            {/* TopBar runs full width across both columns, sticky at the top. */}
+        <div className="flex min-h-screen flex-col bg-[#f9f7f0]">
             <DashboardTopBar onMenuClick={() => setDrawerOpen(true)} />
 
-            {/* 2-column grid sits BELOW the topbar. */}
-            <div className="lg:grid lg:grid-cols-[1fr_320px]">
-                <main className="px-4 py-8 sm:px-8 lg:px-12 lg:py-10">
-                    {/* max-w + mx-auto centers the content within the left column. */}
+            {/* Shell stretches to fill space between topbar and footer:                  */}
+            {/*   - mobile: flex column, `main` inside is flex-1 so it pushes footer down */}
+            {/*   - desktop: 2-col grid, both columns stretch to the shell's height       */}
+            <div className="flex flex-1 flex-col lg:grid lg:grid-cols-[1fr_320px]">
+                <main className="flex-1 px-4 py-8 sm:px-8 lg:px-12 lg:py-10">
                     <div className="mx-auto max-w-4xl">
                         <Outlet />
                     </div>
                 </main>
 
-                {/* Sidebar — sticky just below the topbar. */}
-                {/* top-16 matches the topbar's h-16 so it sits flush with its bottom edge. */}
-                {/* h-[calc(100vh-4rem)] fills the remaining viewport height. */}
-                <aside className="hidden bg-[#0f1623] lg:sticky lg:top-16 lg:block lg:h-[calc(100vh-4rem)] lg:overflow-y-auto">
-                    <Sidebar />
+                {/* Dark bg lives on the outer <aside> which stretches to fill the grid */}
+                {/* track — so the right column is always dark even on short pages.     */}
+                {/* The inner sticky div handles pinning + viewport-height sizing for   */}
+                {/* long pages where the sidebar needs to scroll independently.         */}
+                <aside className="hidden bg-[#0f1623] lg:block">
+                    <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
+                        <Sidebar />
+                    </div>
                 </aside>
             </div>
+
+            <DashboardFooter />
 
             {/* Mobile drawer — unchanged. */}
             {drawerOpen && (

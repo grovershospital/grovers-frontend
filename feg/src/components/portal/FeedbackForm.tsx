@@ -87,7 +87,7 @@ export default function FeedbackForm() {
                         required
                         value={type}
                         onChange={(e) => setType(e.target.value as FeedbackType)}
-                        className="w-full rounded-full border border-neutral-300 bg-white px-4 py-2.5 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+                        className="w-full rounded-md border border-neutral-300 bg-white px-4 py-2.5 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
                     >
                         <option value="" disabled>
                             Select a type
@@ -134,7 +134,7 @@ export default function FeedbackForm() {
                         required
                         value={department}
                         onChange={(e) => setDepartment(e.target.value)}
-                        className="w-full rounded-full border border-neutral-300 bg-white px-4 py-2.5 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+                        className="w-full rounded-md border border-neutral-300 bg-white px-4 py-2.5 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
                     >
                         <option value="" disabled>
                             Select a department
@@ -159,7 +159,7 @@ export default function FeedbackForm() {
                         required
                         value={wantsResponse}
                         onChange={(e) => setWantsResponse(e.target.value as "yes" | "no")}
-                        className="w-full rounded-full border border-neutral-300 bg-white px-4 py-2.5 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+                        className="w-full rounded-md border border-neutral-300 bg-white px-4 py-2.5 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
                     >
                         <option value="" disabled>
                             Choose one
