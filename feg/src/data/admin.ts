@@ -566,10 +566,39 @@ export async function updateBookingStatus(
         ],
     };
 
-    return Promise.resolve({
-        booking: updated,
-        visitId: update.status === "Completed" ? `vs_${Date.now()}` : undefined,
-    });
+    // Persist the booking change back into the stub array so subsequent reads
+    // see the new status (and don't show stale Pending after a reload).
+    const idx = STUB_BOOKINGS.findIndex((b) => b.id === id);
+    STUB_BOOKINGS[idx] = updated;
+
+    // When transitioning to Completed, mimic the backend's auto-stub Visit
+    // creation so the deep-link navigation lands on a real record.
+    let visitId: string | undefined;
+    if (update.status === "Completed") {
+        visitId = `vs_${Date.now()}`;
+        const newVisit: AdminVisitDetail = {
+            id: visitId,
+            patientId: booking.patientId,
+            visitDate: booking.preferredDate,
+            department: booking.department,
+            attendingDoctorText: "",
+            chiefComplaint: "",
+            status: "Draft",
+            bookingShortId: booking.shortId,
+            diagnosis: "",
+            treatment: "",
+            clinicalNotes: "",
+            followUpRequired: false,
+            followUpDate: "",
+            followUpInstructions: "",
+        };
+        STUB_VISITS[booking.patientId] = [
+            ...(STUB_VISITS[booking.patientId] ?? []),
+            newVisit,
+        ];
+    }
+
+    return Promise.resolve({ booking: updated, visitId });
 }
 
 function toSummary(b: AdminBookingDetail): AdminBookingSummary {

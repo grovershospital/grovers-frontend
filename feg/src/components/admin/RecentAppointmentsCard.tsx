@@ -21,7 +21,7 @@ export default function RecentAppointmentsCard({ appointments }: Props) {
             <div className="mb-6 flex items-center justify-between">
                 <h2 className="text-xl font-bold text-brand-ink">Recent Appointments</h2>
                 <Link
-                    to="/admin/appointments"
+                    to="/admin/bookings"
                     className="text-sm text-brand-red underline underline-offset-2 hover:no-underline"
                 >
                     View all
