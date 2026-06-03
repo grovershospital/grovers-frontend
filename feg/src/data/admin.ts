@@ -1104,3 +1104,317 @@ function toVisitSummary(v: AdminVisitDetail): AdminVisitSummary {
         bookingShortId: v.bookingShortId,
     };
 }
+
+// ─── Lab Results (admin) ─────────────────────────────────────
+
+export type AdminLabResultStatus = "Pending" | "Ready to view";
+
+export type AdminLabComponentFlag = "Normal" | "High" | "Low" | "Critical low" | "Critical high" | "Abnormal";
+
+export type AdminLabComponent = {
+    id: string;
+    name: string;
+    value: string;
+    unit: string;
+    referenceRange: string;
+    flag: AdminLabComponentFlag;
+};
+
+export type AdminLabResultFile = {
+    id: string;
+    fileName: string;
+    contentType: string;
+    sizeBytes: number;
+    uploadedAtDisplay: string;
+};
+
+export type AdminLabResultSummary = {
+    id: string;
+    patientId: string;
+    title: string;            // e.g. "Annual Wellness Test"
+    testDate: string;         // display e.g. "12th May 2026"
+    bookingShortId: string | null;
+    status: AdminLabResultStatus;
+    componentCount: number;
+    fileCount: number;
+};
+
+export type AdminLabResultDetail = AdminLabResultSummary & {
+    description: string;
+    components: AdminLabComponent[];
+    files: AdminLabResultFile[];
+};
+
+const STUB_LAB_RESULTS: Record<string, AdminLabResultDetail[]> = {
+    pt_001: [
+        {
+            id: "lr_001",
+            patientId: "pt_001",
+            title: "Annual Wellness Test",
+            testDate: "12th May 2026",
+            bookingShortId: "i9j0k1",
+            status: "Ready to view",
+            description: "Standard annual blood panel. Patient fasted overnight.",
+            componentCount: 3,
+            fileCount: 1,
+            components: [
+                {
+                    id: "cm_001",
+                    name: "Haemoglobin",
+                    value: "13.8",
+                    unit: "g/dL",
+                    referenceRange: "12.0 – 15.5",
+                    flag: "Normal",
+                },
+                {
+                    id: "cm_002",
+                    name: "Total Cholesterol",
+                    value: "245",
+                    unit: "mg/dL",
+                    referenceRange: "< 200",
+                    flag: "High",
+                },
+                {
+                    id: "cm_003",
+                    name: "Fasting Glucose",
+                    value: "68",
+                    unit: "mg/dL",
+                    referenceRange: "70 – 99",
+                    flag: "Low",
+                },
+            ],
+            files: [
+                {
+                    id: "fl_001",
+                    fileName: "annual_wellness_2026_05.pdf",
+                    contentType: "application/pdf",
+                    sizeBytes: 248_320,
+                    uploadedAtDisplay: "12th May 2026",
+                },
+            ],
+        },
+    ],
+    pt_002: [],
+};
+
+export type LabResultCreateInput = {
+    title: string;
+    description: string;
+    testDate: string;
+    bookingShortId?: string;
+};
+
+export type LabComponentInput = Omit<AdminLabComponent, "id">;
+
+// --- Lab Result list/detail fetchers ---
+
+export async function fetchAdminLabResults(
+    patientId: string,
+): Promise<AdminLabResultSummary[]> {
+    // TODO (backend): api.get(`/admin/patients/${patientId}/results`)
+    const list = STUB_LAB_RESULTS[patientId] ?? [];
+    return Promise.resolve(list.map(toLabResultSummary));
+}
+
+export async function fetchAdminLabResult(
+    resultId: string,
+): Promise<AdminLabResultDetail> {
+    // TODO (backend): api.get(`/admin/results/${resultId}`)
+    for (const patientId of Object.keys(STUB_LAB_RESULTS)) {
+        const found = STUB_LAB_RESULTS[patientId].find((r) => r.id === resultId);
+        if (found) return Promise.resolve(found);
+    }
+    return Promise.reject(new Error("Lab result not found"));
+}
+
+export async function createAdminLabResult(
+    patientId: string,
+    input: LabResultCreateInput,
+): Promise<AdminLabResultDetail> {
+    // TODO (backend): api.post(`/admin/patients/${patientId}/results`, input)
+    const created: AdminLabResultDetail = {
+        id: `lr_${Date.now()}`,
+        patientId,
+        title: input.title,
+        description: input.description,
+        testDate: input.testDate,
+        bookingShortId: input.bookingShortId ?? null,
+        status: "Pending",
+        components: [],
+        files: [],
+        componentCount: 0,
+        fileCount: 0,
+    };
+    STUB_LAB_RESULTS[patientId] = [...(STUB_LAB_RESULTS[patientId] ?? []), created];
+    return Promise.resolve(created);
+}
+
+export async function updateLabResultStatus(
+    resultId: string,
+    status: AdminLabResultStatus,
+): Promise<AdminLabResultDetail> {
+    // TODO (backend): api.put(`/admin/results/${resultId}/status`, { status })
+    const result = await mutateLabResult(resultId, (r) => ({ ...r, status }));
+    return result;
+}
+
+export async function deleteAdminLabResult(resultId: string): Promise<void> {
+    // TODO (backend): api.delete(`/admin/results/${resultId}`)
+    for (const patientId of Object.keys(STUB_LAB_RESULTS)) {
+        STUB_LAB_RESULTS[patientId] = STUB_LAB_RESULTS[patientId].filter(
+            (r) => r.id !== resultId,
+        );
+    }
+    return Promise.resolve();
+}
+
+// --- Component fetchers ---
+
+export async function addLabComponent(
+    resultId: string,
+    input: LabComponentInput,
+): Promise<AdminLabComponent> {
+    // TODO (backend): api.post(`/admin/results/${resultId}/components`, input)
+    const created: AdminLabComponent = { id: `cm_${Date.now()}`, ...input };
+    await mutateLabResult(resultId, (r) => ({
+        ...r,
+        components: [...r.components, created],
+        componentCount: r.components.length + 1,
+    }));
+    return Promise.resolve(created);
+}
+
+export async function bulkReplaceLabComponents(
+    resultId: string,
+    inputs: LabComponentInput[],
+): Promise<AdminLabComponent[]> {
+    // TODO (backend): api.put(`/admin/results/${resultId}/components/bulk`, inputs)
+    const replaced: AdminLabComponent[] = inputs.map((input, i) => ({
+        id: `cm_${Date.now()}_${i}`,
+        ...input,
+    }));
+    await mutateLabResult(resultId, (r) => ({
+        ...r,
+        components: replaced,
+        componentCount: replaced.length,
+    }));
+    return Promise.resolve(replaced);
+}
+
+export async function updateLabComponent(
+    componentId: string,
+    input: LabComponentInput,
+): Promise<AdminLabComponent> {
+    // TODO (backend): api.put(`/admin/components/${componentId}`, input)
+    let updated: AdminLabComponent | null = null;
+    for (const patientId of Object.keys(STUB_LAB_RESULTS)) {
+        for (let ri = 0; ri < STUB_LAB_RESULTS[patientId].length; ri++) {
+            const result = STUB_LAB_RESULTS[patientId][ri];
+            const ci = result.components.findIndex((c) => c.id === componentId);
+            if (ci >= 0) {
+                updated = { id: componentId, ...input };
+                const newComponents = [
+                    ...result.components.slice(0, ci),
+                    updated,
+                    ...result.components.slice(ci + 1),
+                ];
+                STUB_LAB_RESULTS[patientId][ri] = {
+                    ...result,
+                    components: newComponents,
+                };
+                return Promise.resolve(updated);
+            }
+        }
+    }
+    return Promise.reject(new Error("Component not found"));
+}
+
+export async function deleteLabComponent(componentId: string): Promise<void> {
+    // TODO (backend): api.delete(`/admin/components/${componentId}`)
+    for (const patientId of Object.keys(STUB_LAB_RESULTS)) {
+        for (let ri = 0; ri < STUB_LAB_RESULTS[patientId].length; ri++) {
+            const result = STUB_LAB_RESULTS[patientId][ri];
+            const newComponents = result.components.filter((c) => c.id !== componentId);
+            if (newComponents.length !== result.components.length) {
+                STUB_LAB_RESULTS[patientId][ri] = {
+                    ...result,
+                    components: newComponents,
+                    componentCount: newComponents.length,
+                };
+                return Promise.resolve();
+            }
+        }
+    }
+    return Promise.resolve();
+}
+
+// --- File fetchers ---
+
+export async function uploadLabResultFile(
+    resultId: string,
+    file: File,
+): Promise<AdminLabResultFile> {
+    // TODO (backend): api.upload(`/admin/results/${resultId}/files`, file)
+    const created: AdminLabResultFile = {
+        id: `fl_${Date.now()}`,
+        fileName: file.name,
+        contentType: file.type,
+        sizeBytes: file.size,
+        uploadedAtDisplay: "Just now",
+    };
+    await mutateLabResult(resultId, (r) => ({
+        ...r,
+        files: [...r.files, created],
+        fileCount: r.files.length + 1,
+    }));
+    return Promise.resolve(created);
+}
+
+export async function deleteLabResultFile(fileId: string): Promise<void> {
+    // TODO (backend): api.delete(`/admin/result-files/${fileId}`)
+    for (const patientId of Object.keys(STUB_LAB_RESULTS)) {
+        for (let ri = 0; ri < STUB_LAB_RESULTS[patientId].length; ri++) {
+            const result = STUB_LAB_RESULTS[patientId][ri];
+            const newFiles = result.files.filter((f) => f.id !== fileId);
+            if (newFiles.length !== result.files.length) {
+                STUB_LAB_RESULTS[patientId][ri] = {
+                    ...result,
+                    files: newFiles,
+                    fileCount: newFiles.length,
+                };
+                return Promise.resolve();
+            }
+        }
+    }
+    return Promise.resolve();
+}
+
+// --- helpers ---
+
+function toLabResultSummary(r: AdminLabResultDetail): AdminLabResultSummary {
+    return {
+        id: r.id,
+        patientId: r.patientId,
+        title: r.title,
+        testDate: r.testDate,
+        bookingShortId: r.bookingShortId,
+        status: r.status,
+        componentCount: r.componentCount,
+        fileCount: r.fileCount,
+    };
+}
+
+async function mutateLabResult(
+    resultId: string,
+    fn: (r: AdminLabResultDetail) => AdminLabResultDetail,
+): Promise<AdminLabResultDetail> {
+    for (const patientId of Object.keys(STUB_LAB_RESULTS)) {
+        const idx = STUB_LAB_RESULTS[patientId].findIndex((r) => r.id === resultId);
+        if (idx >= 0) {
+            const updated = fn(STUB_LAB_RESULTS[patientId][idx]);
+            STUB_LAB_RESULTS[patientId][idx] = updated;
+            return Promise.resolve(updated);
+        }
+    }
+    return Promise.reject(new Error("Lab result not found"));
+}
