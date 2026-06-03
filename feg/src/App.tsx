@@ -36,6 +36,8 @@ import LabResultsTab from "./components/admin/patient/LabResultsTab.tsx";
 import DocumentsTab from "./components/admin/patient/DocumentsTab.tsx";
 import AdminLabResults from "./components/admin/AdminLabResults.tsx";
 import AdminProfileUpdateRequests from "./components/admin/AdminProfileUpdateRequests.tsx";
+import AdminBlogPosts from "./components/admin/AdminBlogPosts.tsx";
+import AdminBlogPostEditor from "./components/admin/AdminBlogPostEditor.tsx";
 
 export default function App() {
     return (
@@ -74,7 +76,10 @@ export default function App() {
                     <Route path={'/admin/lab-results'} element={<AdminLabResults/>}/>
                     <Route path={'/admin/bookings/:id'} element={<AdminBookingDetail/>}/>
                     <Route path={'/admin/feedback'} element={<AdminFeedback/>}/>
-                    <Route path={'/admin/profile-update-requests'} element={<AdminProfileUpdateRequests />}/>
+                    <Route path={'/admin/profile-update-requests'} element={<AdminProfileUpdateRequests/>}/>
+                    <Route path={'/admin/blog-posts'} element={<AdminBlogPosts/>}/>
+                    <Route path='/admin/blog-posts/new' element={<AdminBlogPostEditor/>}/>
+                    <Route path={'/admin/blog-posts/:slug/edit'} element={<AdminBlogPostEditor/>}/>
 
                     {/*Patients - List + nested tab routes*/}
                     <Route path={'/admin/patients'} element={<AdminPatients/>}/>
