@@ -1418,3 +1418,137 @@ async function mutateLabResult(
     }
     return Promise.reject(new Error("Lab result not found"));
 }
+
+// ─── Documents ───────────────────────────────────────────────
+
+export type DocumentCategory =
+    | "INSURANCE"
+    | "EXTERNAL_REPORT"
+    | "REFERRAL"
+    | "PRESCRIPTION"
+    | "IDENTIFICATION"
+    | "CONSENT_FORM"
+    | "OTHER";
+
+export const DOCUMENT_CATEGORIES: ReadonlyArray<DocumentCategory> = [
+    "INSURANCE",
+    "EXTERNAL_REPORT",
+    "REFERRAL",
+    "PRESCRIPTION",
+    "IDENTIFICATION",
+    "CONSENT_FORM",
+    "OTHER",
+];
+
+export const CATEGORY_LABEL: Record<DocumentCategory, string> = {
+    INSURANCE: "Insurance",
+    EXTERNAL_REPORT: "External report",
+    REFERRAL: "Referral",
+    PRESCRIPTION: "Prescription",
+    IDENTIFICATION: "Identification",
+    CONSENT_FORM: "Consent form",
+    OTHER: "Other",
+};
+
+export type DocumentUploaderType = "PATIENT" | "ADMIN";
+
+export type AdminDocument = {
+    id: string;
+    patientId: string;
+    title: string;
+    category: DocumentCategory;
+    uploaderType: DocumentUploaderType;
+    uploadedByName: string;
+    originalFileName: string;
+    contentType: string;
+    sizeBytes: number;
+    uploadedAtDisplay: string;
+};
+
+const STUB_DOCUMENTS: Record<string, AdminDocument[]> = {
+    pt_001: [
+        {
+            id: "doc_001",
+            patientId: "pt_001",
+            title: "AXA Mansard insurance card",
+            category: "INSURANCE",
+            uploaderType: "PATIENT",
+            uploadedByName: "Jesse Okache",
+            originalFileName: "axa_card_jesse.pdf",
+            contentType: "application/pdf",
+            sizeBytes: 142_500,
+            uploadedAtDisplay: "12th May 2026",
+        },
+        {
+            id: "doc_002",
+            patientId: "pt_001",
+            title: "Referral from LUTH Cardiology",
+            category: "REFERRAL",
+            uploaderType: "ADMIN",
+            uploadedByName: "Admin User",
+            originalFileName: "luth_referral_2026.pdf",
+            contentType: "application/pdf",
+            sizeBytes: 248_000,
+            uploadedAtDisplay: "3rd May 2026",
+        },
+    ],
+    pt_002: [],
+};
+
+export type DocumentUploadInput = {
+    title: string;
+    category: DocumentCategory;
+    file: File;
+};
+
+export async function fetchAdminDocuments(
+    patientId: string,
+): Promise<AdminDocument[]> {
+    // TODO (backend): api.get(`/admin/patients/${patientId}/documents`)
+    return Promise.resolve(STUB_DOCUMENTS[patientId] ?? []);
+}
+
+export async function uploadAdminDocument(
+    patientId: string,
+    input: DocumentUploadInput,
+): Promise<AdminDocument> {
+    // TODO (backend): api.upload(`/admin/patients/${patientId}/documents`, input)
+    //   multipart/form-data with `title`, `category`, and the `file`.
+    const created: AdminDocument = {
+        id: `doc_${Date.now()}`,
+        patientId,
+        title: input.title || input.file.name,
+        category: input.category,
+        uploaderType: "ADMIN",
+        uploadedByName: "Admin User",
+        originalFileName: input.file.name,
+        contentType: input.file.type,
+        sizeBytes: input.file.size,
+        uploadedAtDisplay: "Just now",
+    };
+    STUB_DOCUMENTS[patientId] = [created, ...(STUB_DOCUMENTS[patientId] ?? [])];
+    return Promise.resolve(created);
+}
+
+export async function deleteAdminDocument(documentId: string): Promise<void> {
+    // TODO (backend): api.delete(`/admin/documents/${documentId}`)
+    for (const patientId of Object.keys(STUB_DOCUMENTS)) {
+        STUB_DOCUMENTS[patientId] = STUB_DOCUMENTS[patientId].filter(
+            (d) => d.id !== documentId,
+        );
+    }
+    return Promise.resolve();
+}
+
+export async function downloadAdminDocument(documentId: string): Promise<void> {
+    // TODO (backend): api.get(`/admin/documents/${documentId}/download`)
+    //   Stream the response as a blob and trigger a browser download.
+    //   Frontend pattern:
+    //     const blob = await api.getBlob(...);
+    //     const url = URL.createObjectURL(blob);
+    //     const a = document.createElement("a");
+    //     a.href = url; a.download = doc.originalFileName; a.click();
+    //     URL.revokeObjectURL(url);
+    console.log("downloadAdminDocument stub:", documentId);
+    return Promise.resolve();
+}

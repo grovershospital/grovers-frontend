@@ -33,6 +33,7 @@ import ConditionsTab from "./components/admin/patient/ConditionsTab.tsx";
 import VisitsTab from "./components/admin/patient/VisitsTab.tsx";
 import AdminVisitEdit from "./components/admin/AdminVisitEdit.tsx";
 import LabResultsTab from "./components/admin/patient/LabResultsTab.tsx";
+import DocumentsTab from "./components/admin/patient/DocumentsTab.tsx";
 
 export default function App() {
     return (
@@ -81,6 +82,7 @@ export default function App() {
                         <Route path={'conditions'} element={<ConditionsTab/>}/>
                         <Route path={'visits'} element={<VisitsTab />}/>
                         <Route path={'lab-results'} element={<LabResultsTab />}/>
+                        <Route path={'documents'} element={<DocumentsTab />}/>
                     </Route>
 
                     <Route path={'/admin/visits/:visitId/edit'} element={<AdminVisitEdit />}/>
