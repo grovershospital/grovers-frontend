@@ -586,3 +586,212 @@ function toSummary(b: AdminBookingDetail): AdminBookingSummary {
         createdAtDisplay: b.createdAtDisplay,
     };
 }
+
+// ─── Patients ────────────────────────────────────────────────
+
+export type AdminPatientSummary = {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    memberSinceDisplay: string;
+    bookingCount: number;
+};
+
+export type AdminPatientProfile = AdminPatientSummary & {
+    dateOfBirth: string;        // display e.g. "19th April 1987"
+    gender: "Male" | "Female" | "Other" | "Not specified";
+    whatsapp: string | null;
+    address: string | null;
+};
+
+export type BloodGroup =
+    | "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-"
+    | "Unknown";
+
+export type Genotype = "AA" | "AS" | "AC" | "SS" | "SC" | "Unknown";
+
+export type AdminHealthProfile = {
+    patientId: string;
+    bloodGroup: BloodGroup;
+    genotype: Genotype;
+    heightCm: string;           // string-typed for empty-input handling, parsed on submit
+    weightKg: string;
+    allergies: string;
+    emergencyContactName: string;
+    emergencyContactPhone: string;
+    clinicalNotes: string;
+};
+
+const STUB_PATIENTS: AdminPatientProfile[] = [
+    {
+        id: "pt_001",
+        firstName: "Jesse",
+        lastName: "Okache",
+        email: "jesse.okache@example.com",
+        phone: "+2347168909864",
+        memberSinceDisplay: "June 2026",
+        bookingCount: 4,
+        dateOfBirth: "19th April 1987",
+        gender: "Male",
+        whatsapp: "+2347168909864",
+        address: "12 Adetola Street, Surulere, Lagos",
+    },
+    {
+        id: "pt_002",
+        firstName: "Amina",
+        lastName: "Bello",
+        email: "amina.bello@example.com",
+        phone: "+2348012345678",
+        memberSinceDisplay: "March 2026",
+        bookingCount: 8,
+        dateOfBirth: "3rd September 1992",
+        gender: "Female",
+        whatsapp: "+2348012345678",
+        address: "44 Bourdillon Road, Ikoyi, Lagos",
+    },
+    {
+        id: "pt_003",
+        firstName: "Tunde",
+        lastName: "Adekunle",
+        email: "tunde.a@example.com",
+        phone: "+2348098765432",
+        memberSinceDisplay: "January 2026",
+        bookingCount: 12,
+        dateOfBirth: "11th February 1975",
+        gender: "Male",
+        whatsapp: null,
+        address: "8 Bishop Street, Yaba, Lagos",
+    },
+    {
+        id: "pt_004",
+        firstName: "Chiamaka",
+        lastName: "Eze",
+        email: "chiamaka.e@example.com",
+        phone: "+2348055556666",
+        memberSinceDisplay: "April 2026",
+        bookingCount: 3,
+        dateOfBirth: "28th December 1988",
+        gender: "Female",
+        whatsapp: "+2348055556666",
+        address: null,
+    },
+    {
+        id: "pt_005",
+        firstName: "Femi",
+        lastName: "Adesanya",
+        email: "femi.a@example.com",
+        phone: "+2348011112222",
+        memberSinceDisplay: "May 2026",
+        bookingCount: 2,
+        dateOfBirth: "5th October 1990",
+        gender: "Male",
+        whatsapp: null,
+        address: "23 Allen Avenue, Ikeja, Lagos",
+    },
+];
+
+const STUB_HEALTH_PROFILES: Record<string, AdminHealthProfile> = {
+    pt_001: {
+        patientId: "pt_001",
+        bloodGroup: "O+",
+        genotype: "AA",
+        heightCm: "178",
+        weightKg: "82",
+        allergies: "Penicillin (mild rash). No known food allergies.",
+        emergencyContactName: "Adaeze Okache",
+        emergencyContactPhone: "+2348022223333",
+        clinicalNotes:
+            "Generally healthy. Mild hypertension noted in last annual check-up — under observation, no medication yet.",
+    },
+    pt_002: {
+        patientId: "pt_002",
+        bloodGroup: "A+",
+        genotype: "AS",
+        heightCm: "165",
+        weightKg: "62",
+        allergies: "None known.",
+        emergencyContactName: "Yusuf Bello",
+        emergencyContactPhone: "+2348044445555",
+        clinicalNotes: "",
+    },
+};
+
+export type AdminPatientPage = {
+    entries: AdminPatientSummary[];
+    total: number;
+    page: number;
+    pageSize: number;
+};
+
+export async function fetchAdminPatients(
+    search: string,
+    page: number,
+    pageSize: number,
+): Promise<AdminPatientPage> {
+    // TODO (backend): api.get("/admin/patients", { params: { search, page, size: pageSize } })
+    const q = search.trim().toLowerCase();
+    const filtered = q
+        ? STUB_PATIENTS.filter((p) => {
+            const haystack =
+                `${p.firstName} ${p.lastName} ${p.email} ${p.phone}`.toLowerCase();
+            return haystack.includes(q);
+        })
+        : STUB_PATIENTS;
+
+    const start = (page - 1) * pageSize;
+    const entries = filtered.slice(start, start + pageSize).map(toPatientSummary);
+
+    return Promise.resolve({ entries, total: filtered.length, page, pageSize });
+}
+
+export async function fetchAdminPatient(id: string): Promise<AdminPatientProfile> {
+    // TODO (backend): api.get(`/admin/patients/${id}`)
+    const patient = STUB_PATIENTS.find((p) => p.id === id);
+    if (!patient) return Promise.reject(new Error("Patient not found"));
+    return Promise.resolve(patient);
+}
+
+export async function fetchAdminHealthProfile(
+    patientId: string,
+): Promise<AdminHealthProfile> {
+    // TODO (backend): api.get(`/admin/patients/${patientId}/health-profile`)
+    //   Backend auto-creates an empty profile on first GET — never 404s.
+    const profile = STUB_HEALTH_PROFILES[patientId];
+    if (profile) return Promise.resolve(profile);
+    // Empty profile fallback (mimics backend's auto-create behavior).
+    return Promise.resolve({
+        patientId,
+        bloodGroup: "Unknown",
+        genotype: "Unknown",
+        heightCm: "",
+        weightKg: "",
+        allergies: "",
+        emergencyContactName: "",
+        emergencyContactPhone: "",
+        clinicalNotes: "",
+    });
+}
+
+export async function updateAdminHealthProfile(
+    patientId: string,
+    profile: AdminHealthProfile,
+): Promise<AdminHealthProfile> {
+    // TODO (backend): api.put(`/admin/patients/${patientId}/health-profile`, profile)
+    console.log("updateAdminHealthProfile stub:", patientId, profile);
+    STUB_HEALTH_PROFILES[patientId] = profile;
+    return Promise.resolve(profile);
+}
+
+function toPatientSummary(p: AdminPatientProfile): AdminPatientSummary {
+    return {
+        id: p.id,
+        firstName: p.firstName,
+        lastName: p.lastName,
+        email: p.email,
+        phone: p.phone,
+        memberSinceDisplay: p.memberSinceDisplay,
+        bookingCount: p.bookingCount,
+    };
+}
