@@ -1621,3 +1621,193 @@ export async function fetchCrossPatientLabResults(
         pageSize,
     });
 }
+
+// ─── Profile Update Requests ─────────────────────────────────
+
+export type ProfileUpdateField =
+    | "BLOOD_GROUP"
+    | "GENOTYPE"
+    | "ALLERGIES"
+    | "OTHER";
+
+export const PROFILE_FIELD_LABEL: Record<ProfileUpdateField, string> = {
+    BLOOD_GROUP: "Blood group",
+    GENOTYPE: "Genotype",
+    ALLERGIES: "Allergies",
+    OTHER: "Other",
+};
+
+export type ProfileUpdateStatus = "Pending" | "Approved" | "Rejected";
+
+export type ProfileUpdateRequest = {
+    id: string;
+    patientId: string;
+    patientName: string;
+    field: ProfileUpdateField;
+    currentValue: string;
+    proposedValue: string;
+    patientNote: string;
+    status: ProfileUpdateStatus;
+    submittedAtDisplay: string;
+    adminResponse: string | null;
+    decidedAtDisplay: string | null;
+    decidedByName: string | null;
+};
+
+const STUB_PROFILE_UPDATE_REQUESTS: ProfileUpdateRequest[] = [
+    {
+        id: "pur_001",
+        patientId: "pt_001",
+        patientName: "Jesse Okache",
+        field: "BLOOD_GROUP",
+        currentValue: "O+",
+        proposedValue: "A+",
+        patientNote:
+            "My recent blood test showed A+. I'd like to update this in my profile.",
+        status: "Pending",
+        submittedAtDisplay: "2 hours ago",
+        adminResponse: null,
+        decidedAtDisplay: null,
+        decidedByName: null,
+    },
+    {
+        id: "pur_002",
+        patientId: "pt_002",
+        patientName: "Amina Bello",
+        field: "ALLERGIES",
+        currentValue: "None known.",
+        proposedValue:
+            "Penicillin (severe reaction noted by GP last week). No food allergies.",
+        patientNote: "Reaction to penicillin documented by my GP last week.",
+        status: "Pending",
+        submittedAtDisplay: "Yesterday",
+        adminResponse: null,
+        decidedAtDisplay: null,
+        decidedByName: null,
+    },
+    {
+        id: "pur_003",
+        patientId: "pt_003",
+        patientName: "Tunde Adekunle",
+        field: "OTHER",
+        currentValue: "—",
+        proposedValue: "Update emergency contact phone number",
+        patientNote:
+            "My emergency contact (my wife) has a new number: +2348011112233. Please update.",
+        status: "Pending",
+        submittedAtDisplay: "Yesterday",
+        adminResponse: null,
+        decidedAtDisplay: null,
+        decidedByName: null,
+    },
+    {
+        id: "pur_004",
+        patientId: "pt_001",
+        patientName: "Jesse Okache",
+        field: "GENOTYPE",
+        currentValue: "AA",
+        proposedValue: "AS",
+        patientNote: "Recent test confirmed AS, not AA as originally recorded.",
+        status: "Approved",
+        submittedAtDisplay: "3 days ago",
+        adminResponse: "Applied. Lab report attached to file.",
+        decidedAtDisplay: "2 days ago",
+        decidedByName: "Admin User",
+    },
+    {
+        id: "pur_005",
+        patientId: "pt_004",
+        patientName: "Chiamaka Eze",
+        field: "BLOOD_GROUP",
+        currentValue: "Unknown",
+        proposedValue: "B+",
+        patientNote: "From my recent prenatal panel.",
+        status: "Rejected",
+        submittedAtDisplay: "4 days ago",
+        adminResponse:
+            "Please email a scan of the lab report so we can verify before updating.",
+        decidedAtDisplay: "3 days ago",
+        decidedByName: "Admin User",
+    },
+];
+
+export type ProfileUpdateFilters = {
+    status?: ProfileUpdateStatus | "all";
+};
+
+export type ProfileUpdatePage = {
+    entries: ProfileUpdateRequest[];
+    total: number;
+    page: number;
+    pageSize: number;
+};
+
+export async function fetchProfileUpdateRequests(
+    filters: ProfileUpdateFilters,
+    page: number,
+    pageSize: number,
+): Promise<ProfileUpdatePage> {
+    // TODO (backend): api.get("/admin/profile-update-requests", { params: { ...filters, page, size: pageSize } })
+    const filtered = STUB_PROFILE_UPDATE_REQUESTS.filter((r) => {
+        if (
+            filters.status &&
+            filters.status !== "all" &&
+            r.status !== filters.status
+        )
+            return false;
+        return true;
+    });
+
+    const start = (page - 1) * pageSize;
+    const entries = filtered.slice(start, start + pageSize);
+
+    return Promise.resolve({
+        entries,
+        total: filtered.length,
+        page,
+        pageSize,
+    });
+}
+
+export async function fetchProfileUpdateRequest(
+    id: string,
+): Promise<ProfileUpdateRequest> {
+    // TODO (backend): api.get(`/admin/profile-update-requests/${id}`)
+    const req = STUB_PROFILE_UPDATE_REQUESTS.find((r) => r.id === id);
+    if (!req) return Promise.reject(new Error("Request not found"));
+    return Promise.resolve(req);
+}
+
+export async function approveProfileUpdateRequest(
+    id: string,
+    adminResponse: string,
+): Promise<ProfileUpdateRequest> {
+    // TODO (backend): api.post(`/admin/profile-update-requests/${id}/approve`, { adminResponse })
+    return decideRequest(id, "Approved", adminResponse);
+}
+
+export async function rejectProfileUpdateRequest(
+    id: string,
+    adminResponse: string,
+): Promise<ProfileUpdateRequest> {
+    // TODO (backend): api.post(`/admin/profile-update-requests/${id}/reject`, { adminResponse })
+    return decideRequest(id, "Rejected", adminResponse);
+}
+
+function decideRequest(
+    id: string,
+    status: ProfileUpdateStatus,
+    adminResponse: string,
+): Promise<ProfileUpdateRequest> {
+    const idx = STUB_PROFILE_UPDATE_REQUESTS.findIndex((r) => r.id === id);
+    if (idx < 0) return Promise.reject(new Error("Request not found"));
+    const updated: ProfileUpdateRequest = {
+        ...STUB_PROFILE_UPDATE_REQUESTS[idx],
+        status,
+        adminResponse: adminResponse || null,
+        decidedAtDisplay: "Just now",
+        decidedByName: "Admin User",
+    };
+    STUB_PROFILE_UPDATE_REQUESTS[idx] = updated;
+    return Promise.resolve(updated);
+}
