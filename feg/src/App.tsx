@@ -29,6 +29,8 @@ import AdminPatients from "./components/admin/AdminPatients.tsx";
 import AdminPatientDetail from "./components/admin/AdminPatientDetail.tsx";
 import ProfileTab from "./components/admin/patient/ProfileTab.tsx";
 import HealthProfileTab from "./components/admin/patient/HealthProfileTab.tsx";
+import MedicationsTab from "./components/admin/patient/MedicationsTab.tsx";
+import ConditionsTab from "./components/admin/patient/ConditionsTab.tsx";
 
 export default function App() {
     return (
@@ -48,7 +50,7 @@ export default function App() {
                     <Route path={"/packages"} element={<Packages/>}/>
                     <Route path={"/resources"} element={<Resources/>}/>
                     <Route path={"/resources/:slug"} element={<ArticleDetail/>}/>
-                    <Route path={'/admin/login'} element={<AdminLogin />}/>
+                    <Route path={'/admin/login'} element={<AdminLogin/>}/>
                 </Route>
 
                 {/* Patient portal (logged in) */}
@@ -61,18 +63,20 @@ export default function App() {
                     <Route path={'/patient-portal/delete-account'} element={<DeleteAccount/>}/>
                 </Route>
 
-                <Route element={<AdminDashboardLayout />}>
-                    <Route path={'/admin/dashboard'} element={<AdminDashboard />}/>
-                    <Route path={'/admin/bookings'} element={<AdminBookings />}/>
-                    <Route path={'/admin/bookings/:id'} element={<AdminBookingDetail />}/>
-                    <Route path={'/admin/feedback'} element={<AdminFeedback />}/>
+                <Route element={<AdminDashboardLayout/>}>
+                    <Route path={'/admin/dashboard'} element={<AdminDashboard/>}/>
+                    <Route path={'/admin/bookings'} element={<AdminBookings/>}/>
+                    <Route path={'/admin/bookings/:id'} element={<AdminBookingDetail/>}/>
+                    <Route path={'/admin/feedback'} element={<AdminFeedback/>}/>
 
                     {/*Patients - List + nested tab routes*/}
-                    <Route path={'/admin/patients'} element={<AdminPatients />}/>
-                    <Route path={'/admin/patients/:id'} element={<AdminPatientDetail />}>
-                        <Route index element={<Navigate to={'profile'} replace />}/>
-                        <Route path={'profile'} element={<ProfileTab />}/>
-                        <Route path={'health-profile'} element={<HealthProfileTab />}/>
+                    <Route path={'/admin/patients'} element={<AdminPatients/>}/>
+                    <Route path={'/admin/patients/:id'} element={<AdminPatientDetail/>}>
+                        <Route index element={<Navigate to={'profile'} replace/>}/>
+                        <Route path={'profile'} element={<ProfileTab/>}/>
+                        <Route path={'health-profile'} element={<HealthProfileTab/>}/>
+                        <Route path={'medications'} element={<MedicationsTab/>}/>
+                        <Route path={'conditions'} element={<ConditionsTab/>}/>
 
                     </Route>
                 </Route>
