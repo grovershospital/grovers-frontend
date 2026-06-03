@@ -1811,3 +1811,202 @@ function decideRequest(
     STUB_PROFILE_UPDATE_REQUESTS[idx] = updated;
     return Promise.resolve(updated);
 }
+
+// ─── Blog Posts (admin) ──────────────────────────────────────
+
+export type BlogPostStatus = "Draft" | "Published";
+
+export type BlogPostCategory =
+    | "Lifestyle Diseases"
+    | "Screening and Packages"
+    | "General Health";
+
+export const BLOG_POST_CATEGORIES: ReadonlyArray<BlogPostCategory> = [
+    "Lifestyle Diseases",
+    "Screening and Packages",
+    "General Health",
+];
+
+export type AdminBlogPostSummary = {
+    id: string;
+    slug: string;
+    title: string;
+    category: BlogPostCategory;
+    status: BlogPostStatus;
+    featured: boolean;
+    readTimeMinutes: number;
+    updatedAtDisplay: string;
+};
+
+export type AdminBlogPost = AdminBlogPostSummary & {
+    excerpt: string;
+    body: string;                 // markdown
+    heroImageUrl: string | null;
+};
+
+const STUB_BLOG_POSTS: AdminBlogPost[] = [
+    {
+        id: "bp_001",
+        slug: "managing-hypertension-day-to-day",
+        title: "Managing hypertension day-to-day",
+        category: "Lifestyle Diseases",
+        status: "Published",
+        featured: true,
+        readTimeMinutes: 6,
+        updatedAtDisplay: "2 days ago",
+        excerpt:
+            "Practical tips for keeping blood pressure under control between visits — diet, movement, and the warning signs that mean it's time to call us.",
+        body: "## Why daily habits matter\n\nHypertension is a marathon, not a sprint…",
+        heroImageUrl: null,
+    },
+    {
+        id: "bp_002",
+        slug: "what-to-expect-annual-wellness",
+        title: "What to expect at your Annual Wellness screening",
+        category: "Screening and Packages",
+        status: "Published",
+        featured: false,
+        readTimeMinutes: 4,
+        updatedAtDisplay: "1 week ago",
+        excerpt:
+            "Walking you through the visit — from check-in to results — so you can plan your day and know what to bring.",
+        body: "## Before your visit\n\nFasting is required for some of the bloodwork…",
+        heroImageUrl: null,
+    },
+    {
+        id: "bp_003",
+        slug: "draft-anaemia-symptoms",
+        title: "Anaemia: symptoms women often miss",
+        category: "General Health",
+        status: "Draft",
+        featured: false,
+        readTimeMinutes: 5,
+        updatedAtDisplay: "Yesterday",
+        excerpt: "",
+        body: "## Draft notes\n\nNeed to finish the section on iron-rich foods…",
+        heroImageUrl: null,
+    },
+];
+
+export type AdminBlogPostFilters = {
+    search?: string;
+    category?: BlogPostCategory | "all";
+    status?: BlogPostStatus | "all";
+};
+
+export type AdminBlogPostPage = {
+    entries: AdminBlogPostSummary[];
+    total: number;
+    page: number;
+    pageSize: number;
+};
+
+export type BlogPostInput = {
+    slug: string;
+    title: string;
+    category: BlogPostCategory;
+    excerpt: string;
+    body: string;
+    heroImageUrl: string | null;
+    status: BlogPostStatus;
+    featured: boolean;
+    readTimeMinutes: number;
+};
+
+// --- Fetchers ---
+
+export async function fetchAdminBlogPosts(
+    filters: AdminBlogPostFilters,
+    page: number,
+    pageSize: number,
+): Promise<AdminBlogPostPage> {
+    // TODO (backend): api.get("/admin/blog-posts", { params: { ...filters, page, size: pageSize } })
+    const filtered = STUB_BLOG_POSTS.filter((p) => {
+        if (filters.category && filters.category !== "all" && p.category !== filters.category)
+            return false;
+        if (filters.status && filters.status !== "all" && p.status !== filters.status)
+            return false;
+        if (filters.search) {
+            const q = filters.search.toLowerCase();
+            if (!p.title.toLowerCase().includes(q)) return false;
+        }
+        return true;
+    });
+
+    const start = (page - 1) * pageSize;
+    const entries = filtered.slice(start, start + pageSize).map(toBlogPostSummary);
+
+    return Promise.resolve({ entries, total: filtered.length, page, pageSize });
+}
+
+export async function fetchAdminBlogPost(slug: string): Promise<AdminBlogPost> {
+    // TODO (backend): api.get(`/admin/blog-posts/${slug}`)
+    const post = STUB_BLOG_POSTS.find((p) => p.slug === slug);
+    if (!post) return Promise.reject(new Error("Blog post not found"));
+    return Promise.resolve(post);
+}
+
+export async function createAdminBlogPost(input: BlogPostInput): Promise<AdminBlogPost> {
+    // TODO (backend): api.post("/admin/blog-posts", input)
+    if (STUB_BLOG_POSTS.some((p) => p.slug === input.slug)) {
+        return Promise.reject(new Error("A post with this slug already exists."));
+    }
+    const created: AdminBlogPost = {
+        id: `bp_${Date.now()}`,
+        ...input,
+        updatedAtDisplay: "Just now",
+    };
+    STUB_BLOG_POSTS.unshift(created);
+    return Promise.resolve(created);
+}
+
+export async function updateAdminBlogPost(
+    slug: string,
+    input: BlogPostInput,
+): Promise<AdminBlogPost> {
+    // TODO (backend): api.put(`/admin/blog-posts/${slug}`, input)
+    const idx = STUB_BLOG_POSTS.findIndex((p) => p.slug === slug);
+    if (idx < 0) return Promise.reject(new Error("Blog post not found"));
+
+    // If slug changed, check uniqueness.
+    if (input.slug !== slug && STUB_BLOG_POSTS.some((p) => p.slug === input.slug)) {
+        return Promise.reject(new Error("A post with this slug already exists."));
+    }
+
+    const updated: AdminBlogPost = {
+        ...STUB_BLOG_POSTS[idx],
+        ...input,
+        updatedAtDisplay: "Just now",
+    };
+    STUB_BLOG_POSTS[idx] = updated;
+    return Promise.resolve(updated);
+}
+
+export async function deleteAdminBlogPost(slug: string): Promise<void> {
+    // TODO (backend): api.delete(`/admin/blog-posts/${slug}`)
+    const idx = STUB_BLOG_POSTS.findIndex((p) => p.slug === slug);
+    if (idx >= 0) STUB_BLOG_POSTS.splice(idx, 1);
+    return Promise.resolve();
+}
+
+export async function uploadBlogPostImage(file: File): Promise<{ url: string }> {
+    // TODO (backend): multipart POST to /admin/blog-posts/images
+    //   Backend returns the public URL of the uploaded image.
+    console.log("uploadBlogPostImage stub:", file.name);
+    // Use object URL as a stub — works for preview in the editor, won't survive reload.
+    const url = URL.createObjectURL(file);
+    return Promise.resolve({ url });
+}
+
+function toBlogPostSummary(p: AdminBlogPost): AdminBlogPostSummary {
+    return {
+        id: p.id,
+        slug: p.slug,
+        title: p.title,
+        category: p.category,
+        status: p.status,
+        featured: p.featured,
+        readTimeMinutes: p.readTimeMinutes,
+        updatedAtDisplay: p.updatedAtDisplay,
+    };
+}
