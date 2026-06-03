@@ -1,5 +1,5 @@
 // src/App.tsx
-import {BrowserRouter, Routes, Route} from "react-router-dom";
+import {BrowserRouter, Routes, Route, Navigate} from "react-router-dom";
 import Layout from "./components/Layout";
 import HomePage from "./pages/HomePage";
 import About from "./pages/About";
@@ -25,6 +25,10 @@ import AdminDashboardLayout from "./layouts/AdminDashboardLayout.tsx";
 import AdminFeedback from "./components/admin/AdminFeedback.tsx";
 import AdminBookings from "./components/admin/AdminBookings.tsx";
 import AdminBookingDetail from "./components/admin/AdminBookingDetail.tsx";
+import AdminPatients from "./components/admin/AdminPatients.tsx";
+import AdminPatientDetail from "./components/admin/AdminPatientDetail.tsx";
+import ProfileTab from "./components/admin/patient/ProfileTab.tsx";
+import HealthProfileTab from "./components/admin/patient/HealthProfileTab.tsx";
 
 export default function App() {
     return (
@@ -62,6 +66,15 @@ export default function App() {
                     <Route path={'/admin/bookings'} element={<AdminBookings />}/>
                     <Route path={'/admin/bookings/:id'} element={<AdminBookingDetail />}/>
                     <Route path={'/admin/feedback'} element={<AdminFeedback />}/>
+
+                    {/*Patients - List + nested tab routes*/}
+                    <Route path={'/admin/patients'} element={<AdminPatients />}/>
+                    <Route path={'/admin/patients/:id'} element={<AdminPatientDetail />}>
+                        <Route index element={<Navigate to={'profile'} replace />}/>
+                        <Route path={'profile'} element={<ProfileTab />}/>
+                        <Route path={'health-profile'} element={<HealthProfileTab />}/>
+
+                    </Route>
                 </Route>
             </Routes>
         </BrowserRouter>
