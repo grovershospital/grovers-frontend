@@ -34,6 +34,7 @@ import VisitsTab from "./components/admin/patient/VisitsTab.tsx";
 import AdminVisitEdit from "./components/admin/AdminVisitEdit.tsx";
 import LabResultsTab from "./components/admin/patient/LabResultsTab.tsx";
 import DocumentsTab from "./components/admin/patient/DocumentsTab.tsx";
+import AdminLabResults from "./components/admin/AdminLabResults.tsx";
 
 export default function App() {
     return (
@@ -69,6 +70,7 @@ export default function App() {
                 <Route element={<AdminDashboardLayout/>}>
                     <Route path={'/admin/dashboard'} element={<AdminDashboard/>}/>
                     <Route path={'/admin/bookings'} element={<AdminBookings/>}/>
+                    <Route path={'/admin/lab-results'} element={<AdminLabResults/>}/>
                     <Route path={'/admin/bookings/:id'} element={<AdminBookingDetail/>}/>
                     <Route path={'/admin/feedback'} element={<AdminFeedback/>}/>
 
@@ -80,12 +82,12 @@ export default function App() {
                         <Route path={'health-profile'} element={<HealthProfileTab/>}/>
                         <Route path={'medications'} element={<MedicationsTab/>}/>
                         <Route path={'conditions'} element={<ConditionsTab/>}/>
-                        <Route path={'visits'} element={<VisitsTab />}/>
-                        <Route path={'lab-results'} element={<LabResultsTab />}/>
-                        <Route path={'documents'} element={<DocumentsTab />}/>
+                        <Route path={'visits'} element={<VisitsTab/>}/>
+                        <Route path={'lab-results'} element={<LabResultsTab/>}/>
+                        <Route path={'documents'} element={<DocumentsTab/>}/>
                     </Route>
 
-                    <Route path={'/admin/visits/:visitId/edit'} element={<AdminVisitEdit />}/>
+                    <Route path={'/admin/visits/:visitId/edit'} element={<AdminVisitEdit/>}/>
                 </Route>
             </Routes>
         </BrowserRouter>

@@ -1552,3 +1552,72 @@ export async function downloadAdminDocument(documentId: string): Promise<void> {
     console.log("downloadAdminDocument stub:", documentId);
     return Promise.resolve();
 }
+
+// ─── Lab Results (cross-patient view) ────────────────────────
+
+export type AdminCrossPatientLabResult = AdminLabResultSummary & {
+    patientName: string;
+    uploadedAtDisplay: string;
+};
+
+export type CrossPatientLabFilters = {
+    search?: string;
+    status?: AdminLabResultStatus | "all";
+};
+
+export type CrossPatientLabPage = {
+    entries: AdminCrossPatientLabResult[];
+    total: number;
+    page: number;
+    pageSize: number;
+};
+
+export async function fetchCrossPatientLabResults(
+    filters: CrossPatientLabFilters,
+    page: number,
+    pageSize: number,
+): Promise<CrossPatientLabPage> {
+    // TODO (backend): api.get("/admin/results", { params: { ...filters, page, size: pageSize } })
+    //   The patient-scoped endpoint is `/admin/patients/{id}/results`; this is
+    //   the cross-patient equivalent. If your backend only has the scoped one,
+    //   add a `/admin/results` controller that returns all results with the
+    //   patient join included.
+    const all: AdminCrossPatientLabResult[] = [];
+
+    for (const patientId of Object.keys(STUB_LAB_RESULTS)) {
+        const patient = STUB_PATIENTS.find((p) => p.id === patientId);
+        if (!patient) continue;
+        for (const result of STUB_LAB_RESULTS[patientId]) {
+            all.push({
+                ...result,
+                patientName: `${patient.firstName} ${patient.lastName}`,
+                // No real `uploadedAt` in the stub — using testDate as a proxy.
+                uploadedAtDisplay: result.testDate || "—",
+            });
+        }
+    }
+
+    const filtered = all.filter((r) => {
+        if (
+            filters.status &&
+            filters.status !== "all" &&
+            r.status !== filters.status
+        )
+            return false;
+        if (filters.search) {
+            const q = filters.search.toLowerCase();
+            if (!r.patientName.toLowerCase().includes(q)) return false;
+        }
+        return true;
+    });
+
+    const start = (page - 1) * pageSize;
+    const entries = filtered.slice(start, start + pageSize);
+
+    return Promise.resolve({
+        entries,
+        total: filtered.length,
+        page,
+        pageSize,
+    });
+}
