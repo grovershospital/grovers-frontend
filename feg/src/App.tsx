@@ -21,6 +21,8 @@ import Feedback from "./components/portal/Feedback.tsx";
 import DeleteAccount from "./components/portal/DeleteAccount.tsx";
 import AdminLogin from "./components/admin/AdminLogin.tsx";
 import AdminDashboard from "./components/admin/AdminDashboard.tsx";
+import AdminDashboardLayout from "./layouts/AdminDashboardLayout.tsx";
+import AdminFeedback from "./components/admin/AdminFeedback.tsx";
 
 export default function App() {
     return (
@@ -53,8 +55,9 @@ export default function App() {
                     <Route path={'/patient-portal/delete-account'} element={<DeleteAccount/>}/>
                 </Route>
 
-                <Route>
+                <Route element={<AdminDashboardLayout />}>
                     <Route path={'/admin/dashboard'} element={<AdminDashboard />}/>
+                    <Route path={'/admin/feedback'} element={<AdminFeedback />}/>
                 </Route>
             </Routes>
         </BrowserRouter>

@@ -2,11 +2,12 @@ import { NavLink } from "react-router-dom";
 
 const ITEMS = [
     { to: "/admin/dashboard", label: "Dashboard" },
-    { to: "/admin/appointments", label: "Appointments" },
+    { to: "/admin/bookings", label: "Bookings" },
+    { to: "/admin/patients", label: "Patients" },
     { to: "/admin/lab-results", label: "Lab Results" },
-    { to: "/admin/patients", label: "Patient Records" },
     { to: "/admin/feedback", label: "Feedback" },
-    { to: "/admin/articles", label: "Articles" },
+    { to: "/admin/profile-update-requests", label: "Profile Update Requests" },
+    { to: "/admin/blog-posts", label: "Blog Posts" },
 ];
 
 type Props = {
