@@ -960,3 +960,118 @@ export async function deleteAdminCondition(conditionId: string): Promise<void> {
     }
     return Promise.resolve();
 }
+
+// ─── Visits ──────────────────────────────────────────────────
+
+export type VisitStatus = "Draft" | "Completed";
+
+export type AdminVisitSummary = {
+    id: string;
+    patientId: string;
+    visitDate: string;          // display e.g. "12th May 2026"
+    department: string;
+    attendingDoctorText: string;
+    chiefComplaint: string;     // may be empty if Draft
+    status: VisitStatus;
+    bookingShortId: string | null;
+};
+
+export type AdminVisitDetail = AdminVisitSummary & {
+    diagnosis: string;
+    treatment: string;
+    clinicalNotes: string;
+    followUpRequired: boolean;
+    followUpDate: string;       // display string, blank when not required
+    followUpInstructions: string;
+};
+
+const STUB_VISITS: Record<string, AdminVisitDetail[]> = {
+    pt_001: [
+        {
+            id: "vs_001",
+            patientId: "pt_001",
+            visitDate: "12th May 2026",
+            department: "Annual Wellness",
+            attendingDoctorText: "Dr. Adewale Okafor",
+            chiefComplaint: "Routine annual physical",
+            status: "Completed",
+            bookingShortId: "i9j0k1",
+            diagnosis: "All vitals within normal range. No acute concerns.",
+            treatment:
+                "Continue current medications. Recommended dietary adjustments — reduce sodium intake.",
+            clinicalNotes:
+                "Patient reports occasional headaches, likely stress-related. Will revisit if persistent.",
+            followUpRequired: true,
+            followUpDate: "12th November 2026",
+            followUpInstructions: "Routine 6-month check-up.",
+        },
+        {
+            id: "vs_002",
+            patientId: "pt_001",
+            visitDate: "3rd April 2026",
+            department: "General Surgery",
+            attendingDoctorText: "",
+            chiefComplaint: "",
+            status: "Draft",
+            bookingShortId: "f6g7h8",
+            diagnosis: "",
+            treatment: "",
+            clinicalNotes: "",
+            followUpRequired: false,
+            followUpDate: "",
+            followUpInstructions: "",
+        },
+    ],
+    pt_002: [],
+};
+
+export async function fetchAdminVisits(patientId: string): Promise<AdminVisitSummary[]> {
+    // TODO (backend): api.get(`/admin/patients/${patientId}/visits`)
+    const list = STUB_VISITS[patientId] ?? [];
+    return Promise.resolve(list.map(toVisitSummary));
+}
+
+export async function fetchAdminVisit(visitId: string): Promise<AdminVisitDetail> {
+    // TODO (backend): api.get(`/admin/visits/${visitId}`)
+    for (const patientId of Object.keys(STUB_VISITS)) {
+        const visit = STUB_VISITS[patientId].find((v) => v.id === visitId);
+        if (visit) return Promise.resolve(visit);
+    }
+    return Promise.reject(new Error("Visit not found"));
+}
+
+export type VisitUpdateInput = Omit<AdminVisitDetail, "id" | "patientId" | "visitDate" | "department" | "bookingShortId">;
+
+export async function updateAdminVisit(
+    visitId: string,
+    input: VisitUpdateInput,
+): Promise<AdminVisitDetail> {
+    // TODO (backend): api.put(`/admin/visits/${visitId}`, input)
+    for (const patientId of Object.keys(STUB_VISITS)) {
+        const list = STUB_VISITS[patientId];
+        const idx = list.findIndex((v) => v.id === visitId);
+        if (idx >= 0) {
+            const updated: AdminVisitDetail = { ...list[idx], ...input };
+            STUB_VISITS[patientId] = [
+                ...list.slice(0, idx),
+                updated,
+                ...list.slice(idx + 1),
+            ];
+            return Promise.resolve(updated);
+        }
+    }
+    return Promise.reject(new Error("Visit not found"));
+}
+
+function toVisitSummary(v: AdminVisitDetail): AdminVisitSummary {
+    return {
+        id: v.id,
+        patientId: v.patientId,
+        visitDate: v.visitDate,
+        department: v.department,
+        attendingDoctorText: v.attendingDoctorText,
+        chiefComplaint: v.chiefComplaint,
+        status: v.status,
+        bookingShortId: v.bookingShortId,
+    };
+}
