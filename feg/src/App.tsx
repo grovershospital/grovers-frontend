@@ -23,6 +23,8 @@ import AdminLogin from "./components/admin/AdminLogin.tsx";
 import AdminDashboard from "./components/admin/AdminDashboard.tsx";
 import AdminDashboardLayout from "./layouts/AdminDashboardLayout.tsx";
 import AdminFeedback from "./components/admin/AdminFeedback.tsx";
+import AdminBookings from "./components/admin/AdminBookings.tsx";
+import AdminBookingDetail from "./components/admin/AdminBookingDetail.tsx";
 
 export default function App() {
     return (
@@ -57,6 +59,8 @@ export default function App() {
 
                 <Route element={<AdminDashboardLayout />}>
                     <Route path={'/admin/dashboard'} element={<AdminDashboard />}/>
+                    <Route path={'/admin/bookings'} element={<AdminBookings />}/>
+                    <Route path={'/admin/bookings/:id'} element={<AdminBookingDetail />}/>
                     <Route path={'/admin/feedback'} element={<AdminFeedback />}/>
                 </Route>
             </Routes>
