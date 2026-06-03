@@ -112,7 +112,7 @@ export default function LabComponentEditor({
                 </p>
             )}
 
-            {components.length > 0 && (
+            {(components.length > 0 || adding) && (
                 <div className="overflow-x-auto rounded-2xl border border-neutral-200">
                     <table className="w-full min-w-[700px] border-collapse">
                         <thead className="bg-neutral-50">
