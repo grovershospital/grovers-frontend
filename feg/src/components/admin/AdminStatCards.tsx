@@ -1,4 +1,4 @@
-import { Calendar, FlaskConical, MessageSquare, FileText } from "lucide-react";
+import { Calendar, UserCog, MessageSquare, FileText } from "lucide-react";
 import StatCard from "./StatCard";
 import type { AdminDashboardSummary } from "../../data/admin";
 
@@ -30,11 +30,11 @@ export default function AdminStatCards({ summary }: Props) {
                 icon={<Calendar className="h-8 w-8" strokeWidth={1.5} />}
             />
             <StatCard
-                label="Pending Lab Results"
-                count={summary.pendingLabResults}
-                to="/admin/lab-results?status=pending"
+                label="Pending Update Requests"
+                count={summary.pendingProfileUpdates}
+                to="/admin/profile-update-requests"
                 tone="green"
-                icon={<FlaskConical className="h-8 w-8" strokeWidth={1.5} />}
+                icon={<UserCog className="h-8 w-8" strokeWidth={1.5} />}
             />
             <StatCard
                 label="Unread Feedback"

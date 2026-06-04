@@ -26,14 +26,14 @@ export async function fetchAdminUser(): Promise<AdminUser> {
 
 export type AdminDashboardSummary = {
     pendingAppointments: number;
-    pendingLabResults: number;
+    pendingProfileUpdates: number;
     unreadFeedback: number;
     articleDrafts: number;
 };
 
 const STUB_SUMMARY: AdminDashboardSummary = {
     pendingAppointments: 7,
-    pendingLabResults: 3,
+    pendingProfileUpdates: 3,
     unreadFeedback: 12,
     articleDrafts: 2,
 };
@@ -41,10 +41,10 @@ const STUB_SUMMARY: AdminDashboardSummary = {
 export async function fetchAdminDashboardSummary(): Promise<AdminDashboardSummary> {
     // TODO (backend): replace with api.get("/admin/dashboard/summary")
     //   If the backend doesn't have an aggregate endpoint, compose this from:
-    //     - GET /admin/appointments?status=PENDING&count=true
-    //     - GET /admin/results?status=PENDING&count=true
-    //     - GET /admin/feedback?status=NEW&count=true
-    //     - GET /admin/articles?status=DRAFT&count=true
+    //     - GET /admin/bookings?status=PENDING&count=true
+    //     - GET /admin/profile-update-requests?status=PENDING&count=true
+    //     - GET /admin/feedback/stats (returns unread count)
+    //     - GET /admin/blog-posts?status=DRAFT&count=true
     //   and return the four numbers.
     return Promise.resolve(STUB_SUMMARY);
 }
@@ -84,19 +84,75 @@ export type AdminFeedbackSummary = {
 };
 
 const STUB_RECENT_APPOINTMENTS: AdminAppointmentSummary[] = [
-    { id: "ap1", patientName: "Jesse Okache", department: "General Surgery", date: "15th May", time: "2pm", status: "Pending" },
-    { id: "ap2", patientName: "Amina Bello", department: "OB/GYN", date: "15th May", time: "11am", status: "Confirmed" },
-    { id: "ap3", patientName: "Tunde Adekunle", department: "Cardiology", date: "14th May", time: "9am", status: "Pending" },
-    { id: "ap4", patientName: "Chiamaka Eze", department: "Paediatrics", date: "14th May", time: "3pm", status: "Confirmed" },
-    { id: "ap5", patientName: "Femi Adesanya", department: "ENT", date: "13th May", time: "10am", status: "Cancelled" },
+    {
+        id: "ap1",
+        patientName: "Jesse Okache",
+        department: "General Surgery",
+        date: "15th May",
+        time: "2pm",
+        status: "Pending"
+    },
+    {id: "ap2", patientName: "Amina Bello", department: "OB/GYN", date: "15th May", time: "11am", status: "Confirmed"},
+    {
+        id: "ap3",
+        patientName: "Tunde Adekunle",
+        department: "Cardiology",
+        date: "14th May",
+        time: "9am",
+        status: "Pending"
+    },
+    {
+        id: "ap4",
+        patientName: "Chiamaka Eze",
+        department: "Paediatrics",
+        date: "14th May",
+        time: "3pm",
+        status: "Confirmed"
+    },
+    {id: "ap5", patientName: "Femi Adesanya", department: "ENT", date: "13th May", time: "10am", status: "Cancelled"},
 ];
 
 const STUB_RECENT_FEEDBACK: AdminFeedbackSummary[] = [
-    { id: "fb1", patientName: "Anonymous", type: "Complaint", excerpt: "Waited over an hour past my appointment time without any update from the front desk…", status: "New", createdAt: "2 hours ago" },
-    { id: "fb2", patientName: "Amina Bello", type: "Compliment", excerpt: "Dr. Okafor was incredibly thorough and made my mother feel at ease throughout…", status: "New", createdAt: "5 hours ago" },
-    { id: "fb3", patientName: "Tunde Adekunle", type: "Suggestion", excerpt: "It would help if the appointment booking flow showed available slots in a calendar…", status: "New", createdAt: "Yesterday" },
-    { id: "fb4", patientName: "Anonymous", type: "General feedback", excerpt: "Clean facility, friendly staff. The parking situation could be improved…", status: "Actioned", createdAt: "Yesterday" },
-    { id: "fb5", patientName: "Chiamaka Eze", type: "Compliment", excerpt: "Thank you for the quick lab results turnaround. Made follow-up planning much easier…", status: "Actioned", createdAt: "2 days ago" },
+    {
+        id: "fb1",
+        patientName: "Anonymous",
+        type: "Complaint",
+        excerpt: "Waited over an hour past my appointment time without any update from the front desk…",
+        status: "New",
+        createdAt: "2 hours ago"
+    },
+    {
+        id: "fb2",
+        patientName: "Amina Bello",
+        type: "Compliment",
+        excerpt: "Dr. Okafor was incredibly thorough and made my mother feel at ease throughout…",
+        status: "New",
+        createdAt: "5 hours ago"
+    },
+    {
+        id: "fb3",
+        patientName: "Tunde Adekunle",
+        type: "Suggestion",
+        excerpt: "It would help if the appointment booking flow showed available slots in a calendar…",
+        status: "New",
+        createdAt: "Yesterday"
+    },
+    {
+        id: "fb4",
+        patientName: "Anonymous",
+        type: "General feedback",
+        excerpt: "Clean facility, friendly staff. The parking situation could be improved…",
+        status: "Actioned",
+        createdAt: "Yesterday"
+    },
+    {
+        id: "fb5",
+        patientName: "Chiamaka Eze",
+        type: "Compliment",
+        excerpt: "Thank you for the quick lab results turnaround. Made follow-up planning much easier…",
+        status: "Actioned",
+        createdAt: "2 days ago"
+    },
 ];
 
 export async function fetchRecentAdminAppointments(): Promise<AdminAppointmentSummary[]> {
@@ -349,7 +405,7 @@ const STUB_BOOKINGS: AdminBookingDetail[] = [
         additionalNotes: "Prefer morning slots if anything opens up earlier.",
         notes: [],
         activity: [
-            { id: "ac1", description: "Booking created by patient", createdAtDisplay: "2 hours ago" },
+            {id: "ac1", description: "Booking created by patient", createdAtDisplay: "2 hours ago"},
         ],
     },
     {
@@ -376,8 +432,8 @@ const STUB_BOOKINGS: AdminBookingDetail[] = [
             },
         ],
         activity: [
-            { id: "ac1", description: "Booking created by patient", createdAtDisplay: "Yesterday" },
-            { id: "ac2", description: "Confirmed by Admin User", createdAtDisplay: "Yesterday" },
+            {id: "ac1", description: "Booking created by patient", createdAtDisplay: "Yesterday"},
+            {id: "ac2", description: "Confirmed by Admin User", createdAtDisplay: "Yesterday"},
         ],
     },
     {
@@ -397,7 +453,7 @@ const STUB_BOOKINGS: AdminBookingDetail[] = [
         additionalNotes: null,
         notes: [],
         activity: [
-            { id: "ac1", description: "Booking created by patient", createdAtDisplay: "Yesterday" },
+            {id: "ac1", description: "Booking created by patient", createdAtDisplay: "Yesterday"},
         ],
     },
     {
@@ -417,8 +473,8 @@ const STUB_BOOKINGS: AdminBookingDetail[] = [
         additionalNotes: "Patient is 4 years old.",
         notes: [],
         activity: [
-            { id: "ac1", description: "Booking created by patient", createdAtDisplay: "2 days ago" },
-            { id: "ac2", description: "Confirmed by Admin User", createdAtDisplay: "Yesterday" },
+            {id: "ac1", description: "Booking created by patient", createdAtDisplay: "2 days ago"},
+            {id: "ac2", description: "Confirmed by Admin User", createdAtDisplay: "Yesterday"},
         ],
     },
     {
@@ -445,8 +501,8 @@ const STUB_BOOKINGS: AdminBookingDetail[] = [
             },
         ],
         activity: [
-            { id: "ac1", description: "Booking created by patient", createdAtDisplay: "3 days ago" },
-            { id: "ac2", description: "Cancelled by Admin User", createdAtDisplay: "2 days ago" },
+            {id: "ac1", description: "Booking created by patient", createdAtDisplay: "3 days ago"},
+            {id: "ac2", description: "Cancelled by Admin User", createdAtDisplay: "2 days ago"},
         ],
     },
     {
@@ -466,9 +522,13 @@ const STUB_BOOKINGS: AdminBookingDetail[] = [
         additionalNotes: "Annual Wellness Package — Standard tier.",
         notes: [],
         activity: [
-            { id: "ac1", description: "Booking created by patient", createdAtDisplay: "5 days ago" },
-            { id: "ac2", description: "Confirmed by Admin User", createdAtDisplay: "4 days ago" },
-            { id: "ac3", description: "Marked Completed by Admin User — Visit stub created", createdAtDisplay: "3 days ago" },
+            {id: "ac1", description: "Booking created by patient", createdAtDisplay: "5 days ago"},
+            {id: "ac2", description: "Confirmed by Admin User", createdAtDisplay: "4 days ago"},
+            {
+                id: "ac3",
+                description: "Marked Completed by Admin User — Visit stub created",
+                createdAtDisplay: "3 days ago"
+            },
         ],
     },
 ];
@@ -598,7 +658,7 @@ export async function updateBookingStatus(
         ];
     }
 
-    return Promise.resolve({ booking: updated, visitId });
+    return Promise.resolve({booking: updated, visitId});
 }
 
 function toSummary(b: AdminBookingDetail): AdminBookingSummary {
@@ -772,7 +832,7 @@ export async function fetchAdminPatients(
     const start = (page - 1) * pageSize;
     const entries = filtered.slice(start, start + pageSize).map(toPatientSummary);
 
-    return Promise.resolve({ entries, total: filtered.length, page, pageSize });
+    return Promise.resolve({entries, total: filtered.length, page, pageSize});
 }
 
 export async function fetchAdminPatient(id: string): Promise<AdminPatientProfile> {
@@ -902,7 +962,7 @@ export async function createAdminMedication(
     input: MedicationInput,
 ): Promise<AdminMedication> {
     // TODO (backend): api.post(`/admin/patients/${patientId}/medications`, input)
-    const created: AdminMedication = { id: `med_${Date.now()}`, ...input };
+    const created: AdminMedication = {id: `med_${Date.now()}`, ...input};
     STUB_MEDICATIONS[patientId] = [...(STUB_MEDICATIONS[patientId] ?? []), created];
     return Promise.resolve(created);
 }
@@ -916,7 +976,7 @@ export async function updateAdminMedication(
         const list = STUB_MEDICATIONS[patientId];
         const idx = list.findIndex((m) => m.id === medicationId);
         if (idx >= 0) {
-            const updated = { id: medicationId, ...input };
+            const updated = {id: medicationId, ...input};
             STUB_MEDICATIONS[patientId] = [
                 ...list.slice(0, idx),
                 updated,
@@ -954,7 +1014,7 @@ export async function createAdminCondition(
     input: ConditionInput,
 ): Promise<AdminCondition> {
     // TODO (backend): api.post(`/admin/patients/${patientId}/conditions`, input)
-    const created: AdminCondition = { id: `cond_${Date.now()}`, ...input };
+    const created: AdminCondition = {id: `cond_${Date.now()}`, ...input};
     STUB_CONDITIONS[patientId] = [...(STUB_CONDITIONS[patientId] ?? []), created];
     return Promise.resolve(created);
 }
@@ -968,7 +1028,7 @@ export async function updateAdminCondition(
         const list = STUB_CONDITIONS[patientId];
         const idx = list.findIndex((c) => c.id === conditionId);
         if (idx >= 0) {
-            const updated = { id: conditionId, ...input };
+            const updated = {id: conditionId, ...input};
             STUB_CONDITIONS[patientId] = [
                 ...list.slice(0, idx),
                 updated,
@@ -1080,7 +1140,7 @@ export async function updateAdminVisit(
         const list = STUB_VISITS[patientId];
         const idx = list.findIndex((v) => v.id === visitId);
         if (idx >= 0) {
-            const updated: AdminVisitDetail = { ...list[idx], ...input };
+            const updated: AdminVisitDetail = {...list[idx], ...input};
             STUB_VISITS[patientId] = [
                 ...list.slice(0, idx),
                 updated,
@@ -1254,7 +1314,7 @@ export async function updateLabResultStatus(
     status: AdminLabResultStatus,
 ): Promise<AdminLabResultDetail> {
     // TODO (backend): api.put(`/admin/results/${resultId}/status`, { status })
-    const result = await mutateLabResult(resultId, (r) => ({ ...r, status }));
+    const result = await mutateLabResult(resultId, (r) => ({...r, status}));
     return result;
 }
 
@@ -1275,7 +1335,7 @@ export async function addLabComponent(
     input: LabComponentInput,
 ): Promise<AdminLabComponent> {
     // TODO (backend): api.post(`/admin/results/${resultId}/components`, input)
-    const created: AdminLabComponent = { id: `cm_${Date.now()}`, ...input };
+    const created: AdminLabComponent = {id: `cm_${Date.now()}`, ...input};
     await mutateLabResult(resultId, (r) => ({
         ...r,
         components: [...r.components, created],
@@ -1312,7 +1372,7 @@ export async function updateLabComponent(
             const result = STUB_LAB_RESULTS[patientId][ri];
             const ci = result.components.findIndex((c) => c.id === componentId);
             if (ci >= 0) {
-                updated = { id: componentId, ...input };
+                updated = {id: componentId, ...input};
                 const newComponents = [
                     ...result.components.slice(0, ci),
                     updated,
@@ -1936,7 +1996,7 @@ export async function fetchAdminBlogPosts(
     const start = (page - 1) * pageSize;
     const entries = filtered.slice(start, start + pageSize).map(toBlogPostSummary);
 
-    return Promise.resolve({ entries, total: filtered.length, page, pageSize });
+    return Promise.resolve({entries, total: filtered.length, page, pageSize});
 }
 
 export async function fetchAdminBlogPost(slug: string): Promise<AdminBlogPost> {
@@ -1995,7 +2055,7 @@ export async function uploadBlogPostImage(file: File): Promise<{ url: string }> 
     console.log("uploadBlogPostImage stub:", file.name);
     // Use object URL as a stub — works for preview in the editor, won't survive reload.
     const url = URL.createObjectURL(file);
-    return Promise.resolve({ url });
+    return Promise.resolve({url});
 }
 
 function toBlogPostSummary(p: AdminBlogPost): AdminBlogPostSummary {

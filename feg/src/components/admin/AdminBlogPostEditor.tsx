@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import type { FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import MarkdownBody from "../../components/admin/MarkdownBody";
+import BlogPostEditorSidebar from "../../components/admin/BlogPostEditorSidebar";
 import {
     BLOG_POST_CATEGORIES,
     createAdminBlogPost,
+    deleteAdminBlogPost,
     fetchAdminBlogPost,
     updateAdminBlogPost,
     type AdminBlogPost,
@@ -73,36 +74,47 @@ export default function AdminBlogPostEditor() {
         if (success) setSuccess(false);
     }
 
-    async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-        e.preventDefault();
+    function validate(): string | null {
+        if (!form.title.trim()) return "Title is required.";
+        if (!form.slug.trim()) return "Slug is required.";
+        return null;
+    }
+
+    async function persist(input: BlogPostInput): Promise<AdminBlogPost | null> {
         setError(null);
         setSuccess(false);
-
-        if (!form.title.trim()) {
-            setError("Title is required.");
-            return;
+        const v = validate();
+        if (v) {
+            setError(v);
+            return null;
         }
-        if (!form.slug.trim()) {
-            setError("Slug is required.");
-            return;
-        }
-
         setSubmitting(true);
         try {
             if (isEdit && routeSlug) {
-                const updated = await updateAdminBlogPost(routeSlug, form);
+                const updated = await updateAdminBlogPost(routeSlug, input);
                 setLoaded(updated);
-                // If the slug changed, sync the URL so future saves hit the new slug.
+                setForm({
+                    slug: updated.slug,
+                    title: updated.title,
+                    category: updated.category,
+                    excerpt: updated.excerpt,
+                    body: updated.body,
+                    heroImageUrl: updated.heroImageUrl,
+                    status: updated.status,
+                    featured: updated.featured,
+                    readTimeMinutes: updated.readTimeMinutes,
+                });
                 if (updated.slug !== routeSlug) {
                     navigate(`/admin/blog-posts/${updated.slug}/edit`, {
                         replace: true,
                     });
                 }
                 setSuccess(true);
+                return updated;
             } else {
-                const created = await createAdminBlogPost(form);
-                // Switch to edit mode on the newly-created post's slug.
+                const created = await createAdminBlogPost(input);
                 navigate(`/admin/blog-posts/${created.slug}/edit`, { replace: true });
+                return created;
             }
         } catch (err) {
             setError(
@@ -110,7 +122,36 @@ export default function AdminBlogPostEditor() {
                     ? err.message
                     : "Could not save the post. Please try again.",
             );
+            return null;
         } finally {
+            setSubmitting(false);
+        }
+    }
+
+    async function handleSave() {
+        await persist(form);
+    }
+
+    async function handleTogglePublish() {
+        const nextStatus = form.status === "Published" ? "Draft" : "Published";
+        const next = { ...form, status: nextStatus } as BlogPostInput;
+        // Update local state immediately so the button label flips fast,
+        // then persist. If persist fails, revert.
+        setForm(next);
+        const result = await persist(next);
+        if (!result) {
+            setForm((f) => ({ ...f, status: form.status }));
+        }
+    }
+
+    async function handleDelete() {
+        if (!isEdit || !routeSlug) return;
+        setSubmitting(true);
+        try {
+            await deleteAdminBlogPost(routeSlug);
+            navigate("/admin/blog-posts");
+        } catch {
+            setError("Could not delete the post. Please try again.");
             setSubmitting(false);
         }
     }
@@ -143,112 +184,83 @@ export default function AdminBlogPostEditor() {
                 </h1>
             </div>
 
-            <form onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
-                    <div className="space-y-6">
-                        <Field label="Title" htmlFor="bp-title" required>
-                            <input
-                                id="bp-title"
-                                type="text"
-                                required
-                                value={form.title}
-                                onChange={(e) => update("title", e.target.value)}
-                                className={inputClass}
-                            />
-                        </Field>
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
+                <div className="space-y-6">
+                    <Field label="Title" htmlFor="bp-title" required>
+                        <input
+                            id="bp-title"
+                            type="text"
+                            value={form.title}
+                            onChange={(e) => update("title", e.target.value)}
+                            className={inputClass}
+                        />
+                    </Field>
 
-                        <Field label="Slug" htmlFor="bp-slug" required>
-                            <input
-                                id="bp-slug"
-                                type="text"
-                                required
-                                value={form.slug}
-                                onChange={(e) => update("slug", e.target.value)}
-                                className={`${inputClass} font-mono`}
-                            />
-                            <p className="mt-1 text-xs text-neutral-500">
-                                URL-safe identifier. Appears in the public link
-                                /resources/{form.slug || "your-slug"}.
-                            </p>
-                        </Field>
+                    <Field label="Slug" htmlFor="bp-slug" required>
+                        <input
+                            id="bp-slug"
+                            type="text"
+                            value={form.slug}
+                            onChange={(e) => update("slug", e.target.value)}
+                            className={`${inputClass} font-mono`}
+                        />
+                        <p className="mt-1 text-xs text-neutral-500">
+                            URL-safe identifier. Appears in the public link
+                            /resources/{form.slug || "your-slug"}.
+                        </p>
+                    </Field>
 
-                        <Field label="Category" htmlFor="bp-category" required>
-                            <select
-                                id="bp-category"
-                                value={form.category}
-                                onChange={(e) =>
-                                    update(
-                                        "category",
-                                        e.target.value as BlogPostCategory,
-                                    )
-                                }
-                                className={inputClass}
-                            >
-                                {BLOG_POST_CATEGORIES.map((c) => (
-                                    <option key={c} value={c}>
-                                        {c}
-                                    </option>
-                                ))}
-                            </select>
-                        </Field>
-
-                        <Field label="Excerpt" htmlFor="bp-excerpt">
-                            <textarea
-                                id="bp-excerpt"
-                                rows={3}
-                                value={form.excerpt}
-                                onChange={(e) => update("excerpt", e.target.value)}
-                                placeholder="Short summary shown in article cards on the Resources page."
-                                className={inputClass}
-                            />
-                        </Field>
-
-                        <div>
-                            <label className="mb-1.5 block text-sm font-semibold text-brand-ink">
-                                Body
-                            </label>
-                            <MarkdownBody
-                                value={form.body}
-                                onChange={(v) => update("body", v)}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Sidebar column — status / featured / actions / hero image.       */}
-                    {/* Built in the next message; placeholder for now so the layout     */}
-                    {/* renders correctly.                                                */}
-                    <aside className="space-y-6">
-                        <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-6 text-center text-sm text-neutral-500">
-                            Sidebar coming next: status, featured flag, hero image,
-                            save / publish / delete actions.
-                        </div>
-
-                        {/* Temporary submit button so this part is testable end-to-end. */}
-                        <button
-                            type="submit"
-                            disabled={submitting}
-                            className="inline-flex w-full items-center justify-center rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-blue focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-red disabled:opacity-60"
+                    <Field label="Category" htmlFor="bp-category" required>
+                        <select
+                            id="bp-category"
+                            value={form.category}
+                            onChange={(e) =>
+                                update("category", e.target.value as BlogPostCategory)
+                            }
+                            className={inputClass}
                         >
-                            {submitting
-                                ? "Saving…"
-                                : isEdit
-                                    ? "Save changes"
-                                    : "Create post"}
-                        </button>
+                            {BLOG_POST_CATEGORIES.map((c) => (
+                                <option key={c} value={c}>
+                                    {c}
+                                </option>
+                            ))}
+                        </select>
+                    </Field>
 
-                        {error && (
-                            <p className="text-sm text-brand-red" role="alert">
-                                {error}
-                            </p>
-                        )}
-                        {success && (
-                            <p className="text-sm text-brand-green" role="status">
-                                Saved.
-                            </p>
-                        )}
-                    </aside>
+                    <Field label="Excerpt" htmlFor="bp-excerpt">
+                        <textarea
+                            id="bp-excerpt"
+                            rows={3}
+                            value={form.excerpt}
+                            onChange={(e) => update("excerpt", e.target.value)}
+                            placeholder="Short summary shown in article cards on the Resources page."
+                            className={inputClass}
+                        />
+                    </Field>
+
+                    <div>
+                        <label className="mb-1.5 block text-sm font-semibold text-brand-ink">
+                            Body
+                        </label>
+                        <MarkdownBody
+                            value={form.body}
+                            onChange={(v) => update("body", v)}
+                        />
+                    </div>
                 </div>
-            </form>
+
+                <BlogPostEditorSidebar
+                    form={form}
+                    isEdit={isEdit}
+                    onChange={update}
+                    onSave={handleSave}
+                    onTogglePublish={handleTogglePublish}
+                    onDelete={handleDelete}
+                    submitting={submitting}
+                    error={error}
+                    success={success}
+                />
+            </div>
         </>
     );
 }
