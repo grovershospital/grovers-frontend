@@ -1,10 +1,16 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import FormField from "../../ui/FormField";
+import { useAuth } from "../../contexts/AuthContext";
+import { ApiError } from "../../lib/api";
+
+type LocationState = { from?: string } | null;
 
 export default function AdminLogin() {
     const navigate = useNavigate();
+    const location = useLocation();
+    const { loginAdmin } = useAuth();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -16,13 +22,18 @@ export default function AdminLogin() {
         setError(null);
         setSubmitting(true);
         try {
-            // TODO (backend): POST /auth/admin/login with { email, password }
-            //   Store accessToken + refreshToken from response envelope's `data`.
-            //   Decode JWT to verify role === "ADMIN".
-            await new Promise((r) => setTimeout(r, 300));
-            navigate("/admin/dashboard");
-        } catch {
-            setError("Could not sign in. Please check your credentials and try again.");
+            await loginAdmin(email, password);
+            const state = location.state as LocationState;
+            const redirectTo = state?.from ?? "/admin/dashboard";
+            navigate(redirectTo, { replace: true });
+        } catch (err) {
+            if (err instanceof ApiError && err.status === 401) {
+                setError("Incorrect email or password.");
+            } else if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError("Could not sign in. Please try again.");
+            }
             setSubmitting(false);
         }
     }
@@ -75,7 +86,10 @@ export default function AdminLogin() {
 
                 <p className="mt-8 text-sm text-brand-ink">
                     Not an admin?{" "}
-                    <Link to="/login" className="font-semibold underline underline-offset-2 hover:no-underline">
+                    <Link
+                        to="/patient-portal/login"
+                        className="font-semibold underline underline-offset-2 hover:no-underline"
+                    >
                         Patient login →
                     </Link>
                 </p>

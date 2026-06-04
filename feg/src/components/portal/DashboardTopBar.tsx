@@ -1,5 +1,6 @@
 import { Menu } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import {useAuth} from '../../contexts/AuthContext';
 import logo from "../../assets/logo.png";
 import labacareDb from "../../assets/labacareDb.png";
 
@@ -8,13 +9,10 @@ type Props = {
 };
 
 export default function DashboardTopBar({ onMenuClick }: Props) {
-    const navigate = useNavigate();
+    const {logout} = useAuth();
 
     function handleLogout() {
-        // TODO (backend): clear auth token / session
-        //   localStorage.removeItem("authToken");
-        //   await fetch("/api/auth/logout", { method: "POST" });
-        navigate("/");
+        logout();
     }
 
     return (

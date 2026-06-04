@@ -1,101 +1,109 @@
-import { useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import type { FormEvent } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import FormField from "../ui/FormField";
+import { useAuth } from "../contexts/AuthContext";
+import { ApiError } from "../lib/api";
+
+type LocationState = { from?: string } | null;
 
 export default function Login() {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { loginPatient } = useAuth();
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
+        setError(null);
         setSubmitting(true);
-
-        // TODO (backend): replace with real auth call
-        //   const res = await fetch("/api/auth/login", {
-        //     method: "POST",
-        //     headers: { "Content-Type": "application/json" },
-        //     body: JSON.stringify({ email, password }),
-        //   });
-        //   if (!res.ok) { /* show error */ }
-        //   const { token } = await res.json();
-        //   // store token, navigate to portal home
-        console.log("Login attempt:", { email });
-        await new Promise((resolve) => setTimeout(resolve, 600));
-        alert(
-            "Login submitted! Backend integration pending — wire this up in handleSubmit.",
-        );
-        setSubmitting(false);
+        try {
+            await loginPatient(email, password);
+            const state = location.state as LocationState;
+            const redirectTo = state?.from ?? "/patient-portal/dashboard";
+            navigate(redirectTo, { replace: true });
+        } catch (err) {
+            if (err instanceof ApiError && err.status === 401) {
+                setError("Incorrect email or password.");
+            } else if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError("Could not sign in. Please try again.");
+            }
+            setSubmitting(false);
+        }
     }
 
     return (
-        <section
-            id="login"
-            className="bg-[#f9f7f0] py-16 sm:py-20 lg:py-24"
-            aria-labelledby="login-heading"
-        >
-            <div className="mx-auto w-full max-w-lg px-6">
-                <h1
-                    id="login-heading"
-                    className="text-center text-3xl font-extrabold text-brand-red sm:text-4xl"
-                >
-                    Welcome Back!
-                </h1>
+        <section className="bg-[#f9f7f0] py-16 sm:py-20 lg:py-24">
+            <div className="mx-auto max-w-md px-4 sm:px-6 lg:px-8">
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-brand-red sm:text-4xl">
+                        Welcome back
+                    </h1>
+                    <p className="mt-3 text-sm text-brand-ink">
+                        Sign in to your patient account.
+                    </p>
+                </div>
 
-                <form onSubmit={handleSubmit} className="mt-10 space-y-6" noValidate={false}>
+                <form onSubmit={handleSubmit} className="space-y-5">
                     <FormField
-                        label="Email Address"
-                        id="email"
+                        id="login-email"
+                        label="Email address"
                         type="email"
+                        required
+                        autoComplete="email"
                         value={email}
                         onChange={setEmail}
-                        placeholder="you@example.com"
-                        autoComplete="email"
-                        required
                     />
 
-                    <div>
-                        <FormField
-                            label="Password"
-                            id="password"
-                            type="password"
-                            value={password}
-                            onChange={setPassword}
-                            autoComplete="current-password"
-                            required
-                            minLength={8}
-                        />
+                    <FormField
+                        id="login-password"
+                        label="Password"
+                        type="password"
+                        required
+                        autoComplete="current-password"
+                        value={password}
+                        onChange={setPassword}
+                    />
+
+                    <div className="text-right">
                         <Link
-                            to="/patient-portal/forgot-password"
-                            className="mt-2 inline-block text-xs text-brand-red underline underline-offset-2 hover:text-brand-red/80"
+                            to="/forgot-password"
+                            className="text-sm text-brand-ink underline underline-offset-2 hover:no-underline"
                         >
-                            Forgot your password?
+                            Forgot password?
                         </Link>
                     </div>
 
-                    {/* Submit button — inline because the existing Button component */}
-                    {/* renders as <Link>/<a>, not <button type="submit">. Same green */}
-                    {/* pill styling as Button variant="green" for visual consistency. */}
-                    <div className="flex flex-col items-center pt-6">
-                        <button
-                            type="submit"
-                            disabled={submitting}
-                            className="inline-flex w-full max-w-sm items-center justify-center rounded-full bg-brand-green px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-blue disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green"
-                        >
-                            {submitting ? "Logging in..." : "Login"}
-                        </button>
+                    <button
+                        type="submit"
+                        disabled={submitting}
+                        className="inline-flex w-full items-center justify-center rounded-full bg-brand-green px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-blue focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green disabled:opacity-60"
+                    >
+                        {submitting ? "Signing in…" : "Sign in"}
+                    </button>
 
-                        <p className="mt-4 text-xs text-brand-ink">
-                            Don't have an account?{" "}
-                            <Link
-                                to="/patient-portal/signup"
-                                className="underline underline-offset-2 hover:text-brand-blue"
-                            >
-                                Signup here
-                            </Link>
+                    {error && (
+                        <p className="text-sm text-brand-red" role="alert">
+                            {error}
                         </p>
-                    </div>
+                    )}
                 </form>
+
+                <p className="mt-8 text-sm text-brand-ink">
+                    Don't have an account?{" "}
+                    <Link
+                        to="/patient-portal/signup"
+                        className="font-semibold underline underline-offset-2 hover:no-underline"
+                    >
+                        Sign up →
+                    </Link>
+                </p>
             </div>
         </section>
     );

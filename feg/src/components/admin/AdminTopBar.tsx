@@ -1,5 +1,6 @@
 import { Menu } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import {useAuth} from "../../contexts/AuthContext";
 import logo from "../../assets/logo.png";
 import labacareDb from "../../assets/labacareDb.png";
 
@@ -9,12 +10,10 @@ type Props = {
 
 export default function AdminTopBar({ onMenuClick }: Props) {
     const navigate = useNavigate();
+    const {logout} = useAuth();
 
     function handleLogout() {
-        // TODO (backend): clear admin auth token / session, then navigate.
-        //   localStorage.removeItem("accessToken");
-        //   localStorage.removeItem("refreshToken");
-        //   await api.post("/auth/logout");
+        logout();
         navigate("/admin/login");
     }
 
@@ -34,7 +33,7 @@ export default function AdminTopBar({ onMenuClick }: Props) {
                     <button
                         type="button"
                         onClick={handleLogout}
-                        className="inline-flex items-center justify-center rounded-full bg-brand-green px-7 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-blue focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green"
+                        className="inline-flex items-center cursor-pointer justify-center rounded-full bg-brand-green px-7 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-blue focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green"
                     >
                         Log out
                     </button>

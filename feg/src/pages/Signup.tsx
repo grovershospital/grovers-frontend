@@ -1,185 +1,219 @@
-import { useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import type { FormEvent } from "react";
+import { Link} from "react-router-dom";
 import FormField from "../ui/FormField";
+import { api, ApiError, tokenStore } from "../lib/api";
+import { decodeJwtPayload } from "../lib/jwt";
+
+type SignupResponse = {
+    accessToken: string;
+    refreshToken: string;
+};
 
 export default function Signup() {
+
+    // We don't have a `setUser` exposed from the context (intentionally — login flows
+    // through the context's loginPatient method). For signup → auto-login, we hit the
+    // signup endpoint directly and then trigger a fresh login via the same flow.
+
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
+    const [dateOfBirth, setDateOfBirth] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [agreed, setAgreed] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [acceptedTerms, setAcceptedTerms] = useState(false);
+
     const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
         setError(null);
 
-        // JS-level validation for things HTML5 can't do.
         if (password !== confirmPassword) {
             setError("Passwords do not match.");
             return;
         }
-        if (!agreed) {
-            setError(
-                "You must agree to the Privacy Policy and Terms of Use to continue.",
-            );
+        if (!acceptedTerms) {
+            setError("Please accept the terms to continue.");
             return;
         }
 
         setSubmitting(true);
+        try {
+            const data = await api.post<SignupResponse>(
+                "/auth/register",
+                {
+                    firstName,
+                    lastName,
+                    email,
+                    phone,
+                    dateOfBirth,
+                    password,
+                },
+                { skipAuth: true },
+            );
 
-        // TODO (backend): replace with real signup call
-        //   const res = await fetch("/api/auth/signup", {
-        //     method: "POST",
-        //     headers: { "Content-Type": "application/json" },
-        //     body: JSON.stringify({ firstName, lastName, email, phone, password }),
-        //   });
-        //   if (!res.ok) { /* show error */ }
-        //   const { token } = await res.json();
-        //   // store token, navigate to portal home or email verification page
-        console.log("Signup attempt:", { firstName, lastName, email, phone });
-        await new Promise((resolve) => setTimeout(resolve, 600));
-        alert(
-            "Signup submitted! Backend integration pending — wire this up in handleSubmit.",
-        );
-        setSubmitting(false);
+            // Auto-login with the tokens the signup endpoint returned.
+            const payload = decodeJwtPayload(data.accessToken);
+            if (payload?.role !== "PATIENT") {
+                // Wrong role somehow — bail out and let user sign in manually.
+                throw new Error("Unexpected token role. Please sign in.");
+            }
+            tokenStore.set(data.accessToken, data.refreshToken);
+            // Force a fresh read of the token in AuthContext by triggering a route
+            // change. Cleanest path is reload — alternative is exposing a manual
+            // hydrate method on the context.
+            window.location.replace("/patient-portal/dashboard");
+        } catch (err) {
+            if (err instanceof ApiError && err.status === 409) {
+                setError("An account with this email already exists.");
+            } else if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError("Could not create your account. Please try again.");
+            }
+            setSubmitting(false);
+        }
     }
 
     return (
-        <section
-            id="signup"
-            className="bg-[#f9f7f0] py-16 sm:py-20 lg:py-24"
-            aria-labelledby="signup-heading"
-        >
-            <div className="mx-auto w-full max-w-lg px-6">
-                <h1
-                    id="signup-heading"
-                    className="text-center text-3xl font-extrabold text-brand-red sm:text-4xl"
-                >
-                    Create Your Account
-                </h1>
+        <section className="bg-[#f9f7f0] py-16 sm:py-20 lg:py-24">
+            <div className="mx-auto max-w-md px-4 sm:px-6 lg:px-8">
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-brand-red sm:text-4xl">
+                        Create your account
+                    </h1>
+                    <p className="mt-3 text-sm text-brand-ink">
+                        Sign up to book appointments, view results and message our team.
+                    </p>
+                </div>
 
-                <form onSubmit={handleSubmit} className="mt-10 space-y-5">
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                        <FormField
+                            id="su-first"
+                            label="First name"
+                            type="text"
+                            required
+                            autoComplete="given-name"
+                            value={firstName}
+                            onChange={setFirstName}
+                        />
+                        <FormField
+                            id="su-last"
+                            label="Last name"
+                            type="text"
+                            required
+                            autoComplete="family-name"
+                            value={lastName}
+                            onChange={ setLastName}
+                        />
+                    </div>
+
                     <FormField
-                        label="First Name"
-                        id="firstName"
-                        value={firstName}
-                        onChange={setFirstName}
-                        autoComplete="given-name"
-                        required
-                    />
-                    <FormField
-                        label="Last Name"
-                        id="lastName"
-                        value={lastName}
-                        onChange={setLastName}
-                        autoComplete="family-name"
-                        required
-                    />
-                    <FormField
-                        label="Email Address"
-                        id="email"
+                        id="su-email"
+                        label="Email address"
                         type="email"
+                        required
+                        autoComplete="email"
                         value={email}
                         onChange={setEmail}
-                        autoComplete="email"
-                        required
                     />
+
                     <FormField
-                        label="Phone Number"
-                        id="phone"
+                        id="su-phone"
+                        label="Phone number"
                         type="tel"
+                        required
+                        autoComplete="tel"
                         value={phone}
                         onChange={setPhone}
-                        placeholder="+234..."
-                        autoComplete="tel"
-                        required
                     />
+
                     <FormField
+                        id="su-dob"
+                        label="Date of birth"
+                        type="date"
+                        required
+                        autoComplete="bday"
+                        value={dateOfBirth}
+                        onChange={ setDateOfBirth}
+                    />
+
+                    <FormField
+                        id="su-password"
                         label="Password"
-                        id="password"
                         type="password"
+                        required
+                        autoComplete="new-password"
                         value={password}
                         onChange={setPassword}
-                        autoComplete="new-password"
-                        required
-                        minLength={8}
-                    />
-                    <FormField
-                        label="Confirm Password"
-                        id="confirmPassword"
-                        type="password"
-                        value={confirmPassword}
-                        onChange={setConfirmPassword}
-                        autoComplete="new-password"
-                        required
-                        minLength={8}
                     />
 
-                    {/* Terms checkbox — native input styled minimally. Custom checkbox */}
-                    {/* designs are possible with peer-checked pseudoclasses, but the */}
-                    {/* native one is accessible by default and matches the design. */}
-                    <label className="flex items-start gap-2 pt-2 text-xs leading-relaxed text-brand-ink">
+                    <FormField
+                        id="su-confirm"
+                        label="Confirm password"
+                        type="password"
+                        required
+                        autoComplete="new-password"
+                        value={confirmPassword}
+                        onChange={ setConfirmPassword}
+                    />
+
+                    <label className="flex items-start gap-3 text-sm">
                         <input
                             type="checkbox"
-                            checked={agreed}
-                            onChange={(e) => setAgreed(e.target.checked)}
-                            className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-brand-green"
+                            checked={acceptedTerms}
+                            onChange={(e) => setAcceptedTerms(e.target.checked)}
+                            className="mt-0.5 h-4 w-4 rounded border-neutral-300 text-brand-red focus:ring-brand-blue"
                             required
                         />
-                        <span>
-              By creating an account you agree to our{" "}
-                            <Link
-                                to="/privacy"
-                                className="underline underline-offset-2 hover:text-brand-blue"
-                            >
-                Privacy Policy
-              </Link>{" "}
-                            and{" "}
+                        <span className="text-brand-ink">
+                            I accept the{" "}
                             <Link
                                 to="/terms"
-                                className="underline underline-offset-2 hover:text-brand-blue"
+                                className="font-semibold underline underline-offset-2 hover:no-underline"
                             >
-                Terms of Use
-              </Link>
-              .
-            </span>
+                                terms of use
+                            </Link>{" "}
+                            and{" "}
+                            <Link
+                                to="/privacy"
+                                className="font-semibold underline underline-offset-2 hover:no-underline"
+                            >
+                                privacy policy
+                            </Link>
+                            .
+                        </span>
                     </label>
 
-                    {/* Validation error message — appears above the submit button */}
-                    {/* when a JS-level check (password match, agreement) fails. */}
+                    <button
+                        type="submit"
+                        disabled={submitting}
+                        className="inline-flex w-full items-center cursor-pointer justify-center rounded-full bg-brand-green px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-blue focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green disabled:opacity-60"
+                    >
+                        {submitting ? "Creating account…" : "Create account"}
+                    </button>
+
                     {error && (
-                        <p
-                            role="alert"
-                            className="text-center text-sm font-medium text-brand-red"
-                        >
+                        <p className="text-sm text-brand-red" role="alert">
                             {error}
                         </p>
                     )}
-
-                    <div className="flex flex-col items-center pt-4">
-                        <button
-                            type="submit"
-                            disabled={submitting}
-                            className="inline-flex w-full max-w-sm items-center justify-center rounded-full bg-brand-green px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-blue disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green"
-                        >
-                            {submitting ? "Creating account..." : "Sign Up"}
-                        </button>
-
-                        <p className="mt-4 text-xs text-brand-ink">
-                            Already have an account?{" "}
-                            <Link
-                                to="/patient-portal/login"
-                                className="underline underline-offset-2 hover:text-brand-blue"
-                            >
-                                Log-in here
-                            </Link>
-                        </p>
-                    </div>
                 </form>
+
+                <p className="mt-8 text-sm text-brand-ink">
+                    Already have an account?{" "}
+                    <Link
+                        to="/login"
+                        className="font-semibold underline underline-offset-2 hover:no-underline"
+                    >
+                        Sign in →
+                    </Link>
+                </p>
             </div>
         </section>
     );
