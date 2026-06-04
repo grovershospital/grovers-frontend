@@ -1,4 +1,4 @@
-import {BrowserRouter, Routes, Route, Navigate} from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
 import HomePage from "./pages/HomePage";
 import About from "./pages/About";
@@ -41,7 +41,7 @@ import AdminBlogPostEditor from "./components/admin/AdminBlogPostEditor.tsx";
 
 export default function App() {
     return (
-        <BrowserRouter>
+        <>
             <ScrollToTop/>
             <Routes>
                 {/* Everything inside here gets TopBar + Navbar + Footer */}
@@ -97,6 +97,6 @@ export default function App() {
                     <Route path={'/admin/visits/:visitId/edit'} element={<AdminVisitEdit/>}/>
                 </Route>
             </Routes>
-        </BrowserRouter>
+        </>
     );
 }
