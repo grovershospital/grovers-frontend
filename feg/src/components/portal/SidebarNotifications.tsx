@@ -1,96 +1,121 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Bell } from "lucide-react";
 import {
     fetchNotifications,
+    markAllNotificationsRead,
+    markNotificationRead,
     type NotificationType,
     type PortalNotification,
 } from "../../data/portal";
 
-// Emoji prefix per notification type — matches the design exactly.
-// Using emoji rather than lucide icons because the design uses them, and
-// they render identically without needing colored container backgrounds.
-const TYPE_EMOJI: Record<NotificationType, string> = {
-    "lab-ready": "🔔",
+const EMOJI: Record<NotificationType, string> = {
+    "lab-ready": "🔬",
     "appointment-reminder": "📅",
     "appointment-confirmed": "✅",
     "appointment-cancelled": "❌",
     "medical-history": "📋",
     feedback: "💬",
+    other: "🔔",
 };
 
-export default function SidebarNotifications() {
+type Props = {
+    onNavigate?: () => void;
+};
+
+export default function SidebarNotifications({ onNavigate }: Props) {
     const [notifications, setNotifications] = useState<PortalNotification[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        let cancelled = false;
+        let alive = true;
         fetchNotifications()
-            .then((n) => {
-                if (!cancelled) setNotifications(n);
+            .then((data) => {
+                if (alive) setNotifications(data);
             })
-            .catch((err) => console.error("Failed to load notifications", err))
             .finally(() => {
-                if (!cancelled) setLoading(false);
+                if (alive) setLoading(false);
             });
         return () => {
-            cancelled = true;
+            alive = false;
         };
     }, []);
 
     const unreadCount = notifications.filter((n) => !n.read).length;
 
+    function handleNotificationClick(notification: PortalNotification) {
+        if (notification.read) {
+            onNavigate?.();
+            return;
+        }
+
+        // Optimistic: flip to read locally, fire-and-forget the API call,
+        // revert on failure.
+        const prev = notifications;
+        setNotifications((list) =>
+            list.map((n) => (n.id === notification.id ? { ...n, read: true } : n)),
+        );
+        markNotificationRead(notification.id).catch(() => setNotifications(prev));
+
+        onNavigate?.();
+    }
+
+    async function handleMarkAllRead() {
+        const prev = notifications;
+        setNotifications((list) => list.map((n) => ({ ...n, read: true })));
+        try {
+            await markAllNotificationsRead();
+        } catch {
+            setNotifications(prev);
+            window.alert("Could not mark notifications as read. Please try again.");
+        }
+    }
+
     return (
-        <div className="py-6 text-sm text-white">
-            {/* Header — bell + label, with unread count badge. */}
-            <div className="flex items-center gap-2">
-                <div className="relative">
-                    <Bell className="h-5 w-5" strokeWidth={2} />
+        <div>
+            <div className="mb-4 flex items-center justify-between">
+                <div className="relative flex items-center gap-3">
+                    <Bell className="h-5 w-5 text-white" strokeWidth={2} />
                     {unreadCount > 0 && (
-                        <span
-                            className="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-brand-red px-1 text-[10px] font-bold leading-none text-white"
-                            aria-label={`${unreadCount} unread`}
-                        >
-              {unreadCount}
-            </span>
+                        <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-brand-red px-1 text-[10px] font-bold text-white">
+                            {unreadCount}
+                        </span>
                     )}
+                    <h2 className="text-base font-bold text-white">Notifications</h2>
                 </div>
-                <h2 className="text-base font-extrabold">Notifications</h2>
+                {unreadCount > 0 && (
+                    <button
+                        type="button"
+                        onClick={handleMarkAllRead}
+                        className="text-xs text-white/70 underline underline-offset-2 hover:no-underline hover:text-white"
+                    >
+                        Mark all read
+                    </button>
+                )}
             </div>
 
-            <ul className="mt-5 space-y-4">
-                {loading
-                    ? Array.from({ length: 3 }).map((_, i) => (
-                        <li key={i} className="h-8 animate-pulse rounded bg-white/10" />
-                    ))
-                    : notifications.map((notification) => (
-                        <li
-                            key={notification.id}
-                            className="flex items-start gap-2 text-xs leading-relaxed"
-                        >
-                <span aria-hidden="true" className="mt-0.5 shrink-0">
-                  {TYPE_EMOJI[notification.type]}
-                </span>
-                            <p>
-                                {/* "rebook here" within the cancellation message — special- */}
-                                {/* cased so the link is interactive. All other notifications */}
-                                {/* are display-only for now per the spec. */}
-                                {notification.type === "appointment-cancelled" ? (
-                                    <>
-                                        {notification.message}{" "}
-                                        <a
-                                            href="/patient-portal/appointments"
-                                            className="underline underline-offset-2 hover:text-white/80"
-                                        >
-                                            rebook here
-                                        </a>
-                                    </>
-                                ) : (
-                                    notification.message
-                                )}
-                            </p>
+            {loading ? (
+                <p className="text-xs text-white/60">Loading…</p>
+            ) : notifications.length === 0 ? (
+                <p className="text-xs text-white/60">No notifications yet.</p>
+            ) : (
+                <ul className="space-y-3">
+                    {notifications.map((n) => (
+                        <li key={n.id}>
+                            <Link
+                                to={n.href}
+                                onClick={() => handleNotificationClick(n)}
+                                className={`block text-xs transition-opacity hover:opacity-80 ${
+                                    n.read ? "opacity-60" : "opacity-100"
+                                }`}
+                            >
+                                <span className="mr-1">{EMOJI[n.type]}</span>
+                                <span className="text-white">{n.message}</span>
+                            </Link>
                         </li>
                     ))}
-            </ul>
+                </ul>
+            )}
         </div>
     );
 }

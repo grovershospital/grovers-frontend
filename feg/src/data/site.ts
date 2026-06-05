@@ -29,7 +29,7 @@ export const NAV_LINKS = [
     { label: "About Us", href: "/about" },
     { label: "Our Services", href: "/services" },
     { label: "Resources", href: "/resources" },
-    { label: "Contact Us", href: "/contact" },
+    { label: "Contact Us", href: "#contact" },
 ] as const;
 
 export const TOPBAR_ITEMS = [

@@ -1,7 +1,14 @@
-import {useState} from "react";
+import React, {useState} from "react";
 import {NAV_LINKS} from "../../data/site.ts";
 import {Button} from "../../ui/Button";
 import logo from "../../assets/logo.png";
+
+function handleNavClick(e: React.MouseEvent<HTMLAnchorElement>, href: string) {
+    if (href.startsWith('#')) {
+        e.preventDefault();
+        document.getElementById(href.slice(1))?.scrollIntoView({ behavior: 'smooth' });
+    }
+}
 
 export function Navbar() {
     const [open, setOpen] = useState(false);
@@ -19,6 +26,7 @@ export function Navbar() {
                     {NAV_LINKS.map((link) => (
                         <li key={link.label}>
                             <a href={link.href}
+                               onClick={(e) => handleNavClick(e, link.href)}
                                className={"text-sm text-brand-ink/90 transition-colors hover:text-brand-green"}
                             >
                                 {link.label}
@@ -69,7 +77,7 @@ export function Navbar() {
                         {NAV_LINKS.map((link) => (
                             <li key={link.label}>
                                 <a href={link.href}
-                                   onClick={() => setOpen(false)}
+                                   onClick={(e) => { handleNavClick(e, link.href); setOpen(false); }}
                                    className={'block rounded-md px-2 py-2.5 text-sm text-brand-ink/90 hover:bg-brand-green/5 hover:text-brand-green'}
                                 >
                                     {link.label}

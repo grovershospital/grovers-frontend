@@ -17,7 +17,7 @@ const DIRECTIONS_URL = `https://www.google.com/maps/dir/?api=1&destination=${LAT
 
 export function Contact() {
     return (
-        <section className="w-full bg-white py-16 md:py-24">
+        <section id="contact" className="w-full bg-white py-16 md:py-24">
             <div className="mx-auto grid max-w-content grid-cols-1 gap-10 px-4 md:px-8 lg:w-[80%] lg:grid-cols-2 lg:gap-16">
                 {/* Left: details */}
                 <div className={'lg:w-[60%]'}>

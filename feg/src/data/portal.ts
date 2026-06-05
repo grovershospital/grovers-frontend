@@ -166,6 +166,14 @@ type PageResponse<T> = {
     last: boolean;
 };
 
+export async function markNotificationRead(id: string): Promise<void> {
+    await api.patch<unknown>(`/portal/notifications/${id}/read`);
+}
+
+export async function markAllNotificationsRead(): Promise<void> {
+    await api.patch<unknown>("/portal/notifications/read-all");
+}
+
 function toNotification(r: NotificationResponse): PortalNotification {
     const type = NOTIFICATION_TYPE_MAP[r.type] ?? "other";
     return {
