@@ -572,7 +572,7 @@ type DeletionStatusResponse = {
 
 export async function fetchAccountDeletionStatus(): Promise<AccountDeletionStatus> {
     const data = await api.get<DeletionStatusResponse>(
-        "/portal/account/deletion-status",
+        "/portal/account/delete-status",
     );
     return {
         pending: data.pending,
@@ -592,12 +592,4 @@ export async function requestAccountDeletion(
 
 export async function cancelAccountDeletion(password: string): Promise<void> {
     await api.post<unknown>("/portal/account/cancel-deletion", {password});
-}
-
-/**
- * Legacy name preserved so the existing DeleteAccount page compiles. New code
- * should call requestAccountDeletion directly.
- */
-export async function deleteAccount(password: string): Promise<void> {
-    return requestAccountDeletion(password);
 }

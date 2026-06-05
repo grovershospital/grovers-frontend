@@ -55,7 +55,7 @@ export default function AllResultsTable({ results, loading, onView, onDownload }
                                             type="button"
                                             onClick={() => onView(r.id)}
                                             disabled={r.status !== "Ready to view"}
-                                            className="text-left text-sm text-brand-ink underline underline-offset-2 hover:no-underline disabled:cursor-not-allowed disabled:text-neutral-400 disabled:no-underline"
+                                            className="text-left text-sm text-brand-ink cursor-pointer underline underline-offset-2 hover:no-underline disabled:cursor-not-allowed disabled:text-neutral-400 disabled:no-underline"
                                         >
                                             View
                                         </button>
@@ -63,7 +63,7 @@ export default function AllResultsTable({ results, loading, onView, onDownload }
                                             type="button"
                                             onClick={() => onDownload(r.id)}
                                             disabled={r.status !== "Ready to view"}
-                                            className="text-left text-sm text-brand-ink underline underline-offset-2 hover:no-underline disabled:cursor-not-allowed disabled:text-neutral-400 disabled:no-underline"
+                                            className="text-left text-sm text-brand-ink cursor-pointer underline underline-offset-2 hover:no-underline disabled:cursor-not-allowed disabled:text-neutral-400 disabled:no-underline"
                                         >
                                             Download PDF
                                         </button>
