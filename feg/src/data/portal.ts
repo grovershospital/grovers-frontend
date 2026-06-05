@@ -1,21 +1,111 @@
 // ============================================================
 // Patient portal data layer
 // ============================================================
-// Stub data + Promise-returning fetch functions for the patient dashboard.
-// Same pattern as articles.ts — when the backend is wired up:
-//   1. Delete STUB_* constants below
-//   2. Replace each fetch function body with the real `fetch(...)` call
-//      (each has a TODO comment showing exactly what to write)
-//   3. Components stay untouched
+// Wired to the real backend. Backend types are converted to frontend
+// types at this boundary — components stay unaware of the API shape.
+//
+// Conventions:
+//   - IDs: backend returns numbers; we stringify to keep component types as `string`
+//   - Dates: backend returns ISO; we format via src/lib/format.ts before returning
+//   - Enums: backend uppercase (PENDING); frontend title case (Pending) via lookup
 // ============================================================
+
+import {api} from "../lib/api";
+import {
+    formatDateLong,
+    formatDateShort,
+    formatMonthYear,
+    formatRelative,
+} from "../lib/format";
+
+// ─── User / Profile ──────────────────────────────────────────
 
 export type PortalUser = {
     firstName: string;
     lastName: string;
     email: string;
     phone: string;
-    memberSince: string; // formatted display string e.g. "June 2026"
+    memberSince: string;
 };
+
+export type PortalProfile = PortalUser & {
+    dateOfBirth: string;
+    gender: string;
+    whatsapp: string;
+};
+
+type PortalProfileResponse = {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    dateOfBirth: string;
+    whatsappNumber: string | null;
+    gender: string | null;
+    memberSince: string;
+};
+
+function toPortalProfile(r: PortalProfileResponse): PortalProfile {
+    return {
+        firstName: r.firstName,
+        lastName: r.lastName,
+        email: r.email,
+        phone: r.phone,
+        memberSince: formatMonthYear(r.memberSince),
+        dateOfBirth: formatDateLong(r.dateOfBirth),
+        gender: r.gender ?? "Not specified",
+        whatsapp: r.whatsappNumber ?? "",
+    };
+}
+
+export async function fetchPortalUser(): Promise<PortalUser> {
+    const data = await api.get<PortalProfileResponse>("/portal/profile");
+    const profile = toPortalProfile(data);
+    return {
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        email: profile.email,
+        phone: profile.phone,
+        memberSince: profile.memberSince,
+    };
+}
+
+export async function fetchPortalProfile(): Promise<PortalProfile> {
+    const data = await api.get<PortalProfileResponse>("/portal/profile");
+    return toPortalProfile(data);
+}
+
+export type ContactDetailsInput = {
+    email: string;
+    phone: string;
+    whatsapp: string;
+};
+
+export async function updateContactDetails(
+    input: ContactDetailsInput,
+): Promise<PortalProfile> {
+    // TODO (integration blocker): The backend's UpdateProfileRequest fields are
+    // not yet confirmed. Once the DTO is shared, swap this to a real
+    // `api.put("/portal/profile", { ...fields the DTO accepts })` call. Until
+    // then, this throws so callers surface a clear error rather than silently
+    // pretending to save.
+    console.warn("updateContactDetails not wired yet", input);
+    throw new Error(
+        "Profile updates aren't available yet. Please contact the front desk.",
+    );
+}
+
+export type PasswordUpdateInput = {
+    currentPassword: string;
+    newPassword: string;
+};
+
+export async function updatePassword(input: PasswordUpdateInput): Promise<void> {
+    await api.put<unknown>("/portal/profile/password", input);
+}
+
+// ─── Notifications ───────────────────────────────────────────
 
 export type NotificationType =
     | "lab-ready"
@@ -23,7 +113,8 @@ export type NotificationType =
     | "appointment-confirmed"
     | "appointment-cancelled"
     | "medical-history"
-    | "feedback";
+    | "feedback"
+    | "other";
 
 export type PortalNotification = {
     id: string;
@@ -34,17 +125,249 @@ export type PortalNotification = {
     createdAt: string;
 };
 
-export type AppointmentStatus = "Confirmed" | "Pending" | "Cancelled" | "Completed";
+// Backend's notification type enum is broader than we knew. Mapping conservatively;
+// unrecognized values fall through to "other" rather than crashing.
+const NOTIFICATION_TYPE_MAP: Record<string, NotificationType> = {
+    BOOKING_RECEIVED: "appointment-reminder",
+    BOOKING_CONFIRMED: "appointment-confirmed",
+    BOOKING_CANCELLED: "appointment-cancelled",
+    BOOKING_REMINDER: "appointment-reminder",
+    LAB_RESULT_READY: "lab-ready",
+    MEDICAL_HISTORY_UPDATED: "medical-history",
+    FEEDBACK_RECEIVED: "feedback",
+};
+
+// For each notification type, where clicking it should take the patient.
+const NOTIFICATION_HREF: Record<NotificationType, string> = {
+    "lab-ready": "/patient-portal/lab-results",
+    "appointment-reminder": "/patient-portal/appointments",
+    "appointment-confirmed": "/patient-portal/appointments",
+    "appointment-cancelled": "/patient-portal/appointments",
+    "medical-history": "/patient-portal/profile",
+    feedback: "/patient-portal/feedback",
+    other: "/patient-portal/dashboard",
+};
+
+type NotificationResponse = {
+    id: number;
+    type: string;
+    message: string;
+    isRead: boolean;
+    createdAt: string;
+};
+
+type PageResponse<T> = {
+    content: T[];
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+    first: boolean;
+    last: boolean;
+};
+
+function toNotification(r: NotificationResponse): PortalNotification {
+    const type = NOTIFICATION_TYPE_MAP[r.type] ?? "other";
+    return {
+        id: String(r.id),
+        type,
+        message: r.message,
+        read: r.isRead,
+        href: NOTIFICATION_HREF[type],
+        createdAt: formatRelative(r.createdAt),
+    };
+}
+
+export async function fetchNotifications(): Promise<PortalNotification[]> {
+    const data = await api.get<PageResponse<NotificationResponse>>(
+        "/portal/notifications?size=20&sort=createdAt,desc",
+    );
+    return data.content.map(toNotification);
+}
+
+// ─── Appointments / Bookings ─────────────────────────────────
+
+export type AppointmentStatus =
+    | "Confirmed"
+    | "Pending"
+    | "Cancelled"
+    | "Completed";
+
+const STATUS_MAP: Record<string, AppointmentStatus> = {
+    PENDING: "Pending",
+    CONFIRMED: "Confirmed",
+    CANCELLED: "Cancelled",
+    COMPLETED: "Completed",
+};
 
 export type Appointment = {
     id: string;
     date: string;
-    time: string;
     department: string;
     status: AppointmentStatus;
 };
 
+// Departments — kept for the booking form's dropdown. TODO (integration):
+// fetch from /portal/departments or /public/departments instead of hardcoding,
+// once admin can manage them.
+
+export type Department = {
+    id: string;
+    name: string;
+    slug: string
+};
+
+type DepartmentResponse = {
+    id: number;
+    name: string;
+    slug: string;
+    description: string | null;
+    iconUrl: string | null;
+    displayOrder: number;
+};
+
+let departmentsCache: Department[] | null = null;
+
+export async function fetchDepartments(): Promise<Department[]> {
+    if (departmentsCache) return departmentsCache;
+    const data = await api.get<DepartmentResponse[]>("/departments");
+    const departments = data
+        .sort((a, b) => a.displayOrder - b.displayOrder)
+        .map((d) => ({id: String(d.id), name: d.name, slug: d.slug}));
+    departmentsCache = departments;
+    return departments;
+}
+
+export function clearDepartmentsCache(): void {
+    departmentsCache = null;
+}
+
+type BookingResponse = {
+    id: number;
+    bookingType: "CONSULTATION" | "PACKAGE" | "SCREENING";
+    status: "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
+    preferredDate: string;
+    departmentId: number | null;
+    departmentName: string | null;
+    packageId: number | null;
+    packageName: string | null;
+    packageTierId: number | null;
+    packageTierName: string | null;
+    notes: string | null;
+    createdAt: string;
+    updatedAt: string;
+    rescheduleCount: number;
+    lastRescheduledAt: string | null;
+};
+
+function toAppointment(b: BookingResponse): Appointment {
+    return {
+        id: String(b.id),
+        date: formatDateShort(b.preferredDate),
+        // Backend has no time field on bookings. We display blank until admin
+        // confirms with a specific time. When that flow exists, swap this for
+        // the confirmed time field.
+        department:
+            b.departmentName ??
+            b.packageName ??
+            "Booking",
+        status: STATUS_MAP[b.status] ?? "Pending",
+    };
+}
+
+async function fetchAllBookings(): Promise<BookingResponse[]> {
+    const data = await api.get<PageResponse<BookingResponse>>(
+        "/portal/bookings?size=100&sort=preferredDate,desc",
+    );
+    return data.content;
+}
+
+function isUpcoming(b: BookingResponse): boolean {
+    // Upcoming = anything not yet cancelled or completed.
+    return b.status === "PENDING" || b.status === "CONFIRMED";
+}
+
+export async function fetchUpcomingAppointments(): Promise<Appointment[]> {
+    const all = await fetchAllBookings();
+    return all.filter(isUpcoming).map(toAppointment);
+}
+
+export async function fetchPastAppointments(): Promise<ReadonlyArray<Appointment>> {
+    const all = await fetchAllBookings();
+    return all.filter((b) => !isUpcoming(b)).map(toAppointment);
+}
+
+// Booking input — note: the form currently sends `department` as a string
+// from a hardcoded list. To wire create-booking properly we need departmentId
+// (numeric, from a fetched departments list). The fetcher below works for
+// consultations once the form is updated to provide departmentId in part two.
+
+export type BookingType = "CONSULTATION" | "PACKAGE";
+
+export type BookAppointmentInput = {
+    bookingType: BookingType;
+    /** Required when bookingType === "CONSULTATION" */
+    departmentId?: string;
+    /** Required when bookingType === "PACKAGE" */
+    packageId?: string;
+    /** Optional when bookingType === "PACKAGE" */
+    packageTierId?: string;
+    /** ISO date "YYYY-MM-DD". Must be in the future. */
+    preferredDate: string;
+    notes?: string;
+};
+
+
+export async function bookAppointment(
+    input: BookAppointmentInput,
+): Promise<Appointment> {
+    const body: Record<string, unknown> = {
+        bookingType: input.bookingType,
+        preferredDate: input.preferredDate,
+    };
+    if (input.bookingType === "CONSULTATION") {
+        if (!input.departmentId) {
+            throw new Error("Please choose a department.");
+        }
+        body.departmentId = Number(input.departmentId);
+    } else {
+        if (!input.packageId) {
+            throw new Error("Please choose a package.");
+        }
+        body.packageId = Number(input.packageId);
+        if (input.packageTierId) {
+            body.packageTierId = Number(input.packageTierId);
+        }
+    }
+    if (input.notes) {
+        body.notes = input.notes;
+    }
+
+    const created = await api.post<BookingResponse>("/portal/bookings", body);
+    return toAppointment(created);
+}
+
+export async function cancelAppointment(id: string): Promise<void> {
+    await api.put<unknown>(`/portal/bookings/${id}/cancel`);
+}
+
+export async function rescheduleAppointment(
+    _id: string,
+    _date: string,
+    _time: string,
+): Promise<Appointment> {
+    // No backend endpoint yet. Patient reschedule is a parked feature.
+    throw new Error("Reschedule isn't available yet.");
+}
+
+// ─── Lab Results ─────────────────────────────────────────────
+
 export type LabResultStatus = "Ready to view" | "Pending";
+
+const LAB_STATUS_MAP: Record<string, LabResultStatus> = {
+    PENDING: "Pending",
+    AVAILABLE: "Ready to view"
+};
 
 export type LabResult = {
     id: string;
@@ -53,228 +376,40 @@ export type LabResult = {
     status: LabResultStatus;
 };
 
-// Departments
-export const DEPARTMENTS = [
-    "OB/GYN",
-    "Paediatrics",
-    "Family Medicine",
-    "Internal Medicine",
-    "Cardiology",
-    "Nephrology",
-    "Urology",
-    "Orthopaedic Surgery",
-    "Neurology",
-    "ENT",
-    "Endocrinology",
-    "Gastroenterology",
-    "Dermatology",
-    "Physiotherapy",
-    "Hematology",
-    "Mental Health",
-    "Psychiatry",
-    "Dietician",
-    "General Surgery",
-] as const;
-
-export type Department = (typeof DEPARTMENTS)[number];
-
-// ─── Stub data ───────────────────────────────────────────────
-
-const STUB_USER: PortalUser = {
-    firstName: "Jesse",
-    lastName: "Okache",
-    email: "testemail@testemail.com",
-    phone: "+2347168909864",
-    memberSince: "June 2026",
+type LabResultFileResponse = {
+    id: number;
+    originalFileName: string;
+    contentType: string;
+    fileSize: number;
 };
 
-const STUB_NOTIFICATIONS: PortalNotification[] = [
-    {
-        id: "n1",
-        type: "lab-ready",
-        message: "Your lab results for [Test Name] are ready to view.",
-        read: false,
-        href: "/patient-portal/lab-results",
-        createdAt: "2026-06-01T09:00:00Z",
-    },
-    {
-        id: "n2",
-        type: "appointment-reminder",
-        message:
-            "Reminder: You have an appointment on [Date] at [Time] with [Department].",
-        read: true,
-        href: "/patient-portal/appointments",
-        createdAt: "2026-05-30T08:00:00Z",
-    },
-    {
-        id: "n3",
-        type: "appointment-confirmed",
-        message: "Your appointment on [Date] has been confirmed.",
-        read: true,
-        href: "/patient-portal/appointments",
-        createdAt: "2026-05-29T10:00:00Z",
-    },
-    {
-        id: "n4",
-        type: "appointment-cancelled",
-        message: "Your appointment on [Date] has been cancelled.",
-        read: true,
-        href: "/patient-portal/appointments",
-        createdAt: "2026-05-28T14:00:00Z",
-    },
-    {
-        id: "n5",
-        type: "medical-history",
-        message: "Your medical history has been updated.",
-        read: true,
-        href: "/patient-portal/profile",
-        createdAt: "2026-05-25T11:00:00Z",
-    },
-    {
-        id: "n6",
-        type: "feedback",
-        message: "Thank you for your feedback. We appreciate you taking the time.",
-        read: true,
-        href: "/patient-portal/feedback",
-        createdAt: "2026-05-20T15:00:00Z",
-    },
-];
-
-const STUB_APPOINTMENTS: Appointment[] = [
-    {
-        id: "a1",
-        date: "15th May",
-        time: "2pm",
-        department: "General Surgery",
-        status: "Confirmed",
-    },
-    {
-        id: "a2",
-        date: "[Date]",
-        time: "[Time]",
-        department: "[Department]",
-        status: "Pending",
-    },
-    {
-        id: "a3",
-        date: "[Date]",
-        time: "[Time]",
-        department: "[Department]",
-        status: "Confirmed",
-    },
-];
-
-const STUB_LAB_RESULTS: LabResult[] = [
-    {
-        id: "l1",
-        date: "12th June",
-        test: "Annual Wellness Test",
-        status: "Ready to view",
-    },
-    { id: "l2", date: "[Date]", test: "[Time]", status: "Pending" },
-    { id: "l3", date: "[Date]", test: "[Time]", status: "Ready to view" },
-];
-
-// --- Booking input ---
-export type BookAppointmentInput = {
-    department: string;
-    date: string;       // ISO yyyy-mm-dd from <input type="date">
-    time: string;       // HH:MM from <input type="time">
-    reason?: string;
-    notes?: string;
+type LabResultResponse = {
+    id: number;
+    title: string;
+    description: string | null;
+    status: string;
+    bookingId: number | null;
+    files: LabResultFileResponse[];
+    createdAt: string;
 };
 
-// --- Stubs for past appointments ---
-const PAST_APPOINTMENTS_STUB: ReadonlyArray<Appointment> = [
-    { id: "past-1", date: "15th May", time: "2pm", department: "General Surgery", status: "Completed" },
-    { id: "past-2", date: "10th May", time: "9am", department: "OB/GYN", status: "Cancelled" },
-    { id: "past-3", date: "1st May", time: "11am", department: "ENT", status: "Completed" },
-];
-
-// --- Fetchers ---
-export async function fetchPastAppointments(): Promise<ReadonlyArray<Appointment>> {
-    // TODO (backend): replace with real fetch
-    //   const res = await fetch("/api/appointments/past", { credentials: "include" });
-    //   if (!res.ok) throw new Error("Failed to load past appointments");
-    //   return res.json();
-    return Promise.resolve(PAST_APPOINTMENTS_STUB);
-}
-
-export async function bookAppointment(input: BookAppointmentInput): Promise<Appointment> {
-    // TODO (backend): replace with real POST
-    //   const res = await fetch("/api/appointments", {
-    //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //     credentials: "include",
-    //     body: JSON.stringify(input),
-    //   });
-    //   if (!res.ok) throw new Error("Failed to book appointment");
-    //   return res.json();
-    return Promise.resolve({
-        id: `new-${Date.now()}`,
-        date: input.date,
-        time: input.time,
-        department: input.department,
-        status: "Pending",
-    });
-}
-
-export async function cancelAppointment(id: string): Promise<void> {
-    // TODO (backend): replace with real DELETE/PATCH
-    //   const res = await fetch(`/api/appointments/${id}`, {
-    //     method: "DELETE",
-    //     credentials: "include",
-    //   });
-    //   if (!res.ok) throw new Error("Failed to cancel appointment");
-    console.log("cancelAppointment stub:", id);
-    return Promise.resolve();
-}
-
-export async function rescheduleAppointment(
-    id: string,
-    date: string,
-    time: string,
-): Promise<Appointment> {
-    // TODO (backend): replace with real PATCH
-    console.log("rescheduleAppointment stub:", { id, date, time });
-    return Promise.resolve({ id, date, time, department: "—", status: "Pending" });
-}
-
-// ─── Public data-access functions ────────────────────────────
-
-export async function fetchPortalUser(): Promise<PortalUser> {
-    // TODO (backend): replace with
-    //   const res = await fetch("/api/portal/me");
-    //   if (!res.ok) throw new Error("Failed to load user");
-    //   return res.json();
-    return Promise.resolve(STUB_USER);
-}
-
-export async function fetchNotifications(): Promise<PortalNotification[]> {
-    // TODO (backend): replace with
-    //   const res = await fetch("/api/portal/notifications");
-    //   if (!res.ok) throw new Error("Failed to load notifications");
-    //   return res.json();
-    return Promise.resolve(STUB_NOTIFICATIONS);
-}
-
-export async function fetchUpcomingAppointments(): Promise<Appointment[]> {
-    // TODO (backend): replace with
-    //   const res = await fetch("/api/portal/appointments?status=upcoming&limit=3");
-    //   if (!res.ok) throw new Error("Failed to load appointments");
-    //   return res.json();
-    return Promise.resolve(STUB_APPOINTMENTS);
+function toLabResult(r: LabResultResponse): LabResult {
+    return {
+        id: String(r.id),
+        date: formatDateShort(r.createdAt),
+        test: r.title,
+        status: LAB_STATUS_MAP[r.status] ?? "Pending",
+    };
 }
 
 export async function fetchRecentLabResults(): Promise<LabResult[]> {
-    // TODO (backend): replace with
-    //   const res = await fetch("/api/portal/lab-results?limit=3");
-    //   if (!res.ok) throw new Error("Failed to load lab results");
-    //   return res.json();
-    return Promise.resolve(STUB_LAB_RESULTS);
+    const data = await api.get<PageResponse<LabResultResponse>>(
+        "/portal/results?size=20&sort=createdAt,desc",
+    );
+    return data.content.map(toLabResult);
 }
 
-// ─── Lab result detail ───────────────────────────────────────
+// ─── Lab Result Detail ───────────────────────────────────────
 
 export type LabResultFlag = "Normal" | "High" | "Low";
 
@@ -286,139 +421,78 @@ export type LabComponent = {
     flag: LabResultFlag;
 };
 
+const FLAG_MAP: Record<string, LabResultFlag> = {
+    NORMAL: "Normal",
+    HIGH: "High",
+    LOW: "Low",
+    CRITICAL_LOW: "Low",       // collapsed; UI doesn't distinguish criticality
+    CRITICAL_HIGH: "High",
+    ABNORMAL: "High",           // closest fit; backend "Abnormal" surfaces as High
+};
+
+type ComponentResponse = {
+    id: number;
+    name: string;
+    value: string;
+    unit: string | null;
+    referenceRange: string | null;
+    flag: string;
+};
+
 export type LabResultDetail = LabResult & {
-    dateFull: string;       // "15th May 2026" — full version w/ year for the details header
+    dateFull: string;
     components: LabComponent[];
 };
 
-const STUB_LAB_DETAILS: Record<string, LabResultDetail> = {
-    l1: {
-        id: "l1",
-        date: "12th June",
-        dateFull: "12th June 2026",
-        test: "Annual Wellness Test",
-        status: "Ready to view",
-        components: [
-            { name: "Haemoglobin", value: "13.8", unit: "g/dL", referenceRange: "12.0 – 15.5", flag: "Normal" },
-            { name: "Total Cholesterol", value: "245", unit: "mg/dL", referenceRange: "< 200", flag: "High" },
-            { name: "Fasting Glucose", value: "68", unit: "mg/dL", referenceRange: "70 – 99", flag: "Low" },
-        ],
-    },
-    l3: {
-        id: "l3",
-        date: "[Date]",
-        dateFull: "[Date]",
-        test: "[Test]",
-        status: "Ready to view",
-        components: [
-            { name: "[Component]", value: "[Value]", unit: "[Unit]", referenceRange: "[Range]", flag: "Normal" },
-        ],
-    },
-};
-
 export async function fetchLabResultDetail(id: string): Promise<LabResultDetail> {
-    // TODO (backend): replace with
-    //   const res = await fetch(`/api/portal/lab-results/${id}`);
-    //   if (!res.ok) throw new Error("Failed to load lab result detail");
-    //   return res.json();
-    const detail = STUB_LAB_DETAILS[id];
-    if (!detail) return Promise.reject(new Error("Lab result not found"));
-    return Promise.resolve(detail);
+    // Components endpoint may 404 if the result has no structured components
+    // (e.g. PDF-only results). Treat that as "no components" rather than
+    // failing the whole fetch.
+    const meta = await api.get<LabResultResponse>(`/portal/results/${id}`);
+
+    let componentsRaw: ComponentResponse[] = [];
+    try {
+        componentsRaw = await api.get<ComponentResponse[]>(
+            `/portal/results/${id}/components`,
+        );
+    } catch {
+        // No components for this result; that's fine.
+    }
+
+    return {
+        id: String(meta.id),
+        date: formatDateShort(meta.createdAt),
+        dateFull: formatDateLong(meta.createdAt),
+        test: meta.title,
+        status: LAB_STATUS_MAP[meta.status] ?? "Pending",
+        components: componentsRaw.map((c) => ({
+            name: c.name,
+            value: c.value,
+            unit: c.unit ?? "",
+            referenceRange: c.referenceRange ?? "",
+            flag: FLAG_MAP[c.flag] ?? "Normal",
+        })),
+    };
 }
 
+/**
+ * Downloads the first file attached to a lab result as a PDF.
+ *
+ * Current UI assumes one file per result. Backend supports multiple — we
+ * fetch the result metadata first to pick the first file, then download by
+ * its specific fileId. If the patient lab page eventually shows multiple files
+ * per result, we'll need a different signature that takes (resultId, fileId).
+ */
 export async function downloadLabResultPDF(id: string): Promise<void> {
-    // TODO (backend): replace with
-    //   const res = await fetch(`/api/portal/lab-results/${id}/pdf`);
-    //   if (!res.ok) throw new Error("Failed to download");
-    //   const blob = await res.blob();
-    //   const url = URL.createObjectURL(blob);
-    //   window.open(url, "_blank");
-    console.log("downloadLabResultPDF stub:", id);
-    return Promise.resolve();
-}
-
-// ─── Profile ─────────────────────────────────────────────────
-
-export type PortalProfile = PortalUser & {
-    dateOfBirth: string;    // display string e.g. "19th April 1987"
-    gender: string;
-    whatsapp: string;
-};
-
-const STUB_PROFILE: PortalProfile = {
-    firstName: "Jesse",
-    lastName: "Okache",
-    email: "email@testemail.com",
-    phone: "+2341234567890",
-    memberSince: "June 2026",
-    dateOfBirth: "19th April 1987",
-    gender: "Male",
-    whatsapp: "+2341234567890",
-};
-
-export type ContactDetailsInput = {
-    email: string;
-    phone: string;
-    whatsapp: string;
-};
-
-export type PasswordUpdateInput = {
-    currentPassword: string;
-    newPassword: string;
-};
-
-export async function fetchPortalProfile(): Promise<PortalProfile> {
-    // TODO (backend): replace with
-    //   const res = await fetch("/api/portal/profile");
-    //   if (!res.ok) throw new Error("Failed to load profile");
-    //   return res.json();
-    return Promise.resolve(STUB_PROFILE);
-}
-
-export async function updateContactDetails(input: ContactDetailsInput): Promise<PortalProfile> {
-    // TODO (backend): replace with
-    //   const res = await fetch("/api/portal/profile/contact", {
-    //     method: "PATCH",
-    //     headers: { "Content-Type": "application/json" },
-    //     credentials: "include",
-    //     body: JSON.stringify(input),
-    //   });
-    //   if (!res.ok) throw new Error("Failed to update contact details");
-    //   return res.json();
-    console.log("updateContactDetails stub:", input);
-    return Promise.resolve({ ...STUB_PROFILE, ...input });
-}
-
-export async function updatePassword(input: PasswordUpdateInput): Promise<void> {
-    // TODO (backend): replace with
-    //   const res = await fetch("/api/portal/profile/password", {
-    //     method: "PATCH",
-    //     headers: { "Content-Type": "application/json" },
-    //     credentials: "include",
-    //     body: JSON.stringify(input),
-    //   });
-    //   if (!res.ok) throw new Error("Failed to update password");
-    console.log("updatePassword stub");
-    return Promise.resolve();
-}
-
-export async function requestDataDownload(): Promise<void> {
-    // TODO (backend): replace with
-    //   const res = await fetch("/api/portal/profile/data-export", { method: "POST" });
-    //   if (!res.ok) throw new Error("Failed to request data download");
-    console.log("requestDataDownload stub");
-    return Promise.resolve();
-}
-
-export async function deleteAccount(password: string): Promise<void> {
-    // TODO (backend): replace with
-    //   const res = await fetch("/api/portal/profile", {
-    //     method: "DELETE",
-    //     credentials: "include",
-    //   });
-    //   if (!res.ok) throw new Error("Failed to delete account");
-    console.log("deleteAccount stub", {passwordLength: password.length});
-    return Promise.resolve();
+    const meta = await api.get<LabResultResponse>(`/portal/results/${id}`);
+    if (meta.files.length === 0) {
+        throw new Error("No file is attached to this result yet.");
+    }
+    const file = meta.files[0];
+    await api.downloadFile(
+        `/portal/results/${id}/files/${file.id}/download`,
+        file.originalFileName,
+    );
 }
 
 // ─── Feedback ────────────────────────────────────────────────
@@ -432,33 +506,98 @@ export const FEEDBACK_TYPES: ReadonlyArray<FeedbackType> = [
     "General feedback",
 ];
 
+const FEEDBACK_TYPE_TO_BACKEND: Record<FeedbackType, string> = {
+    Compliment: "COMPLIMENT",
+    Complaint: "COMPLAINT",
+    Suggestion: "SUGGESTION",
+    "General feedback": "GENERAL",
+};
+
 export type ContactMethod = "None" | "Email" | "Phone" | "WhatsApp";
 
 export const CONTACT_METHODS: ReadonlyArray<ContactMethod> = [
-    "None",
-    "Email",
-    "Phone",
-    "WhatsApp",
+    "None", "Email", "Phone", "WhatsApp",
 ];
+
+const CONTACT_METHOD_TO_BACKEND: Record<Exclude<ContactMethod, "None">, string> = {
+    Email: "EMAIL",
+    Phone: "PHONE",
+    WhatsApp: "WHATSAPP",
+};
 
 export type FeedbackInput = {
     type: FeedbackType;
-    message: string;          // capped at 500 chars by the form
-    department: string;       // one of DEPARTMENTS
+    message: string;
     wantsResponse: boolean;
     contactMethod: ContactMethod;
-    rating: number;           // 1-5
+    rating: number;
 };
 
 export async function submitFeedback(input: FeedbackInput): Promise<void> {
-    // TODO (backend): replace with real POST
-    //   const res = await fetch("/api/portal/feedback", {
-    //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //     credentials: "include",
-    //     body: JSON.stringify(input),
-    //   });
-    //   if (!res.ok) throw new Error("Failed to submit feedback");
-    console.log("submitFeedback stub:", input);
-    return Promise.resolve();
+    const body: Record<string, unknown> = {
+        message: input.message,
+        type: FEEDBACK_TYPE_TO_BACKEND[input.type],
+        responseWanted: input.wantsResponse,
+    };
+
+    if (input.rating > 0) {
+        body.rating = input.rating;
+    }
+
+    if (input.wantsResponse && input.contactMethod !== "None") {
+        body.preferredContactMethod = CONTACT_METHOD_TO_BACKEND[input.contactMethod];
+    }
+
+    // TODO (form): backend supports optional `subject` field — surface it on
+    // the form in part two. For now we omit it.
+
+    await api.post<unknown>("/portal/feedback", body);
+}
+
+// ─── Account ─────────────────────────────────────────────────
+
+export async function requestDataDownload(): Promise<void> {
+    await api.post<unknown>("/portal/account/export-data");
+}
+
+export type AccountDeletionStatus = {
+    pending: boolean;
+    deletionDate: string | null;     // pre-formatted display string when pending
+};
+
+type DeletionStatusResponse = {
+    pending: boolean;
+    deletionDate: string | null;
+};
+
+export async function fetchAccountDeletionStatus(): Promise<AccountDeletionStatus> {
+    const data = await api.get<DeletionStatusResponse>(
+        "/portal/account/deletion-status",
+    );
+    return {
+        pending: data.pending,
+        deletionDate: data.deletionDate ? formatDateLong(data.deletionDate) : null,
+    };
+}
+
+export async function requestAccountDeletion(
+    password: string,
+    reason?: string,
+): Promise<void> {
+    await api.post<unknown>("/portal/account/delete-request", {
+        password,
+        ...(reason ? {reason} : {}),
+    });
+}
+
+export async function cancelAccountDeletion(password: string): Promise<void> {
+    await api.post<unknown>("/portal/account/cancel-deletion", {password});
+}
+
+/**
+ * Legacy name preserved so the existing DeleteAccount page compiles. New code
+ * should call requestAccountDeletion directly.
+ */
+export async function deleteAccount(password: string): Promise<void> {
+    return requestAccountDeletion(password);
 }

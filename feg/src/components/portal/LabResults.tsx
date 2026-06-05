@@ -16,6 +16,7 @@ export default function LabResults() {
 
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [detail, setDetail] = useState<LabResultDetail | null>(null);
+    const [detailError, setDetailError] = useState<string | null>(null);
     const [loadingDetail, setLoadingDetail] = useState(false);
 
     // Load the results list once.
@@ -42,12 +43,18 @@ export default function LabResults() {
         if (!selectedId) return;
         let alive = true;
         setLoadingDetail(true);
+        setDetailError(null);
         fetchLabResultDetail(selectedId)
             .then((d) => {
                 if (alive) setDetail(d);
             })
-            .catch(() => {
-                if (alive) setDetail(null);
+            .catch((err) => {
+                if (!alive) return;
+                setDetail(null);
+                setDetailError(
+                    err instanceof Error
+                    ? err.message : "Could not load this result.",
+                );
             })
             .finally(() => {
                 if (alive) setLoadingDetail(false);
@@ -75,6 +82,7 @@ export default function LabResults() {
 
             <ResultDetails
                 detail={detail}
+                error={detailError}
                 loading={loadingDetail}
                 onDownload={() => detail && handleDownload(detail.id)}
             />

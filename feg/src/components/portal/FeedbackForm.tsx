@@ -3,7 +3,6 @@ import type { FormEvent } from "react";
 import { Star } from "lucide-react";
 import {
     CONTACT_METHODS,
-    DEPARTMENTS,
     FEEDBACK_TYPES,
     submitFeedback,
     type ContactMethod,
@@ -15,7 +14,6 @@ const MAX_MESSAGE_LENGTH = 500;
 export default function FeedbackForm() {
     const [type, setType] = useState<FeedbackType | "">("");
     const [message, setMessage] = useState("");
-    const [department, setDepartment] = useState("");
     const [wantsResponse, setWantsResponse] = useState<"" | "yes" | "no">("");
     const [contactMethod, setContactMethod] = useState<ContactMethod>("None");
     const [rating, setRating] = useState(0);
@@ -32,7 +30,7 @@ export default function FeedbackForm() {
         setError(null);
         setSuccess(false);
 
-        if (!type || !department || !wantsResponse) {
+        if (!type || !wantsResponse) {
             setError("Please fill out all required fields.");
             return;
         }
@@ -46,7 +44,6 @@ export default function FeedbackForm() {
             await submitFeedback({
                 type,
                 message,
-                department,
                 wantsResponse: wantsResponse === "yes",
                 contactMethod,
                 rating,
@@ -54,7 +51,6 @@ export default function FeedbackForm() {
             setSuccess(true);
             setType("");
             setMessage("");
-            setDepartment("");
             setWantsResponse("");
             setContactMethod("None");
             setRating(0);
@@ -120,31 +116,6 @@ export default function FeedbackForm() {
                     <p className="mt-1 text-xs text-neutral-500">
                         {message.length} / {MAX_MESSAGE_LENGTH} characters
                     </p>
-                </div>
-
-                <div>
-                    <label
-                        htmlFor="fb-department"
-                        className="mb-2 block text-sm font-semibold text-brand-ink"
-                    >
-                        Department
-                    </label>
-                    <select
-                        id="fb-department"
-                        required
-                        value={department}
-                        onChange={(e) => setDepartment(e.target.value)}
-                        className="w-full rounded-md border border-neutral-300 bg-white px-4 py-2.5 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
-                    >
-                        <option value="" disabled>
-                            Select a department
-                        </option>
-                        {DEPARTMENTS.map((d) => (
-                            <option key={d} value={d}>
-                                {d}
-                            </option>
-                        ))}
-                    </select>
                 </div>
 
                 <div>

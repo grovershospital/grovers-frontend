@@ -48,9 +48,40 @@ export default function Appointments() {
         console.log("reschedule", a);
     }
 
+    function loadUpcoming() {
+        setLoadingUpcoming(true);
+        return fetchUpcomingAppointments()
+            .then((data) => setUpcoming(data))
+            .finally(() => setLoadingUpcoming(false));
+    }
+
+    useEffect(() => {
+        let alive = true;
+
+        fetchUpcomingAppointments()
+            .then((data) => {
+                if (alive) setUpcoming(data);
+            })
+            .finally(() => {
+                if (alive) setLoadingUpcoming(false);
+            });
+
+        fetchPastAppointments()
+            .then((data) => {
+                if (alive) setPast(data);
+            })
+            .finally(() => {
+                if (alive) setLoadingPast(false);
+            });
+
+        return () => {
+            alive = false;
+        };
+    }, []);
+
     async function handleCancel(a: Appointment) {
         const ok = window.confirm(
-            `Cancel your ${a.department} appointment on ${a.date} at ${a.time}?`,
+            `Cancel your ${a.department} appointment on ${a.date}?`,
         );
         if (!ok) return;
 
@@ -91,7 +122,7 @@ export default function Appointments() {
                 action={{ kind: "past", onRebook: handleRebook }}
             />
 
-            <BookAppointmentForm ref={formRef} />
+            <BookAppointmentForm ref={formRef} onCreated={loadUpcoming}/>
         </>
     );
 }

@@ -44,7 +44,6 @@ export default function AppointmentsTable({ title, appointments, action, loading
                         <thead>
                         <tr className="text-left text-sm font-semibold text-brand-ink">
                             <th className="pb-4 pr-6">Date</th>
-                            <th className="pb-4 pr-6">Time</th>
                             <th className="pb-4 pr-6">Department</th>
                             <th className="pb-4 pr-6">Status</th>
                             <th className="pb-4">Action</th>
@@ -56,7 +55,6 @@ export default function AppointmentsTable({ title, appointments, action, loading
                                 <td className="py-3 pr-6 font-semibold text-brand-ink">
                                     {a.date}
                                 </td>
-                                <td className="py-3 pr-6 text-brand-ink">{a.time}</td>
                                 <td className="py-3 pr-6 font-semibold text-brand-ink">
                                     {a.department}
                                 </td>

@@ -193,6 +193,41 @@ export const api = {
 
     delete: <T>(path: string) => request<T>(path, { method: "DELETE" }),
 
+    // In src/lib/api.ts, inside the `api` const, add:
+
+    /**
+     * Downloads a file via authenticated request and triggers browser save.
+     * `filename` is what the browser saves it as; backend's
+     * Content-Disposition header is ignored.
+     */
+    downloadFile: async (path: string, filename: string): Promise<void> => {
+        const token = tokenStore.getAccess();
+        const headers: Record<string, string> = {};
+        if (token) headers.Authorization = `Bearer ${token}`;
+
+        const res = await fetch(`${BASE_URL}${path}`, { headers });
+
+        if (res.status === 401) {
+            const newToken = await refreshAccessToken();
+            if (!newToken) {
+                notifyAuthFailure();
+                throw new ApiError("Your session has expired. Please sign in again.", 401);
+            }
+            const retryRes = await fetch(`${BASE_URL}${path}`, {
+                headers: { Authorization: `Bearer ${newToken}` },
+            });
+            if (!retryRes.ok) {
+                throw new ApiError(`Download failed (${retryRes.status}).`, retryRes.status);
+            }
+            return triggerDownload(retryRes, filename);
+        }
+
+        if (!res.ok) {
+            throw new ApiError(`Download failed (${res.status}).`, res.status);
+        }
+        return triggerDownload(res, filename);
+    },
+
     /**
      * Multipart upload. `extraFields` get appended to the FormData alongside the file.
      * Field name for the file defaults to "file" — pass `fileFieldName` to override.
@@ -211,3 +246,15 @@ export const api = {
         return request<T>(path, { method: "POST", formData: fd });
     },
 };
+
+async function triggerDownload(res: Response, filename: string): Promise<void> {
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+}

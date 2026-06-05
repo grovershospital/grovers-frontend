@@ -4,6 +4,7 @@ import type { LabResultDetail, LabResultFlag } from "../../data/portal";
 type Props = {
     detail: LabResultDetail | null;
     loading: boolean;
+    error: string | null;
     onDownload: () => void;
 };
 
@@ -13,13 +14,17 @@ const FLAG_DISPLAY: Record<LabResultFlag, string> = {
     Low: "Low ↓",
 };
 
-export default function ResultDetails({ detail, loading, onDownload }: Props) {
+export default function ResultDetails({ detail, loading, error, onDownload }: Props) {
     return (
         <section className="mb-12">
             <h2 className="mb-6 text-2xl font-bold text-brand-ink">Result Details</h2>
 
-            {loading || !detail ? (
+            {loading ? (
                 <p className="text-sm text-neutral-500">Loading…</p>
+            ) : error ? (
+                <p className="text-sm text-brand-red" role="alert">{error}</p>
+            ) : !detail ? (
+                <p className="text-sm text-neutral-500">Select a result to see details.</p>
             ) : (
                 <>
                     <div className="mb-6 text-sm text-brand-ink">
