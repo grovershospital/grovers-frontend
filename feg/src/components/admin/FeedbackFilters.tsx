@@ -1,6 +1,5 @@
 import { Search } from "lucide-react";
 import type {
-    AdminContactMethod,
     AdminFeedbackFilters,
     AdminFeedbackStatus,
     AdminFeedbackType,
@@ -18,14 +17,18 @@ const TYPES: ReadonlyArray<AdminFeedbackType> = [
     "General feedback",
 ];
 
-const STATUSES: ReadonlyArray<AdminFeedbackStatus> = ["New", "Actioned"];
-
-const CONTACT_METHODS: ReadonlyArray<AdminContactMethod> = [
-    "None",
-    "Email",
-    "Phone",
-    "WhatsApp",
+const STATUSES: ReadonlyArray<AdminFeedbackStatus> = [
+    "Pending",
+    "Under review",
+    "Reviewed",
+    "Response sent",
 ];
+
+const READ_STATES = [
+    { value: "all", label: "All" },
+    { value: "unread", label: "Unread" },
+    { value: "read", label: "Read" },
+] as const;
 
 export default function FeedbackFilters({ filters, onChange }: Props) {
     function update<K extends keyof AdminFeedbackFilters>(
@@ -82,19 +85,15 @@ export default function FeedbackFilters({ filters, onChange }: Props) {
             </select>
 
             <select
-                value={filters.contactMethod ?? "all"}
+                value={filters.readState ?? "all"}
                 onChange={(e) =>
-                    update(
-                        "contactMethod",
-                        e.target.value as AdminContactMethod | "all",
-                    )
+                    update("readState", e.target.value as "all" | "unread" | "read")
                 }
                 className="rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
             >
-                <option value="all">All contact</option>
-                {CONTACT_METHODS.map((m) => (
-                    <option key={m} value={m}>
-                        {m}
+                {READ_STATES.map((r) => (
+                    <option key={r.value} value={r.value}>
+                        {r.label}
                     </option>
                 ))}
             </select>

@@ -17,6 +17,7 @@ const APPT_STATUS_COLOR: Record<AppointmentStatus, string> = {
     Confirmed: "text-brand-green",
     Pending: "text-brand-red",
     Cancelled: "text-brand-red",
+    Completed: "text-brand-purple"
 };
 
 const LAB_STATUS_COLOR: Record<LabResultStatus, string> = {
@@ -153,9 +154,6 @@ export default function Dashboard() {
                                 Date
                             </th>
                             <th className="py-3 pr-4 font-extrabold text-brand-ink">
-                                Time
-                            </th>
-                            <th className="py-3 pr-4 font-extrabold text-brand-ink">
                                 Department
                             </th>
                             <th className="py-3 pr-4 font-extrabold text-brand-ink">
@@ -169,7 +167,6 @@ export default function Dashboard() {
                                 <td className="py-4 pr-4 font-bold text-brand-ink">
                                     {appt.date}
                                 </td>
-                                <td className="py-4 pr-4 text-brand-ink">{appt.time}</td>
                                 <td className="py-4 pr-4 font-bold text-brand-ink">
                                     {appt.department}
                                 </td>
@@ -192,7 +189,7 @@ export default function Dashboard() {
                         View All Appointments
                     </Link>
                     <Link
-                        to="/patient-portal/appointments/new"
+                        to="/patient-portal/appointments"
                         className="inline-flex items-center justify-center rounded-full bg-brand-ink px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-ink/85"
                     >
                         Book New Appointment

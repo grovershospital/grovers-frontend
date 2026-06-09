@@ -5,23 +5,24 @@ import FeedbackTable from "../../components/admin/FeedbackTable";
 import Pagination from "../../components/admin/Pagination";
 import {
     fetchAdminFeedback,
-    markFeedbackActioned,
+    fetchAdminFeedbackDetail,
+    markFeedbackRead,
+    updateFeedbackStatus,
     type AdminFeedbackEntry,
     type AdminFeedbackFilters,
+    type AdminFeedbackStatus,
 } from "../../data/admin";
 
 const PAGE_SIZE = 10;
 
 export default function AdminFeedback() {
     const [searchParams] = useSearchParams();
+    const initialReadState = searchParams.get("status") === "new" ? "unread" : "all";
 
-    // Read initial filter from query string (?status=new from dashboard stat card).
-    // We only honor the status param on first render — after that filters live in state.
-    const initialStatus = searchParams.get("status");
     const [filters, setFilters] = useState<AdminFeedbackFilters>(() => ({
         type: "all",
-        status: initialStatus === "new" ? "New" : "all",
-        contactMethod: "all",
+        status: "all",
+        readState: initialReadState,
         search: "",
     }));
 
@@ -29,9 +30,8 @@ export default function AdminFeedback() {
     const [entries, setEntries] = useState<AdminFeedbackEntry[]>([]);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState<string | null>(null);
 
-    // Reset to page 1 whenever filters change so we don't end up on an
-    // out-of-range page.
     useEffect(() => {
         setPage(1);
     }, [filters]);
@@ -39,11 +39,22 @@ export default function AdminFeedback() {
     useEffect(() => {
         let alive = true;
         setLoading(true);
+        setLoadError(null);
         fetchAdminFeedback(filters, page, PAGE_SIZE)
             .then((res) => {
                 if (!alive) return;
                 setEntries(res.entries);
                 setTotal(res.total);
+            })
+            .catch((err) => {
+                if (!alive) return;
+                setEntries([]);
+                setTotal(0)
+                setLoadError(
+                    err instanceof Error
+                    ? err.message
+                        : "Could not load feedback"
+                )
             })
             .finally(() => {
                 if (alive) setLoading(false);
@@ -53,36 +64,76 @@ export default function AdminFeedback() {
         };
     }, [filters, page]);
 
-    async function handleMarkActioned(id: string) {
-        // Optimistic update — flip status locally, revert on failure.
-        const prev = entries;
-        setEntries((list) =>
-            list.map((f) => (f.id === id ? { ...f, status: "Actioned" } : f)),
-        );
+    async function handleOpen(id: string): Promise<AdminFeedbackEntry> {
+        const detail = await fetchAdminFeedbackDetail(id);
+
+        // Mark as read in the background. We optimistically flip the row's
+        // isRead state in the list so the UI reflects the change immediately.
+        const wasRead = entries.find((e) => e.id === id)?.isRead;
+        if (!wasRead) {
+            setEntries((list) =>
+                list.map((e) => (e.id === id ? { ...e, isRead: true } : e)),
+            );
+            markFeedbackRead(id).catch(() => {
+                // Revert if the call fails.
+                setEntries((list) =>
+                    list.map((e) => (e.id === id ? { ...e, isRead: false } : e)),
+                );
+            });
+        }
+
+        return detail;
+    }
+
+    async function handleUpdateStatus(
+        id: string,
+        status: AdminFeedbackStatus,
+        notes: string,
+    ): Promise<void> {
         try {
-            await markFeedbackActioned(id);
+            const updated = await updateFeedbackStatus(id, status, notes);
+            setEntries((list) =>
+                list.map((e) =>
+                    e.id === id
+                        ? {
+                            ...e,
+                            status: updated.status,
+                            adminInternalNotes: updated.adminInternalNotes,
+                        }
+                        : e,
+                ),
+            );
         } catch {
-            setEntries(prev);
-            window.alert("Could not mark this feedback as actioned. Please try again.");
+            window.alert("Could not update the feedback. Please try again.");
+            throw new Error("save failed");
         }
     }
 
     return (
         <>
             <div className="mb-10">
-                <h1 className="text-3xl font-bold text-brand-red sm:text-4xl">Feedback</h1>
+                <h1 className="text-3xl font-bold text-brand-red sm:text-4xl">
+                    Feedback
+                </h1>
                 <p className="mt-3 max-w-prose text-brand-ink">
-                    Read patient feedback, see who requested a response and mark items as
-                    actioned once your team has followed up.
+                    Patient feedback submitted through the portal. Walk each item
+                    through the workflow as your team reviews and responds.
                 </p>
             </div>
 
             <FeedbackFilters filters={filters} onChange={setFilters} />
 
+            {loadError && (
+                <p className={'mb-4 text-sm text-brand-red'}>
+                    {loadError}
+                </p>
+            )}
+
             <FeedbackTable
                 entries={entries}
                 loading={loading}
-                onMarkActioned={handleMarkActioned}
+                onOpen={handleOpen}
+                onUpdateStatus={handleUpdateStatus}
             />
 
             <Pagination

@@ -25,7 +25,7 @@ export default function AdminStatCards({ summary }: Props) {
             <StatCard
                 label="Pending Appointments"
                 count={summary.pendingAppointments}
-                to="/admin/appointments?status=pending"
+                to="/admin/bookings?status=pending"
                 tone="red"
                 icon={<Calendar className="h-8 w-8" strokeWidth={1.5} />}
             />

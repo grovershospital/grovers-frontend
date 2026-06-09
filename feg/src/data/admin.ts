@@ -1,9 +1,5 @@
-// ============================================================
-// Admin data layer
-// ============================================================
-// Phase 1 = stubs. Phase 2 swaps each fetcher body for a real
-// api.get(...) call against the backend. Same pattern as portal.ts.
-// ============================================================
+import {api} from '../lib/api'
+import {formatDateShort, formatRelative} from "../lib/format.ts";
 
 export type AdminUser = {
     firstName: string;
@@ -11,15 +7,23 @@ export type AdminUser = {
     email: string;
 };
 
-const STUB_ADMIN: AdminUser = {
-    firstName: "Admin",
-    lastName: "User",
-    email: "admin@grovershospital.com.ng",
+
+type AdminMeResponse = {
+    id: number;
+    fullName: string;
+    email: string;
+    role: string;
 };
 
 export async function fetchAdminUser(): Promise<AdminUser> {
-    // TODO (backend): replace with api.get("/admin/me") once auth is wired up.
-    return Promise.resolve(STUB_ADMIN);
+    const data = await api.get<AdminMeResponse>("/admin/me");
+    // Backend returns fullName as a single string; split it pragmatically for
+    // the "Hi {firstName}!" greeting and sidebar profile. Multi-token last
+    // names are joined back together.
+    const tokens = data.fullName.trim().split(/\s+/);
+    const firstName = tokens[0] ?? "";
+    const lastName = tokens.slice(1).join(" ");
+    return { firstName, lastName, email: data.email };
 }
 
 // ─── Dashboard summary ───────────────────────────────────────
@@ -31,22 +35,23 @@ export type AdminDashboardSummary = {
     articleDrafts: number;
 };
 
-const STUB_SUMMARY: AdminDashboardSummary = {
-    pendingAppointments: 7,
-    pendingProfileUpdates: 3,
-    unreadFeedback: 12,
-    articleDrafts: 2,
+type AdminDashboardStatsResponse = {
+    unreadFeedback: number;
+    pendingAppointments: number;
+    profileUpdatesPending: number;
+    articleDrafts: number;
 };
 
 export async function fetchAdminDashboardSummary(): Promise<AdminDashboardSummary> {
-    // TODO (backend): replace with api.get("/admin/dashboard/summary")
-    //   If the backend doesn't have an aggregate endpoint, compose this from:
-    //     - GET /admin/bookings?status=PENDING&count=true
-    //     - GET /admin/profile-update-requests?status=PENDING&count=true
-    //     - GET /admin/feedback/stats (returns unread count)
-    //     - GET /admin/blog-posts?status=DRAFT&count=true
-    //   and return the four numbers.
-    return Promise.resolve(STUB_SUMMARY);
+    const data = await api.get<AdminDashboardStatsResponse>(
+        "/admin/dashboard/stats",
+    );
+    return {
+        pendingAppointments: data.pendingAppointments,
+        pendingProfileUpdates: data.profileUpdatesPending,
+        unreadFeedback: data.unreadFeedback,
+        articleDrafts: data.articleDrafts,
+    };
 }
 
 // ─── Recent activity (shared types used by full section pages later) ──
@@ -72,237 +77,261 @@ export type AdminFeedbackType =
     | "Suggestion"
     | "General feedback";
 
-export type AdminFeedbackStatus = "New" | "Actioned";
 
-export type AdminFeedbackSummary = {
-    id: string;
-    patientName: string;        // "Anonymous" if patient opted out of response
-    type: AdminFeedbackType;
-    excerpt: string;            // first ~80 chars of the message
-    status: AdminFeedbackStatus;
-    createdAt: string;          // display format e.g. "2 hours ago"
+// ─── Shared admin booking response shape ────────────────────
+
+type AdminBookingResponse = {
+    id: number;
+    bookingType: "CONSULTATION" | "PACKAGE" | "SCREENING";
+    status: "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
+    preferredDate: string;
+    patientId: number;
+    patientFirstName: string;
+    patientLastName: string;
+    patientEmail: string;
+    patientPhone: string;
+    departmentId: number | null;
+    departmentName: string | null;
+    packageId: number | null;
+    packageName: string | null;
+    packageTierId: number | null;
+    packageTierName: string | null;
+    notes: string | null;
+    adminNotes: string | null;
+    createdAt: string;
+    updatedAt: string;
 };
 
-const STUB_RECENT_APPOINTMENTS: AdminAppointmentSummary[] = [
-    {
-        id: "ap1",
-        patientName: "Jesse Okache",
-        department: "General Surgery",
-        date: "15th May",
-        time: "2pm",
-        status: "Pending"
-    },
-    {id: "ap2", patientName: "Amina Bello", department: "OB/GYN", date: "15th May", time: "11am", status: "Confirmed"},
-    {
-        id: "ap3",
-        patientName: "Tunde Adekunle",
-        department: "Cardiology",
-        date: "14th May",
-        time: "9am",
-        status: "Pending"
-    },
-    {
-        id: "ap4",
-        patientName: "Chiamaka Eze",
-        department: "Paediatrics",
-        date: "14th May",
-        time: "3pm",
-        status: "Confirmed"
-    },
-    {id: "ap5", patientName: "Femi Adesanya", department: "ENT", date: "13th May", time: "10am", status: "Cancelled"},
-];
+type AdminPageResponse<T> = {
+    content: T[];
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+    first: boolean;
+    last: boolean;
+};
 
-const STUB_RECENT_FEEDBACK: AdminFeedbackSummary[] = [
-    {
-        id: "fb1",
-        patientName: "Anonymous",
-        type: "Complaint",
-        excerpt: "Waited over an hour past my appointment time without any update from the front desk…",
-        status: "New",
-        createdAt: "2 hours ago"
-    },
-    {
-        id: "fb2",
-        patientName: "Amina Bello",
-        type: "Compliment",
-        excerpt: "Dr. Okafor was incredibly thorough and made my mother feel at ease throughout…",
-        status: "New",
-        createdAt: "5 hours ago"
-    },
-    {
-        id: "fb3",
-        patientName: "Tunde Adekunle",
-        type: "Suggestion",
-        excerpt: "It would help if the appointment booking flow showed available slots in a calendar…",
-        status: "New",
-        createdAt: "Yesterday"
-    },
-    {
-        id: "fb4",
-        patientName: "Anonymous",
-        type: "General feedback",
-        excerpt: "Clean facility, friendly staff. The parking situation could be improved…",
-        status: "Actioned",
-        createdAt: "Yesterday"
-    },
-    {
-        id: "fb5",
-        patientName: "Chiamaka Eze",
-        type: "Compliment",
-        excerpt: "Thank you for the quick lab results turnaround. Made follow-up planning much easier…",
-        status: "Actioned",
-        createdAt: "2 days ago"
-    },
-];
+// FIX: Combined onto a properly formatted Record<K, V> syntax
+const ADMIN_BOOKING_STATUS_MAP: Record<
+    AdminBookingResponse["status"],
+    AdminAppointmentStatus
+> = {
+    PENDING: "Pending",
+    CONFIRMED: "Confirmed",
+    CANCELLED: "Cancelled",
+    COMPLETED: "Completed",
+};
 
-export async function fetchRecentAdminAppointments(): Promise<AdminAppointmentSummary[]> {
-    // TODO (backend): replace with api.get("/admin/appointments?limit=5&sort=-createdAt")
-    return Promise.resolve(STUB_RECENT_APPOINTMENTS);
+function toAdminAppointmentSummary(
+    b: AdminBookingResponse,
+): AdminAppointmentSummary {
+    return {
+        id: String(b.id),
+        patientName: `${b.patientFirstName} ${b.patientLastName}`.trim() || "—",
+        department:
+            b.departmentName ??
+            b.packageName ??
+            "Booking",
+        date: formatDateShort(b.preferredDate),
+        time: "—", // no time field on booking
+        status: ADMIN_BOOKING_STATUS_MAP[b.status],
+    };
 }
 
-export async function fetchRecentAdminFeedback(): Promise<AdminFeedbackSummary[]> {
-    // TODO (backend): replace with api.get("/admin/feedback?limit=5&sort=-createdAt")
-    return Promise.resolve(STUB_RECENT_FEEDBACK);
+export async function fetchRecentAdminAppointments(): Promise<
+    AdminAppointmentSummary[]
+> {
+    const data = await api.get<AdminPageResponse<AdminBookingResponse>>(
+        "/admin/bookings?page=0&size=5",
+    );
+    return data.content.map(toAdminAppointmentSummary);
 }
 
-// ─── Feedback (full entries for the section page) ────────────
 
-export type AdminContactMethod = "None" | "Email" | "Phone" | "WhatsApp";
+// ─── Feedback (admin) ────────────────────────────────────────
+
+export type AdminFeedbackStatus =
+    | "Pending"
+    | "Under review"
+    | "Reviewed"
+    | "Response sent";
+
+export type AdminContactMethod = "Email" | "Phone" | "WhatsApp" | "Any";
+
+const STATUS_TO_BACKEND: Record<AdminFeedbackStatus, string> = {
+    Pending: "PENDING",
+    "Under review": "UNDER_REVIEW",
+    Reviewed: "REVIEWED",
+    "Response sent": "RESPONSE_SENT",
+};
+
+const STATUS_FROM_BACKEND: Record<string, AdminFeedbackStatus> = {
+    NEW: "Pending",            // backend sometimes uses NEW as initial state
+    PENDING: "Pending",
+    UNDER_REVIEW: "Under review",
+    REVIEWED: "Reviewed",
+    RESPONSE_SENT: "Response sent",
+};
+
+const TYPE_FROM_BACKEND: Record<string, AdminFeedbackType> = {
+    COMPLIMENT: "Compliment",
+    COMPLAINT: "Complaint",
+    SUGGESTION: "Suggestion",
+    GENERAL: "General feedback",
+};
+
+const TYPE_TO_BACKEND: Record<AdminFeedbackType, string> = {
+    Compliment: "COMPLIMENT",
+    Complaint: "COMPLAINT",
+    Suggestion: "SUGGESTION",
+    "General feedback": "GENERAL",
+};
+
+const CONTACT_FROM_BACKEND: Record<string, AdminContactMethod> = {
+    EMAIL: "Email",
+    PHONE: "Phone",
+    WHATSAPP: "WhatsApp",
+    ANY: "Any",
+};
 
 export type AdminFeedbackEntry = {
     id: string;
-    patientName: string;        // "Anonymous" when wantsResponse is false
+    patientName: string;
     patientEmail: string | null;
     patientPhone: string | null;
-    patientWhatsapp: string | null;
     type: AdminFeedbackType;
-    message: string;            // full text, not the excerpt used on the dashboard
-    department: string;
+    subject: string;
+    message: string;
+    rating: number | null;
     wantsResponse: boolean;
-    contactMethod: AdminContactMethod;
-    rating: number;
+    contactMethod: AdminContactMethod | null;
     status: AdminFeedbackStatus;
-    createdAt: string;          // ISO timestamp
-    createdAtDisplay: string;   // pre-formatted display string e.g. "2 hours ago"
+    isRead: boolean;
+    adminInternalNotes: string;
+    createdAt: string;
+    createdAtDisplay: string;
 };
-
-const STUB_ALL_FEEDBACK: AdminFeedbackEntry[] = [
-    {
-        id: "fb1",
-        patientName: "Anonymous",
-        patientEmail: null,
-        patientPhone: null,
-        patientWhatsapp: null,
-        type: "Complaint",
-        message:
-            "Waited over an hour past my appointment time without any update from the front desk. The waiting area was full and nobody communicated about the delay. When I finally saw the doctor the consultation itself was fine, but the experience getting there left a bad impression.",
-        department: "General Surgery",
-        wantsResponse: false,
-        contactMethod: "None",
-        rating: 2,
-        status: "New",
-        createdAt: "2026-06-03T15:30:00Z",
-        createdAtDisplay: "2 hours ago",
-    },
-    {
-        id: "fb2",
-        patientName: "Amina Bello",
-        patientEmail: "amina.bello@example.com",
-        patientPhone: "+2348012345678",
-        patientWhatsapp: "+2348012345678",
-        type: "Compliment",
-        message:
-            "Dr. Okafor was incredibly thorough and made my mother feel at ease throughout her visit. She explained every step of the examination and answered all our questions patiently. We left feeling well cared for and informed about next steps. Thank you to the entire OB/GYN team.",
-        department: "OB/GYN",
-        wantsResponse: true,
-        contactMethod: "Email",
-        rating: 5,
-        status: "New",
-        createdAt: "2026-06-03T12:30:00Z",
-        createdAtDisplay: "5 hours ago",
-    },
-    {
-        id: "fb3",
-        patientName: "Tunde Adekunle",
-        patientEmail: "tunde.a@example.com",
-        patientPhone: "+2348098765432",
-        patientWhatsapp: null,
-        type: "Suggestion",
-        message:
-            "It would help if the appointment booking flow showed available slots in a calendar view instead of just a time picker. Right now I have to guess at times and find out which are available — a calendar with the open slots highlighted would be much faster.",
-        department: "Cardiology",
-        wantsResponse: true,
-        contactMethod: "Phone",
-        rating: 4,
-        status: "New",
-        createdAt: "2026-06-02T17:30:00Z",
-        createdAtDisplay: "Yesterday",
-    },
-    {
-        id: "fb4",
-        patientName: "Anonymous",
-        patientEmail: null,
-        patientPhone: null,
-        patientWhatsapp: null,
-        type: "General feedback",
-        message:
-            "Clean facility, friendly staff. The parking situation could be improved — it took 15 minutes to find a spot on a Tuesday morning. Otherwise no complaints.",
-        department: "Family Medicine",
-        wantsResponse: false,
-        contactMethod: "None",
-        rating: 4,
-        status: "Actioned",
-        createdAt: "2026-06-02T10:30:00Z",
-        createdAtDisplay: "Yesterday",
-    },
-    {
-        id: "fb5",
-        patientName: "Chiamaka Eze",
-        patientEmail: "chiamaka.e@example.com",
-        patientPhone: "+2348055556666",
-        patientWhatsapp: "+2348055556666",
-        type: "Compliment",
-        message:
-            "Thank you for the quick lab results turnaround. Made follow-up planning much easier. The notification email was clear and the portal made it easy to download the PDF.",
-        department: "Internal Medicine",
-        wantsResponse: false,
-        contactMethod: "None",
-        rating: 5,
-        status: "Actioned",
-        createdAt: "2026-06-01T14:30:00Z",
-        createdAtDisplay: "2 days ago",
-    },
-    {
-        id: "fb6",
-        patientName: "Femi Adesanya",
-        patientEmail: "femi.a@example.com",
-        patientPhone: "+2348011112222",
-        patientWhatsapp: null,
-        type: "Complaint",
-        message:
-            "The reception staff was dismissive when I asked to reschedule. I understand it's busy but a more patient tone would help.",
-        department: "ENT",
-        wantsResponse: true,
-        contactMethod: "WhatsApp",
-        rating: 2,
-        status: "New",
-        createdAt: "2026-06-01T09:00:00Z",
-        createdAtDisplay: "2 days ago",
-    },
-];
 
 export type AdminFeedbackFilters = {
     search?: string;
     type?: AdminFeedbackType | "all";
     status?: AdminFeedbackStatus | "all";
-    contactMethod?: AdminContactMethod | "all";
+    readState?: "all" | "unread" | "read";
 };
 
 export type AdminFeedbackPage = {
     entries: AdminFeedbackEntry[];
-    total: number;          // total matching the filters, not page size
-    page: number;           // 1-indexed
+    total: number;
+    page: number;
     pageSize: number;
+};
+
+type AdminFeedbackListResponse = {
+    id: number;
+    name: string | null;
+    email: string | null;
+    subject: string | null;
+    message: string;
+    source: "HOMEPAGE" | "PORTAL";
+    type: keyof typeof TYPE_FROM_BACKEND;
+    rating: number | null;
+    responseWanted: boolean;
+    preferredContactMethod: keyof typeof CONTACT_FROM_BACKEND | null;
+    status: string;
+    isRead: boolean;
+    patientId: number | null;
+    createdAt: string;
+};
+
+type AdminFeedbackDetailResponse = AdminFeedbackListResponse & {
+    adminInternalNotes: string | null;
+    // Detail endpoint includes patient identity fields when source = PORTAL.
+    // Field names assumed; adjust mapping below if backend uses different keys.
+    patientFirstName?: string | null;
+    patientLastName?: string | null;
+    patientPhone?: string | null;
+};
+
+// Recent feedback card on the admin dashboard. Fetches the latest 5 portal
+// feedback entries, sorted newest-first. Same shape as AdminFeedbackEntry but
+// only the summary fields the card renders.
+export type AdminFeedbackSummary = {
+    id: string;
+    patientName: string;
+    type: AdminFeedbackType;
+    excerpt: string;
+    status: AdminFeedbackStatus;
+    createdAt: string;
+};
+
+export async function fetchRecentAdminFeedback(): Promise<AdminFeedbackSummary[]> {
+    const data = await api.get<AdminPageResponseShape<AdminFeedbackListResponse>>(
+        "/admin/feedback/filtered?source=PORTAL&page=0&size=5",
+    );
+
+    return data.content.map((f) => {
+        const excerpt =
+            f.message.length > 80 ? `${f.message.slice(0, 80).trim()}…` : f.message;
+
+        return {
+            id: String(f.id),
+            patientName: f.patientId ? `Patient #${f.patientId}` : "Anonymous",
+            type: TYPE_FROM_BACKEND[f.type] ?? "General feedback",
+            excerpt,
+            status: STATUS_FROM_BACKEND[f.status] ?? "Pending",
+            createdAt: formatRelative(f.createdAt),
+        };
+    });
+}
+
+function patientNameFromResponse(
+    f: AdminFeedbackListResponse | AdminFeedbackDetailResponse,
+): string {
+    // PORTAL feedback: backend should have patient identity. Detail endpoint
+    // gives us firstName/lastName if available.
+    if ("patientFirstName" in f && f.patientFirstName) {
+        return `${f.patientFirstName} ${f.patientLastName ?? ""}`.trim();
+    }
+    // List endpoint doesn't include name; show patient id placeholder.
+    if (f.patientId) return `Patient #${f.patientId}`;
+    return "Anonymous";
+}
+
+function toFeedbackEntry(
+    f: AdminFeedbackListResponse | AdminFeedbackDetailResponse,
+): AdminFeedbackEntry {
+    return {
+        id: String(f.id),
+        patientName: patientNameFromResponse(f),
+        patientEmail: f.email,
+        patientPhone:
+            "patientPhone" in f ? f.patientPhone ?? null : null,
+        type: TYPE_FROM_BACKEND[f.type] ?? "General feedback",
+        subject: f.subject ?? "",
+        message: f.message,
+        rating: f.rating,
+        wantsResponse: f.responseWanted,
+        contactMethod: f.preferredContactMethod
+            ? CONTACT_FROM_BACKEND[f.preferredContactMethod]
+            : null,
+        status: STATUS_FROM_BACKEND[f.status] ?? "Pending",
+        isRead: f.isRead,
+        adminInternalNotes:
+            "adminInternalNotes" in f ? f.adminInternalNotes ?? "" : "",
+        createdAt: f.createdAt,
+        createdAtDisplay: formatRelative(f.createdAt),
+    };
+}
+
+type AdminPageResponseShape<T> = {
+    content: T[];
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+    first: boolean;
+    last: boolean;
 };
 
 export async function fetchAdminFeedback(
@@ -310,42 +339,69 @@ export async function fetchAdminFeedback(
     page: number,
     pageSize: number,
 ): Promise<AdminFeedbackPage> {
-    // TODO (backend): replace with api.get("/admin/feedback", { params: { ...filters, page, pageSize } })
-    // For now we filter + paginate client-side over the stub.
-    const filtered = STUB_ALL_FEEDBACK.filter((f) => {
-        if (filters.type && filters.type !== "all" && f.type !== filters.type) return false;
-        if (filters.status && filters.status !== "all" && f.status !== filters.status) return false;
-        if (
-            filters.contactMethod &&
-            filters.contactMethod !== "all" &&
-            f.contactMethod !== filters.contactMethod
-        )
-            return false;
-        if (filters.search) {
-            const q = filters.search.toLowerCase();
-            const haystack = `${f.patientName} ${f.message} ${f.department}`.toLowerCase();
-            if (!haystack.includes(q)) return false;
-        }
-        return true;
-    });
+    const params = new URLSearchParams();
+    params.set("source", "PORTAL");
+    params.set("page", String(page - 1));        // backend is 0-indexed
+    params.set("size", String(pageSize));
+    if (filters.status && filters.status !== "all") {
+        params.set("status", STATUS_TO_BACKEND[filters.status]);
+    }
+    if (filters.type && filters.type !== "all") {
+        params.set("type", TYPE_TO_BACKEND[filters.type]);
+    }
+    if (filters.readState === "unread") params.set("isRead", "false");
+    if (filters.readState === "read") params.set("isRead", "true");
 
-    const start = (page - 1) * pageSize;
-    const entries = filtered.slice(start, start + pageSize);
+    const data = await api.get<AdminPageResponseShape<AdminFeedbackListResponse>>(
+        `/admin/feedback/filtered?${params.toString()}`,
+    );
 
-    return Promise.resolve({
+    let entries = data.content.map(toFeedbackEntry);
+
+    // Backend search isn't a parameter on /filtered; do it client-side.
+    if (filters.search) {
+        const q = filters.search.toLowerCase();
+        entries = entries.filter((e) => {
+            const hay = `${e.patientName} ${e.subject} ${e.message}`.toLowerCase();
+            return hay.includes(q);
+        });
+    }
+
+    return {
         entries,
-        total: filtered.length,
+        total: data.totalElements,
         page,
         pageSize,
-    });
+    };
 }
 
-export async function markFeedbackActioned(id: string): Promise<void> {
-    // TODO (backend): replace with api.patch(`/admin/feedback/${id}`, { status: "ACTIONED" })
-    console.log("markFeedbackActioned stub:", id);
-    return Promise.resolve();
+export async function fetchAdminFeedbackDetail(
+    id: string,
+): Promise<AdminFeedbackEntry> {
+    const data = await api.get<AdminFeedbackDetailResponse>(
+        `/admin/feedback/${id}/detail`,
+    );
+    return toFeedbackEntry(data);
 }
 
+export async function markFeedbackRead(id: string): Promise<void> {
+    await api.patch<unknown>(`/admin/feedback/${id}/read`);
+}
+
+export async function updateFeedbackStatus(
+    id: string,
+    status: AdminFeedbackStatus,
+    adminInternalNotes: string,
+): Promise<AdminFeedbackEntry> {
+    const data = await api.put<AdminFeedbackDetailResponse>(
+        `/admin/feedback/${id}/status`,
+        {
+            status: STATUS_TO_BACKEND[status],
+            adminInternalNotes: adminInternalNotes || undefined,
+        },
+    );
+    return toFeedbackEntry(data);
+}
 // ─── Bookings (admin) ────────────────────────────────────────
 
 export type AdminBookingStatus = "Pending" | "Confirmed" | "Completed" | "Cancelled";
