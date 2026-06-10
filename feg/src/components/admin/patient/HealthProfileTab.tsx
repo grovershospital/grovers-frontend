@@ -161,6 +161,19 @@ export default function HealthProfileTab() {
                         />
                     </Field>
 
+                    <Field label="Relationship" htmlFor="hp-ec-rel">
+                        <input
+                            id="hp-ec-rel"
+                            type="text"
+                            value={profile.emergencyContactRelationship}
+                            onChange={(e) =>
+                                update("emergencyContactRelationship", e.target.value)
+                            }
+                            placeholder="e.g. Spouse, Parent, Sibling"
+                            className={inputClass}
+                        />
+                    </Field>
+
                     <Field label="Contact phone" htmlFor="hp-ec-phone">
                         <input
                             id="hp-ec-phone"

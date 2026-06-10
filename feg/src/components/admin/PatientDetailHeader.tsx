@@ -23,9 +23,7 @@ export default function PatientDetailHeader({ patient }: Props) {
                         {patient.firstName} {patient.lastName}
                     </h1>
                     <p className="mt-1 text-sm text-neutral-500">
-                        Member since {patient.memberSinceDisplay} ·{" "}
-                        {patient.bookingCount} booking
-                        {patient.bookingCount === 1 ? "" : "s"}
+                        Member since {patient.memberSinceDisplay}
                     </p>
                 </div>
 

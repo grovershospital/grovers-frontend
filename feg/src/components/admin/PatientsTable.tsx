@@ -29,7 +29,6 @@ export default function PatientsTable({ patients, loading }: Props) {
                     <th className="px-4 py-3">Email</th>
                     <th className="px-4 py-3">Phone</th>
                     <th className="px-4 py-3">Member since</th>
-                    <th className="px-4 py-3">Bookings</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -44,10 +43,9 @@ export default function PatientsTable({ patients, loading }: Props) {
                         </td>
                         <td className="px-4 py-3 text-brand-ink">{p.email}</td>
                         <td className="px-4 py-3 text-brand-ink">{p.phone}</td>
-                        <td className="px-4 py-3 text-brand-ink">
+                        <td className={'px-4 py-3 text-brand-ink'}>
                             {p.memberSinceDisplay}
                         </td>
-                        <td className="px-4 py-3 text-brand-ink">{p.bookingCount}</td>
                     </tr>
                 ))}
                 </tbody>

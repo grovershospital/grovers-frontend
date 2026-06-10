@@ -1,5 +1,5 @@
 import {api} from '../lib/api'
-import {formatDateShort, formatRelative} from "../lib/format.ts";
+import {formatDateLong, formatDateShort, formatMonthYear, formatRelative} from "../lib/format.ts";;
 
 export type AdminUser = {
     firstName: string;
@@ -558,11 +558,22 @@ export async function updateBookingStatus(
             adminNotes: update.adminNotes,
         },
     );
-    // TODO (visits integration): backend auto-creates a visit stub when
-    // status transitions to COMPLETED. Once /admin/visits endpoints are wired,
-    // do a follow-up `GET /admin/visits?bookingId={id}` here and populate
-    // visitId so AdminBookingDetail can deep-link into the visit edit form.
-    return { booking: toAdminBookingDetail(data) };
+
+    const result: BookingStatusUpdateResult = { booking: toAdminBookingDetail(data) };
+
+    // Backend auto-creates a visit stub when status flips to COMPLETED.
+    // Chase its id so AdminBookingDetail can deep-link into the visit edit form.
+    if (update.status === "Completed") {
+        try {
+            const visit = await api.get<{ id: number }>(`/admin/bookings/${id}/visit`);
+            result.visitId = String(visit.id);
+        } catch {
+            // Don't fail the status update if the visit lookup fails — admin
+            // can still reach the new visit via the patient's Visits tab.
+        }
+    }
+
+    return result;
 }
 
 export async function updateBookingNotes(
@@ -600,6 +611,8 @@ function toSummary(b: AdminBookingDetail): AdminBookingSummary {
 
 // ─── Patients ────────────────────────────────────────────────
 
+export type AdminPatientGender = "Male" | "Female" | "Other" | "Not specified";
+
 export type AdminPatientSummary = {
     id: string;
     firstName: string;
@@ -607,14 +620,13 @@ export type AdminPatientSummary = {
     email: string;
     phone: string;
     memberSinceDisplay: string;
-    bookingCount: number;
 };
 
 export type AdminPatientProfile = AdminPatientSummary & {
-    dateOfBirth: string;        // display e.g. "19th April 1987"
-    gender: "Male" | "Female" | "Other" | "Not specified";
+    dateOfBirth: string;
+    dateOfBirthIso: string;
+    gender: AdminPatientGender
     whatsapp: string | null;
-    address: string | null;
 };
 
 export type BloodGroup =
@@ -622,6 +634,55 @@ export type BloodGroup =
     | "Unknown";
 
 export type Genotype = "AA" | "AS" | "AC" | "SS" | "SC" | "Unknown";
+
+type AdminPatientResponse = {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    whatsappNumber: string | null;
+    dateOfBirth: string | null;   // YYYY-MM-DD
+    gender: string | null;        // backend stores as uppercase enum string
+    isActive: boolean;
+    createdAt: string;            // ISO timestamp
+};
+
+function mapGenderFromBackend(raw: string | null): AdminPatientGender {
+    if (!raw) return "Not specified";
+    const normalized = raw.toUpperCase();
+    if (normalized === "MALE") return "Male";
+    if (normalized === "FEMALE") return "Female";
+    if (normalized === "OTHER") return "Other";
+    return "Not specified";
+}
+
+function mapGenderToBackend(g: AdminPatientGender): string | null {
+    if (g === "Not specified") return null;
+    return g.toUpperCase();
+}
+
+function toAdminPatientSummary(p: AdminPatientResponse): AdminPatientSummary {
+    return {
+        id: String(p.id),
+        firstName: p.firstName,
+        lastName: p.lastName,
+        email: p.email,
+        phone: p.phone,
+        memberSinceDisplay: formatMonthYear(p.createdAt),
+    };
+}
+
+function toAdminPatientProfile(p: AdminPatientResponse): AdminPatientProfile {
+    return {
+        ...toAdminPatientSummary(p),
+        dateOfBirth: p.dateOfBirth ? formatDateLong(p.dateOfBirth) : "—",
+        dateOfBirthIso: p.dateOfBirth ?? "",
+        gender: mapGenderFromBackend(p.gender),
+        whatsapp: p.whatsappNumber,
+    };
+}
+
 
 export type AdminHealthProfile = {
     patientId: string;
@@ -632,102 +693,88 @@ export type AdminHealthProfile = {
     allergies: string;
     emergencyContactName: string;
     emergencyContactPhone: string;
+    emergencyContactRelationship: string;
     clinicalNotes: string;
 };
 
-const STUB_PATIENTS: AdminPatientProfile[] = [
-    {
-        id: "pt_001",
-        firstName: "Jesse",
-        lastName: "Okache",
-        email: "jesse.okache@example.com",
-        phone: "+2347168909864",
-        memberSinceDisplay: "June 2026",
-        bookingCount: 4,
-        dateOfBirth: "19th April 1987",
-        gender: "Male",
-        whatsapp: "+2347168909864",
-        address: "12 Adetola Street, Surulere, Lagos",
-    },
-    {
-        id: "pt_002",
-        firstName: "Amina",
-        lastName: "Bello",
-        email: "amina.bello@example.com",
-        phone: "+2348012345678",
-        memberSinceDisplay: "March 2026",
-        bookingCount: 8,
-        dateOfBirth: "3rd September 1992",
-        gender: "Female",
-        whatsapp: "+2348012345678",
-        address: "44 Bourdillon Road, Ikoyi, Lagos",
-    },
-    {
-        id: "pt_003",
-        firstName: "Tunde",
-        lastName: "Adekunle",
-        email: "tunde.a@example.com",
-        phone: "+2348098765432",
-        memberSinceDisplay: "January 2026",
-        bookingCount: 12,
-        dateOfBirth: "11th February 1975",
-        gender: "Male",
-        whatsapp: null,
-        address: "8 Bishop Street, Yaba, Lagos",
-    },
-    {
-        id: "pt_004",
-        firstName: "Chiamaka",
-        lastName: "Eze",
-        email: "chiamaka.e@example.com",
-        phone: "+2348055556666",
-        memberSinceDisplay: "April 2026",
-        bookingCount: 3,
-        dateOfBirth: "28th December 1988",
-        gender: "Female",
-        whatsapp: "+2348055556666",
-        address: null,
-    },
-    {
-        id: "pt_005",
-        firstName: "Femi",
-        lastName: "Adesanya",
-        email: "femi.a@example.com",
-        phone: "+2348011112222",
-        memberSinceDisplay: "May 2026",
-        bookingCount: 2,
-        dateOfBirth: "5th October 1990",
-        gender: "Male",
-        whatsapp: null,
-        address: "23 Allen Avenue, Ikeja, Lagos",
-    },
+const BLOOD_GROUP_VALUES: readonly BloodGroup[] = [
+    "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Unknown",
 ];
 
-const STUB_HEALTH_PROFILES: Record<string, AdminHealthProfile> = {
-    pt_001: {
-        patientId: "pt_001",
-        bloodGroup: "O+",
-        genotype: "AA",
-        heightCm: "178",
-        weightKg: "82",
-        allergies: "Penicillin (mild rash). No known food allergies.",
-        emergencyContactName: "Adaeze Okache",
-        emergencyContactPhone: "+2348022223333",
-        clinicalNotes:
-            "Generally healthy. Mild hypertension noted in last annual check-up — under observation, no medication yet.",
-    },
-    pt_002: {
-        patientId: "pt_002",
-        bloodGroup: "A+",
-        genotype: "AS",
-        heightCm: "165",
-        weightKg: "62",
-        allergies: "None known.",
-        emergencyContactName: "Yusuf Bello",
-        emergencyContactPhone: "+2348044445555",
-        clinicalNotes: "",
-    },
+const GENOTYPE_VALUES: readonly Genotype[] = ["AA", "AS", "AC", "SS", "SC", "Unknown"];
+
+function mapBloodGroupFromBackend(raw: string | null): BloodGroup {
+    if (!raw) return "Unknown";
+    return BLOOD_GROUP_VALUES.includes(raw as BloodGroup)
+        ? (raw as BloodGroup)
+        : "Unknown";
+}
+
+function mapGenotypeFromBackend(raw: string | null): Genotype {
+    if (!raw) return "Unknown";
+    return GENOTYPE_VALUES.includes(raw as Genotype)
+        ? (raw as Genotype)
+        : "Unknown";
+}
+
+// "Unknown" maps to empty string on the wire — backend treats both as unset.
+function mapBloodGroupToBackend(g: BloodGroup): string {
+    return g === "Unknown" ? "" : g;
+}
+
+function mapGenotypeToBackend(g: Genotype): string {
+    return g === "Unknown" ? "" : g;
+}
+
+type AdminHealthProfileResponse = {
+    id: number;
+    patientId: number;
+    patientName: string;
+    patientEmail: string;
+    bloodGroup: string | null;
+    genotype: string | null;
+    allergies: string | null;
+    clinicalNotes: string | null;
+    heightCm: number;
+    weightKg: number;
+    emergencyContactName: string | null;
+    emergencyContactRelationship: string | null;
+    emergencyContactPhone: string | null;
+    createdAt: string;
+    updatedAt: string;
 };
+
+function toAdminHealthProfile(
+    patientId: string,
+    r: AdminHealthProfileResponse,
+): AdminHealthProfile {
+    return {
+        patientId,
+        bloodGroup: mapBloodGroupFromBackend(r.bloodGroup),
+        genotype: mapGenotypeFromBackend(r.genotype),
+        // Treat 0 as unset on read; empty string keeps the input empty in the form.
+        heightCm: r.heightCm ? String(r.heightCm) : "",
+        weightKg: r.weightKg ? String(r.weightKg) : "",
+        allergies: r.allergies ?? "",
+        emergencyContactName: r.emergencyContactName ?? "",
+        emergencyContactRelationship: r.emergencyContactRelationship ?? "",
+        emergencyContactPhone: r.emergencyContactPhone ?? "",
+        clinicalNotes: r.clinicalNotes ?? "",
+    };
+}
+
+export async function fetchAdminHealthProfile(
+    patientId: string,
+): Promise<AdminHealthProfile> {
+    // Backend auto-creates an empty profile on first GET — never 404s.
+    const data = await api.get<AdminHealthProfileResponse>(
+        `/admin/patients/${patientId}/health-profile`,
+    );
+    return toAdminHealthProfile(patientId, data);
+}
+
+// Stub data for health profiles — still keyed by stub patient ids until step 2.
+const STUB_HEALTH_PROFILES: Record<string, AdminHealthProfile> = {};
 
 export type AdminPatientPage = {
     entries: AdminPatientSummary[];
@@ -741,58 +788,76 @@ export async function fetchAdminPatients(
     page: number,
     pageSize: number,
 ): Promise<AdminPatientPage> {
-    // TODO (backend): api.get("/admin/patients", { params: { search, page, size: pageSize } })
-    const q = search.trim().toLowerCase();
-    const filtered = q
-        ? STUB_PATIENTS.filter((p) => {
-            const haystack =
-                `${p.firstName} ${p.lastName} ${p.email} ${p.phone}`.toLowerCase();
-            return haystack.includes(q);
-        })
-        : STUB_PATIENTS;
+    const params = new URLSearchParams();
+    params.set("page", String(page - 1));
+    params.set("size", String(pageSize));
+    if (search.trim()) params.set("search", search.trim());
 
-    const start = (page - 1) * pageSize;
-    const entries = filtered.slice(start, start + pageSize).map(toPatientSummary);
+    const data = await api.get<AdminPageResponse<AdminPatientResponse>>(
+        `/admin/patients?${params.toString()}`,
+    );
 
-    return Promise.resolve({entries, total: filtered.length, page, pageSize});
+    return {
+        entries: data.content.map(toAdminPatientSummary),
+        total: data.totalElements,
+        page,
+        pageSize,
+    };
 }
 
 export async function fetchAdminPatient(id: string): Promise<AdminPatientProfile> {
-    // TODO (backend): api.get(`/admin/patients/${id}`)
-    const patient = STUB_PATIENTS.find((p) => p.id === id);
-    if (!patient) return Promise.reject(new Error("Patient not found"));
-    return Promise.resolve(patient);
+    const data = await api.get<AdminPatientResponse>(`/admin/patients/${id}`);
+    return toAdminPatientProfile(data);
 }
 
-export async function fetchAdminHealthProfile(
-    patientId: string,
-): Promise<AdminHealthProfile> {
-    // TODO (backend): api.get(`/admin/patients/${patientId}/health-profile`)
-    //   Backend auto-creates an empty profile on first GET — never 404s.
-    const profile = STUB_HEALTH_PROFILES[patientId];
-    if (profile) return Promise.resolve(profile);
-    // Empty profile fallback (mimics backend's auto-create behavior).
-    return Promise.resolve({
-        patientId,
-        bloodGroup: "Unknown",
-        genotype: "Unknown",
-        heightCm: "",
-        weightKg: "",
-        allergies: "",
-        emergencyContactName: "",
-        emergencyContactPhone: "",
-        clinicalNotes: "",
-    });
+export type AdminPatientUpdateInput = {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    whatsapp: string;             // empty string clears
+    dateOfBirthIso: string;       // YYYY-MM-DD; empty string clears
+    gender: AdminPatientGender;
+};
+
+export async function updateAdminPatient(
+    id: string,
+    input: AdminPatientUpdateInput,
+): Promise<AdminPatientProfile> {
+    const body = {
+        firstName: input.firstName,
+        lastName: input.lastName,
+        email: input.email,
+        phone: input.phone,
+        whatsappNumber: input.whatsapp || null,
+        dateOfBirth: input.dateOfBirthIso || null,
+        gender: mapGenderToBackend(input.gender),
+    };
+    const data = await api.put<AdminPatientResponse>(`/admin/patients/${id}`, body);
+    return toAdminPatientProfile(data);
 }
+
 
 export async function updateAdminHealthProfile(
     patientId: string,
     profile: AdminHealthProfile,
 ): Promise<AdminHealthProfile> {
-    // TODO (backend): api.put(`/admin/patients/${patientId}/health-profile`, profile)
-    console.log("updateAdminHealthProfile stub:", patientId, profile);
-    STUB_HEALTH_PROFILES[patientId] = profile;
-    return Promise.resolve(profile);
+    const body = {
+        bloodGroup: mapBloodGroupToBackend(profile.bloodGroup),
+        genotype: mapGenotypeToBackend(profile.genotype),
+        allergies: profile.allergies,
+        clinicalNotes: profile.clinicalNotes,
+        heightCm: profile.heightCm ? Number(profile.heightCm) : 0,
+        weightKg: profile.weightKg ? Number(profile.weightKg) : 0,
+        emergencyContactName: profile.emergencyContactName,
+        emergencyContactRelationship: profile.emergencyContactRelationship,
+        emergencyContactPhone: profile.emergencyContactPhone,
+    };
+    const data = await api.put<AdminHealthProfileResponse>(
+        `/admin/patients/${patientId}/health-profile`,
+        body,
+    );
+    return toAdminHealthProfile(patientId, data);
 }
 
 function toPatientSummary(p: AdminPatientProfile): AdminPatientSummary {
@@ -803,7 +868,6 @@ function toPatientSummary(p: AdminPatientProfile): AdminPatientSummary {
         email: p.email,
         phone: p.phone,
         memberSinceDisplay: p.memberSinceDisplay,
-        bookingCount: p.bookingCount,
     };
 }
 
@@ -1555,50 +1619,14 @@ export type CrossPatientLabPage = {
 };
 
 export async function fetchCrossPatientLabResults(
-    filters: CrossPatientLabFilters,
+    _filters: CrossPatientLabFilters,
     page: number,
     pageSize: number,
 ): Promise<CrossPatientLabPage> {
-    // TODO (backend): api.get("/admin/results", { params: { ...filters, page, size: pageSize } })
-    //   The patient-scoped endpoint is `/admin/patients/{id}/results`; this is
-    //   the cross-patient equivalent. If your backend only has the scoped one,
-    //   add a `/admin/results` controller that returns all results with the
-    //   patient join included.
-    const all: AdminCrossPatientLabResult[] = [];
-
-    for (const patientId of Object.keys(STUB_LAB_RESULTS)) {
-        const patient = STUB_PATIENTS.find((p) => p.id === patientId);
-        if (!patient) continue;
-        for (const result of STUB_LAB_RESULTS[patientId]) {
-            all.push({
-                ...result,
-                patientName: `${patient.firstName} ${patient.lastName}`,
-                // No real `uploadedAt` in the stub — using testDate as a proxy.
-                uploadedAtDisplay: result.testDate || "—",
-            });
-        }
-    }
-
-    const filtered = all.filter((r) => {
-        if (
-            filters.status &&
-            filters.status !== "all" &&
-            r.status !== filters.status
-        )
-            return false;
-        if (filters.search) {
-            const q = filters.search.toLowerCase();
-            if (!r.patientName.toLowerCase().includes(q)) return false;
-        }
-        return true;
-    });
-
-    const start = (page - 1) * pageSize;
-    const entries = filtered.slice(start, start + pageSize);
-
+    // TODO (step 7): wire to GET /admin/results
     return Promise.resolve({
-        entries,
-        total: filtered.length,
+        entries: [],
+        total: 0,
         page,
         pageSize,
     });

@@ -12,7 +12,6 @@ export default function ProfileTab() {
         ["WhatsApp", patient.whatsapp ?? "—"],
         ["Date of Birth", patient.dateOfBirth],
         ["Gender", patient.gender],
-        ["Address", patient.address ?? "—"],
         ["Member Since", patient.memberSinceDisplay],
     ];
 
