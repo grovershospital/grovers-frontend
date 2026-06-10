@@ -8,8 +8,11 @@ import BookingNotesCard from "../../components/admin/BookingNotesCard";
 import BookingActivityCard from "../../components/admin/BookingActivityCard";
 import BookingStatusActions from "../../components/admin/BookingStatusActions";
 import {
+    fetchAdminBookingActivity,
     fetchAdminBookingDetail,
+    updateBookingNotes,
     updateBookingStatus,
+    type AdminBookingActivity,
     type AdminBookingDetail,
     type AdminBookingStatus,
 } from "../../data/admin";
@@ -19,11 +22,13 @@ export default function AdminBookingDetail() {
     const navigate = useNavigate();
 
     const [booking, setBooking] = useState<AdminBookingDetail | null>(null);
+    const [activity, setActivity] = useState<AdminBookingActivity[]>([]);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!id) return;
         let alive = true;
+
         fetchAdminBookingDetail(id)
             .then((data) => {
                 if (alive) setBooking(data);
@@ -31,12 +36,17 @@ export default function AdminBookingDetail() {
             .catch(() => {
                 if (alive) setError("Could not load this booking.");
             });
+
+        fetchAdminBookingActivity(id).then((data) => {
+            if (alive) setActivity(data);
+        });
+
         return () => {
             alive = false;
         };
     }, [id]);
 
-    async function handleAction(newStatus: AdminBookingStatus, adminNotes: string) {
+    async function handleStatusAction(newStatus: AdminBookingStatus, adminNotes: string) {
         if (!booking) return;
         try {
             const result = await updateBookingStatus(booking.id, {
@@ -45,15 +55,22 @@ export default function AdminBookingDetail() {
             });
             setBooking(result.booking);
 
-            // Marking COMPLETED auto-creates a Visit on the backend — deep-link
-            // into the visit-fill form so the admin can complete the clinical
-            // record straight away.
+            // Visits integration not wired yet — result.visitId is undefined.
+            // Once it lands, COMPLETED flips will deep-link straight into the
+            // visit edit form. Until then the admin reaches the new visit
+            // stub via the patient's Visits tab.
             if (newStatus === "Completed" && result.visitId) {
                 navigate(`/admin/visits/${result.visitId}/edit`);
             }
         } catch {
             window.alert("Could not update the booking status. Please try again.");
         }
+    }
+
+    async function handleSaveNotes(notes: string) {
+        if (!booking) return;
+        const updated = await updateBookingNotes(booking.id, notes);
+        setBooking(updated);
     }
 
     if (error) {
@@ -97,15 +114,18 @@ export default function AdminBookingDetail() {
                 <div className="space-y-6">
                     <BookingPatientCard booking={booking} />
                     <BookingDetailsCard booking={booking} />
-                    <BookingNotesCard notes={booking.notes} />
-                    <BookingActivityCard activity={booking.activity} />
+                    <BookingNotesCard
+                        adminNotes={booking.adminNotes}
+                        onSave={handleSaveNotes}
+                    />
+                    <BookingActivityCard activity={activity} />
                 </div>
 
                 <div>
                     <div className="lg:sticky lg:top-20">
                         <BookingStatusActions
                             currentStatus={booking.status}
-                            onAction={handleAction}
+                            onAction={handleStatusAction}
                         />
                     </div>
                 </div>

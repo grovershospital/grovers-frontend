@@ -1,33 +1,68 @@
-import type { AdminBookingNote } from "../../data/admin";
+import { useEffect, useState } from "react";
 
 type Props = {
-    notes: AdminBookingNote[];
+    adminNotes: string;
+    onSave: (notes: string) => Promise<void>;
 };
 
-export default function BookingNotesCard({ notes }: Props) {
+export default function BookingNotesCard({ adminNotes, onSave }: Props) {
+    const [value, setValue] = useState(adminNotes);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [savedAt, setSavedAt] = useState<string | null>(null);
+
+    // Re-sync if the parent updates adminNotes (e.g. after a status action
+    // also wrote a note via the status endpoint).
+    useEffect(() => {
+        setValue(adminNotes);
+    }, [adminNotes]);
+
+    const dirty = value !== adminNotes;
+
+    async function handleSave() {
+        setSaving(true);
+        setError(null);
+        try {
+            await onSave(value);
+            setSavedAt(
+                new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+            );
+        } catch {
+            setError("Could not save. Please try again.");
+        } finally {
+            setSaving(false);
+        }
+    }
+
     return (
         <section className="rounded-2xl border border-neutral-200 bg-white p-6">
-            <h2 className="mb-4 text-base font-bold text-brand-ink">Admin Notes</h2>
+            <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-base font-bold text-brand-ink">Admin Notes</h2>
+                {savedAt && !dirty && (
+                    <span className="text-xs text-neutral-500">Saved at {savedAt}</span>
+                )}
+            </div>
 
-            {notes.length === 0 ? (
-                <p className="text-sm text-neutral-500">
-                    No notes yet. Add one when changing this booking's status.
-                </p>
-            ) : (
-                <ul className="space-y-4">
-                    {notes.map((n) => (
-                        <li
-                            key={n.id}
-                            className="border-l-2 border-brand-blue bg-neutral-50 px-4 py-3"
-                        >
-                            <p className="text-sm text-brand-ink">{n.note}</p>
-                            <p className="mt-2 text-xs text-neutral-500">
-                                {n.authorName} · {n.createdAtDisplay}
-                            </p>
-                        </li>
-                    ))}
-                </ul>
-            )}
+            <textarea
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                rows={5}
+                placeholder="Internal notes about this booking — visible to admins only."
+                className="block w-full resize-y rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-brand-ink placeholder:text-neutral-400 focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+            />
+
+            {error && <p className="mt-2 text-sm text-brand-red">{error}</p>}
+
+            <div className="mt-4 flex justify-end">
+                <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={!dirty || saving}
+                    className="inline-flex items-center rounded-md bg-brand-blue px-4 py-2 text-sm font-semibold text-white hover:bg-brand-blue/90 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                    {saving ? "Saving…" : "Save notes"}
+                </button>
+            </div>
         </section>
     );
 }

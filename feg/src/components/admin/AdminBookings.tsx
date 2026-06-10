@@ -6,25 +6,54 @@ import Pagination from "../../components/admin/Pagination";
 import {
     fetchAdminBookings,
     type AdminBookingFilters,
+    type AdminBookingStatus,
     type AdminBookingSummary,
 } from "../../data/admin";
 
 const PAGE_SIZE = 10;
 
-export default function AdminBookings() {
-    const [searchParams] = useSearchParams();
-    const initialStatus = searchParams.get("status");
+const STATUS_FROM_PARAM: Record<string, AdminBookingStatus> = {
+    pending: "Pending",
+    confirmed: "Confirmed",
+    completed: "Completed",
+    cancelled: "Cancelled",
+};
 
-    const [filters, setFilters] = useState<AdminBookingFilters>(() => ({
-        status: initialStatus === "pending" ? "Pending" : "all",
-        type: "all",
-        search: "",
-    }));
+const STATUS_TO_PARAM: Record<AdminBookingStatus, string> = {
+    Pending: "pending",
+    Confirmed: "confirmed",
+    Completed: "completed",
+    Cancelled: "cancelled",
+};
+
+export default function AdminBookings() {
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const [filters, setFilters] = useState<AdminBookingFilters>(() => {
+        const statusParam = searchParams.get("status")?.toLowerCase() ?? "";
+        return {
+            status: STATUS_FROM_PARAM[statusParam] ?? "all",
+            type: "all",
+            search: "",
+        };
+    });
 
     const [page, setPage] = useState(1);
     const [bookings, setBookings] = useState<AdminBookingSummary[]>([]);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(true);
+
+    function handleFiltersChange(next: AdminBookingFilters) {
+        setFilters(next);
+        // Sync status to URL so the page is bookmarkable and refresh-safe.
+        const params = new URLSearchParams(searchParams);
+        if (next.status && next.status !== "all") {
+            params.set("status", STATUS_TO_PARAM[next.status as AdminBookingStatus]);
+        } else {
+            params.delete("status");
+        }
+        setSearchParams(params, { replace: true });
+    }
 
     useEffect(() => {
         setPage(1);
@@ -57,7 +86,7 @@ export default function AdminBookings() {
                 </p>
             </div>
 
-            <BookingsFilters filters={filters} onChange={setFilters} />
+            <BookingsFilters filters={filters} onChange={handleFiltersChange} />
 
             <BookingsTable bookings={bookings} loading={loading} />
 

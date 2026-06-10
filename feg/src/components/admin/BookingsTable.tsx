@@ -51,7 +51,7 @@ export default function BookingsTable({ bookings, loading }: Props) {
                         <td className="px-4 py-3 text-brand-ink">{b.department}</td>
                         <td className="px-4 py-3 text-brand-ink">{b.type}</td>
                         <td className="px-4 py-3 text-brand-ink">
-                            {b.preferredDate}, {b.preferredTime}
+                            {b.preferredDate}
                         </td>
                         <td className="px-4 py-3">
                             <BookingStatusPill status={b.status} />

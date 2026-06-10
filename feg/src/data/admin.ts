@@ -23,7 +23,7 @@ export async function fetchAdminUser(): Promise<AdminUser> {
     const tokens = data.fullName.trim().split(/\s+/);
     const firstName = tokens[0] ?? "";
     const lastName = tokens.slice(1).join(" ");
-    return { firstName, lastName, email: data.email };
+    return {firstName, lastName, email: data.email};
 }
 
 // ─── Dashboard summary ───────────────────────────────────────
@@ -402,18 +402,12 @@ export async function updateFeedbackStatus(
     );
     return toFeedbackEntry(data);
 }
+
 // ─── Bookings (admin) ────────────────────────────────────────
 
 export type AdminBookingStatus = "Pending" | "Confirmed" | "Completed" | "Cancelled";
 
 export type AdminBookingType = "Consultation" | "Screening" | "Package";
-
-export type AdminBookingNote = {
-    id: string;
-    note: string;
-    authorName: string;          // admin who wrote it
-    createdAtDisplay: string;
-};
 
 export type AdminBookingActivity = {
     id: string;
@@ -429,7 +423,6 @@ export type AdminBookingSummary = {
     department: string;
     type: AdminBookingType;
     preferredDate: string;        // e.g. "15th May 2026"
-    preferredTime: string;        // e.g. "2pm"
     status: AdminBookingStatus;
     createdAtDisplay: string;     // when booking was made
 };
@@ -437,157 +430,56 @@ export type AdminBookingSummary = {
 export type AdminBookingDetail = AdminBookingSummary & {
     patientEmail: string;
     patientPhone: string;
-    reason: string | null;
-    additionalNotes: string | null;
-    notes: AdminBookingNote[];
-    activity: AdminBookingActivity[];
+    patientNotes: string | null;
+    adminNotes: string;
 };
 
-const STUB_BOOKINGS: AdminBookingDetail[] = [
-    {
-        id: "bk_a1b2c3d4e5f6",
-        shortId: "d4e5f6",
-        patientName: "Jesse Okache",
-        patientId: "pt_001",
-        patientEmail: "jesse.okache@example.com",
-        patientPhone: "+2347168909864",
-        department: "General Surgery",
-        type: "Consultation",
-        preferredDate: "15th May 2026",
-        preferredTime: "2pm",
-        status: "Pending",
-        createdAtDisplay: "2 hours ago",
-        reason: "Persistent abdominal pain for the past two weeks",
-        additionalNotes: "Prefer morning slots if anything opens up earlier.",
-        notes: [],
-        activity: [
-            {id: "ac1", description: "Booking created by patient", createdAtDisplay: "2 hours ago"},
-        ],
-    },
-    {
-        id: "bk_b2c3d4e5f6g7",
-        shortId: "e5f6g7",
-        patientName: "Amina Bello",
-        patientId: "pt_002",
-        patientEmail: "amina.bello@example.com",
-        patientPhone: "+2348012345678",
-        department: "OB/GYN",
-        type: "Consultation",
-        preferredDate: "15th May 2026",
-        preferredTime: "11am",
-        status: "Confirmed",
-        createdAtDisplay: "Yesterday",
-        reason: "Routine prenatal check-up",
-        additionalNotes: null,
-        notes: [
-            {
-                id: "nt1",
-                note: "Confirmed via phone — patient will arrive 15 minutes early.",
-                authorName: "Admin User",
-                createdAtDisplay: "Yesterday",
-            },
-        ],
-        activity: [
-            {id: "ac1", description: "Booking created by patient", createdAtDisplay: "Yesterday"},
-            {id: "ac2", description: "Confirmed by Admin User", createdAtDisplay: "Yesterday"},
-        ],
-    },
-    {
-        id: "bk_c3d4e5f6g7h8",
-        shortId: "f6g7h8",
-        patientName: "Tunde Adekunle",
-        patientId: "pt_003",
-        patientEmail: "tunde.a@example.com",
-        patientPhone: "+2348098765432",
-        department: "Cardiology",
-        type: "Screening",
-        preferredDate: "14th May 2026",
-        preferredTime: "9am",
-        status: "Pending",
-        createdAtDisplay: "Yesterday",
-        reason: "Annual heart screening",
-        additionalNotes: null,
-        notes: [],
-        activity: [
-            {id: "ac1", description: "Booking created by patient", createdAtDisplay: "Yesterday"},
-        ],
-    },
-    {
-        id: "bk_d4e5f6g7h8i9",
-        shortId: "g7h8i9",
-        patientName: "Chiamaka Eze",
-        patientId: "pt_004",
-        patientEmail: "chiamaka.e@example.com",
-        patientPhone: "+2348055556666",
-        department: "Paediatrics",
-        type: "Consultation",
-        preferredDate: "14th May 2026",
-        preferredTime: "3pm",
-        status: "Confirmed",
-        createdAtDisplay: "2 days ago",
-        reason: "Child's persistent cough",
-        additionalNotes: "Patient is 4 years old.",
-        notes: [],
-        activity: [
-            {id: "ac1", description: "Booking created by patient", createdAtDisplay: "2 days ago"},
-            {id: "ac2", description: "Confirmed by Admin User", createdAtDisplay: "Yesterday"},
-        ],
-    },
-    {
-        id: "bk_e5f6g7h8i9j0",
-        shortId: "h8i9j0",
-        patientName: "Femi Adesanya",
-        patientId: "pt_005",
-        patientEmail: "femi.a@example.com",
-        patientPhone: "+2348011112222",
-        department: "ENT",
-        type: "Consultation",
-        preferredDate: "13th May 2026",
-        preferredTime: "10am",
-        status: "Cancelled",
-        createdAtDisplay: "3 days ago",
-        reason: "Ear discomfort",
-        additionalNotes: null,
-        notes: [
-            {
-                id: "nt1",
-                note: "Patient called to cancel — will rebook next week.",
-                authorName: "Admin User",
-                createdAtDisplay: "2 days ago",
-            },
-        ],
-        activity: [
-            {id: "ac1", description: "Booking created by patient", createdAtDisplay: "3 days ago"},
-            {id: "ac2", description: "Cancelled by Admin User", createdAtDisplay: "2 days ago"},
-        ],
-    },
-    {
-        id: "bk_f6g7h8i9j0k1",
-        shortId: "i9j0k1",
-        patientName: "Blessing Okonkwo",
-        patientId: "pt_006",
-        patientEmail: "blessing.o@example.com",
-        patientPhone: "+2348033334444",
-        department: "Annual Wellness",
-        type: "Package",
-        preferredDate: "12th May 2026",
-        preferredTime: "8am",
-        status: "Completed",
-        createdAtDisplay: "5 days ago",
-        reason: null,
-        additionalNotes: "Annual Wellness Package — Standard tier.",
-        notes: [],
-        activity: [
-            {id: "ac1", description: "Booking created by patient", createdAtDisplay: "5 days ago"},
-            {id: "ac2", description: "Confirmed by Admin User", createdAtDisplay: "4 days ago"},
-            {
-                id: "ac3",
-                description: "Marked Completed by Admin User — Visit stub created",
-                createdAtDisplay: "3 days ago"
-            },
-        ],
-    },
-];
+const BOOKING_TYPE_FROM_BACKEND: Record<
+    AdminBookingResponse["bookingType"],
+    AdminBookingType
+> = {
+    CONSULTATION: "Consultation",
+    SCREENING: "Screening",
+    PACKAGE: "Package",
+};
+
+const BOOKING_STATUS_TO_BACKEND: Record<
+    AdminBookingStatus,
+    AdminBookingResponse["status"]
+> = {
+    Pending: "PENDING",
+    Confirmed: "CONFIRMED",
+    Cancelled: "CANCELLED",
+    Completed: "COMPLETED",
+};
+
+function shortIdFor(id: number): string {
+    return String(id).padStart(6, "0").slice(-6);
+}
+
+function toAdminBookingSummary(b: AdminBookingResponse): AdminBookingSummary {
+    return {
+        id: String(b.id),
+        shortId: shortIdFor(b.id),
+        patientName: `${b.patientFirstName} ${b.patientLastName}`.trim() || "—",
+        patientId: String(b.patientId),
+        department: b.departmentName ?? b.packageName ?? "—",
+        type: BOOKING_TYPE_FROM_BACKEND[b.bookingType],
+        preferredDate: formatDateShort(b.preferredDate),
+        status: ADMIN_BOOKING_STATUS_MAP[b.status],
+        createdAtDisplay: formatRelative(b.createdAt),
+    };
+}
+
+function toAdminBookingDetail(b: AdminBookingResponse): AdminBookingDetail {
+    return {
+        ...toAdminBookingSummary(b),
+        patientEmail: b.patientEmail,
+        patientPhone: b.patientPhone,
+        patientNotes: b.notes,
+        adminNotes: b.adminNotes ?? "",
+    };
+}
 
 export type AdminBookingFilters = {
     search?: string;
@@ -607,33 +499,42 @@ export async function fetchAdminBookings(
     page: number,
     pageSize: number,
 ): Promise<AdminBookingPage> {
-    // TODO (backend): api.get("/admin/bookings", { params: { ...filters, page, size: pageSize } })
-    const filtered = STUB_BOOKINGS.filter((b) => {
-        if (filters.status && filters.status !== "all" && b.status !== filters.status) return false;
-        if (filters.type && filters.type !== "all" && b.type !== filters.type) return false;
-        if (filters.search) {
-            const q = filters.search.toLowerCase();
-            if (!b.patientName.toLowerCase().includes(q)) return false;
-        }
-        return true;
-    });
+    const params = new URLSearchParams();
+    params.set("page", String(page - 1));          // backend is 0-indexed
+    params.set("size", String(pageSize));
+    if (filters.status && filters.status !== "all") {
+        params.set("status", BOOKING_STATUS_TO_BACKEND[filters.status]);
+    }
+    // NOTE (backend): /admin/bookings only supports `status` server-side.
+    // Type and search filtering happen client-side on the returned page —
+    // this will under-count when those filters are active across many pages.
+    // Add `type` and `search` query params on the backend when convenient.
 
-    const start = (page - 1) * pageSize;
-    const entries = filtered.slice(start, start + pageSize).map(toSummary);
+    const data = await api.get<AdminPageResponse<AdminBookingResponse>>(
+        `/admin/bookings?${params.toString()}`,
+    );
 
-    return Promise.resolve({
+    let entries = data.content.map(toAdminBookingSummary);
+
+    if (filters.type && filters.type !== "all") {
+        entries = entries.filter((b) => b.type === filters.type);
+    }
+    if (filters.search) {
+        const q = filters.search.toLowerCase();
+        entries = entries.filter((b) => b.patientName.toLowerCase().includes(q));
+    }
+
+    return {
         entries,
-        total: filtered.length,
+        total: data.totalElements,
         page,
         pageSize,
-    });
+    };
 }
 
 export async function fetchAdminBookingDetail(id: string): Promise<AdminBookingDetail> {
-    // TODO (backend): api.get(`/admin/bookings/${id}`)
-    const booking = STUB_BOOKINGS.find((b) => b.id === id);
-    if (!booking) return Promise.reject(new Error("Booking not found"));
-    return Promise.resolve(booking);
+    const data = await api.get<AdminBookingResponse>(`/admin/bookings/${id}`);
+    return toAdminBookingDetail(data);
 }
 
 export type BookingStatusUpdate = {
@@ -650,71 +551,37 @@ export async function updateBookingStatus(
     id: string,
     update: BookingStatusUpdate,
 ): Promise<BookingStatusUpdateResult> {
-    // TODO (backend): api.put(`/admin/bookings/${id}/status`, update)
-    //   On COMPLETED, backend auto-creates a Visit and returns the visitId
-    //   in the response. Frontend then navigates to /admin/visits/{visitId}/edit.
-    console.log("updateBookingStatus stub:", id, update);
+    const data = await api.put<AdminBookingResponse>(
+        `/admin/bookings/${id}/status`,
+        {
+            status: BOOKING_STATUS_TO_BACKEND[update.status],
+            adminNotes: update.adminNotes,
+        },
+    );
+    // TODO (visits integration): backend auto-creates a visit stub when
+    // status transitions to COMPLETED. Once /admin/visits endpoints are wired,
+    // do a follow-up `GET /admin/visits?bookingId={id}` here and populate
+    // visitId so AdminBookingDetail can deep-link into the visit edit form.
+    return { booking: toAdminBookingDetail(data) };
+}
 
-    const booking = STUB_BOOKINGS.find((b) => b.id === id);
-    if (!booking) return Promise.reject(new Error("Booking not found"));
+export async function updateBookingNotes(
+    id: string,
+    adminNotes: string,
+): Promise<AdminBookingDetail> {
+    const data = await api.put<AdminBookingResponse>(
+        `/admin/bookings/${id}/notes`,
+        { adminNotes },
+    );
+    return toAdminBookingDetail(data);
+}
 
-    const updated: AdminBookingDetail = {
-        ...booking,
-        status: update.status,
-        notes: update.adminNotes
-            ? [
-                ...booking.notes,
-                {
-                    id: `nt_${Date.now()}`,
-                    note: update.adminNotes,
-                    authorName: "Admin User",
-                    createdAtDisplay: "Just now",
-                },
-            ]
-            : booking.notes,
-        activity: [
-            ...booking.activity,
-            {
-                id: `ac_${Date.now()}`,
-                description: `Status changed to ${update.status} by Admin User`,
-                createdAtDisplay: "Just now",
-            },
-        ],
-    };
-
-    // Persist the booking change back into the stub array so subsequent reads
-    // see the new status (and don't show stale Pending after a reload).
-    const idx = STUB_BOOKINGS.findIndex((b) => b.id === id);
-    STUB_BOOKINGS[idx] = updated;
-
-    // When transitioning to Completed, mimic the backend's auto-stub Visit
-    // creation so the deep-link navigation lands on a real record.
-    let visitId: string | undefined;
-    if (update.status === "Completed") {
-        visitId = `vs_${Date.now()}`;
-        const newVisit: AdminVisitDetail = {
-            id: visitId,
-            patientId: booking.patientId,
-            visitDate: booking.preferredDate,
-            department: booking.department,
-            attendingDoctorText: "",
-            chiefComplaint: "",
-            status: "Draft",
-            bookingShortId: booking.shortId,
-            diagnosis: "",
-            treatment: "",
-            clinicalNotes: "",
-            followUpRequired: false,
-            followUpDate: "",
-            followUpInstructions: "",
-        };
-        STUB_VISITS[booking.patientId] = [
-            ...(STUB_VISITS[booking.patientId] ?? []),
-            newVisit,
-        ];
-    }
-
-    return Promise.resolve({booking: updated, visitId});
+export async function fetchAdminBookingActivity(
+    _id: string,
+): Promise<AdminBookingActivity[]> {
+    // TODO (backend): no activity log endpoint yet. Returning empty so the
+    // Activity card renders an empty state without erroring.
+    return Promise.resolve([]);
 }
 
 function toSummary(b: AdminBookingDetail): AdminBookingSummary {
@@ -726,7 +593,6 @@ function toSummary(b: AdminBookingDetail): AdminBookingSummary {
         department: b.department,
         type: b.type,
         preferredDate: b.preferredDate,
-        preferredTime: b.preferredTime,
         status: b.status,
         createdAtDisplay: b.createdAtDisplay,
     };

@@ -12,14 +12,10 @@ export default function BookingDetailsCard({ booking }: Props) {
             <dl className="grid grid-cols-1 gap-y-3 text-sm sm:grid-cols-[max-content_1fr] sm:gap-x-6">
                 <Row label="Department" value={booking.department} />
                 <Row label="Type" value={booking.type} />
-                <Row
-                    label="Preferred slot"
-                    value={`${booking.preferredDate} at ${booking.preferredTime}`}
-                />
+                <Row label="Preferred date" value={booking.preferredDate} />
                 <Row label="Booked" value={booking.createdAtDisplay} />
-                {booking.reason && <Row label="Reason" value={booking.reason} />}
-                {booking.additionalNotes && (
-                    <Row label="Notes" value={booking.additionalNotes} />
+                {booking.patientNotes && (
+                    <Row label="Patient notes" value={booking.patientNotes} />
                 )}
             </dl>
         </section>
