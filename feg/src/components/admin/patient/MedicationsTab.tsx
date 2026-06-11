@@ -106,6 +106,7 @@ export default function MedicationsTab() {
                             <th className="px-4 py-3">Dosage</th>
                             <th className="px-4 py-3">Frequency</th>
                             <th className="px-4 py-3">Started</th>
+                            <th className={'px-4 py-3'}>Status</th>
                             <th className="px-4 py-3">Prescribed by</th>
                             <th className="px-4 py-3" />
                         </tr>
@@ -134,6 +135,17 @@ export default function MedicationsTab() {
                                 </td>
                                 <td className="px-4 py-3 text-brand-ink">
                                     {m.startedOn || "—"}
+                                </td>
+                                <td className="px-4 py-3">
+                                    {m.isActive ? (
+                                        <span className="inline-flex items-center rounded-full bg-brand-green/10 px-2.5 py-0.5 text-xs font-semibold text-brand-green">
+                                            Active
+                                        </span>
+                                    ) : (
+                                        <span className="inline-flex items-center rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs font-semibold text-neutral-600">
+                                            Inactive
+                                        </span>
+                                    )}
                                 </td>
                                 <td className="px-4 py-3 text-brand-ink">
                                     {m.prescribedByText || "—"}

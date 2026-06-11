@@ -15,7 +15,9 @@ const EMPTY: MedicationInput = {
     name: "",
     dosage: "",
     frequency: "",
-    startedOn: "",
+    startDateIso: "",
+    endDateIso: "",
+    isActive: true,
     prescribedByText: "",
     notes: "",
 };
@@ -30,7 +32,6 @@ export default function MedicationFormModal({
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Reset form whenever the modal opens with new context.
     useEffect(() => {
         if (open) {
             setForm(
@@ -39,7 +40,9 @@ export default function MedicationFormModal({
                         name: medication.name,
                         dosage: medication.dosage,
                         frequency: medication.frequency,
-                        startedOn: medication.startedOn,
+                        startDateIso: medication.startDateIso,
+                        endDateIso: medication.endDateIso,
+                        isActive: medication.isActive,
                         prescribedByText: medication.prescribedByText,
                         notes: medication.notes,
                     }
@@ -62,6 +65,14 @@ export default function MedicationFormModal({
 
         if (!form.name.trim()) {
             setError("Medication name is required.");
+            return;
+        }
+        if (!form.startDateIso) {
+            setError("Start date is required.");
+            return;
+        }
+        if (form.endDateIso && form.endDateIso < form.startDateIso) {
+            setError("End date can't be before the start date.");
             return;
         }
 
@@ -119,16 +130,38 @@ export default function MedicationFormModal({
                     </Field>
                 </div>
 
-                <Field label="Started on" htmlFor="med-started">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <Field label="Start date" htmlFor="med-start" required>
+                        <input
+                            id="med-start"
+                            type="date"
+                            required
+                            value={form.startDateIso}
+                            onChange={(e) => update("startDateIso", e.target.value)}
+                            className={inputClass}
+                        />
+                    </Field>
+
+                    <Field label="End date" htmlFor="med-end">
+                        <input
+                            id="med-end"
+                            type="date"
+                            value={form.endDateIso}
+                            onChange={(e) => update("endDateIso", e.target.value)}
+                            className={inputClass}
+                        />
+                    </Field>
+                </div>
+
+                <label className="flex items-center gap-2 text-sm text-brand-ink">
                     <input
-                        id="med-started"
-                        type="text"
-                        placeholder="e.g. March 2026"
-                        value={form.startedOn}
-                        onChange={(e) => update("startedOn", e.target.value)}
-                        className={inputClass}
+                        type="checkbox"
+                        checked={form.isActive}
+                        onChange={(e) => update("isActive", e.target.checked)}
+                        className="h-4 w-4 rounded border-neutral-300 text-brand-red focus:ring-brand-blue"
                     />
-                </Field>
+                    Active — patient is currently taking this medication
+                </label>
 
                 <Field label="Prescribed by" htmlFor="med-prescribed">
                     <input

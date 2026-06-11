@@ -683,7 +683,6 @@ function toAdminPatientProfile(p: AdminPatientResponse): AdminPatientProfile {
     };
 }
 
-
 export type AdminHealthProfile = {
     patientId: string;
     bloodGroup: BloodGroup;
@@ -876,164 +875,225 @@ function toPatientSummary(p: AdminPatientProfile): AdminPatientSummary {
 export type AdminMedication = {
     id: string;
     name: string;
-    dosage: string;          // e.g. "10mg"
-    frequency: string;       // e.g. "Twice daily"
-    startedOn: string;       // display date e.g. "May 2026"
+    dosage: string;
+    frequency: string;
+    startedOn: string;          // display e.g. "15th Mar 2026"
+    startDateIso: string;       // YYYY-MM-DD for date input
+    endedOn: string;            // display string, empty if ongoing
+    endDateIso: string;         // YYYY-MM-DD, empty if ongoing
+    isActive: boolean;
     prescribedByText: string;
     notes: string;
 };
+
+export type MedicationInput = {
+    name: string;
+    dosage: string;
+    frequency: string;
+    startDateIso: string;       // required
+    endDateIso: string;         // empty string = no end date
+    isActive: boolean;
+    prescribedByText: string;
+    notes: string;
+};
+
+type AdminMedicationResponse = {
+    id: number;
+    name: string;
+    dosage: string | null;
+    frequency: string | null;
+    startDate: string | null;
+    endDate: string | null;
+    isActive: boolean;
+    notes: string | null;
+    prescribedById: number | null;
+    prescribedByName: string | null;
+    createdAt: string;
+    updatedAt: string;
+};
+
+function toAdminMedication(m: AdminMedicationResponse): AdminMedication {
+    return {
+        id: String(m.id),
+        name: m.name,
+        dosage: m.dosage ?? "",
+        frequency: m.frequency ?? "",
+        startedOn: m.startDate ? formatDateShort(m.startDate) : "",
+        startDateIso: m.startDate ?? "",
+        endedOn: m.endDate ? formatDateShort(m.endDate) : "",
+        endDateIso: m.endDate ?? "",
+        isActive: m.isActive,
+        // Backend resolves prescribedByName from id when a doctor is linked,
+        // otherwise we'll surface whatever free text was stored. Doctor picker
+        // is deferred — for now we always send via prescribedByText.
+        prescribedByText: m.prescribedByName ?? "",
+        notes: m.notes ?? "",
+    };
+}
+
+function medicationInputToBody(input: MedicationInput) {
+    return {
+        name: input.name,
+        dosage: input.dosage,
+        frequency: input.frequency,
+        startDate: input.startDateIso || null,
+        endDate: input.endDateIso || null,
+        isActive: input.isActive,
+        notes: input.notes,
+        prescribedById: null,             // doctor picker deferred
+        prescribedByText: input.prescribedByText,
+    };
+}
 
 export type ChronicConditionStatus = "Active" | "Managed" | "In remission";
 
 export type AdminCondition = {
     id: string;
     name: string;
-    diagnosedDate: string;   // display date e.g. "April 2024"
+    diagnosedDate: string;          // display e.g. "15th Mar 2024"
+    diagnosedDateIso: string;       // YYYY-MM-DD for date input
     status: ChronicConditionStatus;
     managingDoctorText: string;
     notes: string;
 };
 
-const STUB_MEDICATIONS: Record<string, AdminMedication[]> = {
-    pt_001: [
-        {
-            id: "med_001",
-            name: "Lisinopril",
-            dosage: "10mg",
-            frequency: "Once daily",
-            startedOn: "March 2026",
-            prescribedByText: "Dr. Adewale Okafor",
-            notes: "For mild hypertension. Monitor BP monthly.",
-        },
-        {
-            id: "med_002",
-            name: "Vitamin D3",
-            dosage: "2000 IU",
-            frequency: "Once daily",
-            startedOn: "January 2026",
-            prescribedByText: "",
-            notes: "Supplement.",
-        },
-    ],
-    pt_002: [],
+
+
+export type ConditionInput = {
+    name: string;
+    diagnosedDateIso: string;
+    status: ChronicConditionStatus;
+    managingDoctorText: string;
+    notes: string;
 };
 
-const STUB_CONDITIONS: Record<string, AdminCondition[]> = {
-    pt_001: [
-        {
-            id: "cond_001",
-            name: "Hypertension",
-            diagnosedDate: "March 2026",
-            status: "Managed",
-            managingDoctorText: "Dr. Adewale Okafor",
-            notes: "Mild. On Lisinopril, BP under control.",
-        },
-    ],
-    pt_002: [],
+type ConditionBackendStatus = "ACTIVE" | "MANAGED" | "IN_REMISSION";
+
+const CONDITION_STATUS_FROM_BACKEND: Record<
+ConditionBackendStatus,
+    ChronicConditionStatus
+    > = {
+        ACTIVE: "Active",
+        MANAGED: "Managed",
+        IN_REMISSION: "In remission",
+    };
+
+const CONDITION_STATUS_TO_BACKEND: Record<
+ChronicConditionStatus,
+    ConditionBackendStatus
+    > = {
+        Active: "ACTIVE",
+        Managed: "MANAGED",
+        "In remission": "IN_REMISSION",
+    };
+
+type AdminConditionResponse = {
+    id: number;
+    name: string;
+    diagnosedDate: string | null;
+    status: string;
+    notes: string | null;
+    managingDoctorId: number | null;
+    managingDoctorName: string | null;
+    createdAt: string;
+    updatedAt: string;
 };
 
-// --- Medications fetchers ---
-
-export async function fetchAdminMedications(
-    patientId: string,
-): Promise<AdminMedication[]> {
-    // TODO (backend): api.get(`/admin/patients/${patientId}/medications`)
-    return Promise.resolve(STUB_MEDICATIONS[patientId] ?? []);
+function toAdminCondition(c: AdminConditionResponse): AdminCondition {
+    return {
+        id: String(c.id),
+        name: c.name,
+        diagnosedDate: c.diagnosedDate ? formatDateShort(c.diagnosedDate) : "",
+        diagnosedDateIso: c.diagnosedDate ?? "",
+        status:
+            CONDITION_STATUS_FROM_BACKEND[c.status as ConditionBackendStatus] ??
+            "Active",
+        managingDoctorText: c.managingDoctorName ?? "",
+        notes: c.notes ?? "",
+    };
 }
 
-export type MedicationInput = Omit<AdminMedication, "id">;
-
-export async function createAdminMedication(
-    patientId: string,
-    input: MedicationInput,
-): Promise<AdminMedication> {
-    // TODO (backend): api.post(`/admin/patients/${patientId}/medications`, input)
-    const created: AdminMedication = {id: `med_${Date.now()}`, ...input};
-    STUB_MEDICATIONS[patientId] = [...(STUB_MEDICATIONS[patientId] ?? []), created];
-    return Promise.resolve(created);
+function conditionInputToBody(input: ConditionInput) {
+    return {
+        name: input.name,
+        diagnosedDate: input.diagnosedDateIso || null,
+        status: CONDITION_STATUS_TO_BACKEND[input.status],
+        notes: input.notes,
+        managingDoctorId: null,        // doctor picker deferred
+        managingDoctorText: input.managingDoctorText,
+    };
 }
-
-export async function updateAdminMedication(
-    medicationId: string,
-    input: MedicationInput,
-): Promise<AdminMedication> {
-    // TODO (backend): api.put(`/admin/medications/${medicationId}`, input)
-    for (const patientId of Object.keys(STUB_MEDICATIONS)) {
-        const list = STUB_MEDICATIONS[patientId];
-        const idx = list.findIndex((m) => m.id === medicationId);
-        if (idx >= 0) {
-            const updated = {id: medicationId, ...input};
-            STUB_MEDICATIONS[patientId] = [
-                ...list.slice(0, idx),
-                updated,
-                ...list.slice(idx + 1),
-            ];
-            return Promise.resolve(updated);
-        }
-    }
-    return Promise.reject(new Error("Medication not found"));
-}
-
-export async function deleteAdminMedication(medicationId: string): Promise<void> {
-    // TODO (backend): api.delete(`/admin/medications/${medicationId}`)
-    for (const patientId of Object.keys(STUB_MEDICATIONS)) {
-        STUB_MEDICATIONS[patientId] = STUB_MEDICATIONS[patientId].filter(
-            (m) => m.id !== medicationId,
-        );
-    }
-    return Promise.resolve();
-}
-
-// --- Conditions fetchers ---
 
 export async function fetchAdminConditions(
     patientId: string,
 ): Promise<AdminCondition[]> {
-    // TODO (backend): api.get(`/admin/patients/${patientId}/conditions`)
-    return Promise.resolve(STUB_CONDITIONS[patientId] ?? []);
+    const data = await api.get<AdminConditionResponse[]>(
+        `/admin/patients/${patientId}/conditions`,
+    );
+    return data.map(toAdminCondition);
 }
-
-export type ConditionInput = Omit<AdminCondition, "id">;
 
 export async function createAdminCondition(
     patientId: string,
     input: ConditionInput,
 ): Promise<AdminCondition> {
-    // TODO (backend): api.post(`/admin/patients/${patientId}/conditions`, input)
-    const created: AdminCondition = {id: `cond_${Date.now()}`, ...input};
-    STUB_CONDITIONS[patientId] = [...(STUB_CONDITIONS[patientId] ?? []), created];
-    return Promise.resolve(created);
+    const data = await api.post<AdminConditionResponse>(
+        `/admin/patients/${patientId}/conditions`,
+        conditionInputToBody(input),
+    );
+    return toAdminCondition(data);
 }
 
 export async function updateAdminCondition(
     conditionId: string,
     input: ConditionInput,
 ): Promise<AdminCondition> {
-    // TODO (backend): api.put(`/admin/conditions/${conditionId}`, input)
-    for (const patientId of Object.keys(STUB_CONDITIONS)) {
-        const list = STUB_CONDITIONS[patientId];
-        const idx = list.findIndex((c) => c.id === conditionId);
-        if (idx >= 0) {
-            const updated = {id: conditionId, ...input};
-            STUB_CONDITIONS[patientId] = [
-                ...list.slice(0, idx),
-                updated,
-                ...list.slice(idx + 1),
-            ];
-            return Promise.resolve(updated);
-        }
-    }
-    return Promise.reject(new Error("Condition not found"));
+    const data = await api.put<AdminConditionResponse>(
+        `/admin/conditions/${conditionId}`,
+        conditionInputToBody(input),
+    );
+    return toAdminCondition(data);
 }
 
 export async function deleteAdminCondition(conditionId: string): Promise<void> {
-    // TODO (backend): api.delete(`/admin/conditions/${conditionId}`)
-    for (const patientId of Object.keys(STUB_CONDITIONS)) {
-        STUB_CONDITIONS[patientId] = STUB_CONDITIONS[patientId].filter(
-            (c) => c.id !== conditionId,
-        );
-    }
-    return Promise.resolve();
+    await api.delete<unknown>(`/admin/conditions/${conditionId}`);
+}
+
+// --- Medications fetchers ---
+
+export async function fetchAdminMedications(
+    patientId: string,
+): Promise<AdminMedication[]> {
+    const data = await api.get<AdminMedicationResponse[]>(
+        `/admin/patients/${patientId}/medications`,
+    );
+    return data.map(toAdminMedication);
+}
+
+export async function createAdminMedication(
+    patientId: string,
+    input: MedicationInput,
+): Promise<AdminMedication> {
+    const data = await api.post<AdminMedicationResponse>(
+        `/admin/patients/${patientId}/medications`,
+        medicationInputToBody(input),
+    );
+    return toAdminMedication(data);
+}
+
+export async function updateAdminMedication(
+    medicationId: string,
+    input: MedicationInput,
+): Promise<AdminMedication> {
+    const data = await api.put<AdminMedicationResponse>(
+        `/admin/medications/${medicationId}`,
+        medicationInputToBody(input),
+    );
+    return toAdminMedication(data);
+}
+
+export async function deleteAdminMedication(medicationId: string): Promise<void> {
+    await api.delete<unknown>(`/admin/medications/${medicationId}`);
 }
 
 // ─── Visits ──────────────────────────────────────────────────

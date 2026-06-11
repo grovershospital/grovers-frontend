@@ -22,7 +22,7 @@ const STATUSES: ReadonlyArray<ChronicConditionStatus> = [
 
 const EMPTY: ConditionInput = {
     name: "",
-    diagnosedDate: "",
+    diagnosedDateIso: "",
     status: "Active",
     managingDoctorText: "",
     notes: "",
@@ -44,7 +44,7 @@ export default function ConditionFormModal({
                 condition
                     ? {
                         name: condition.name,
-                        diagnosedDate: condition.diagnosedDate,
+                        diagnosedDateIso: condition.diagnosedDate,
                         status: condition.status,
                         managingDoctorText: condition.managingDoctorText,
                         notes: condition.notes,
@@ -105,11 +105,10 @@ export default function ConditionFormModal({
                     <Field label="Diagnosed" htmlFor="cond-diagnosed">
                         <input
                             id="cond-diagnosed"
-                            type="text"
-                            placeholder="e.g. March 2024"
-                            value={form.diagnosedDate}
+                            type="date"
+                            value={form.diagnosedDateIso}
                             onChange={(e) =>
-                                update("diagnosedDate", e.target.value)
+                                update("diagnosedDateIso", e.target.value)
                             }
                             className={inputClass}
                         />
