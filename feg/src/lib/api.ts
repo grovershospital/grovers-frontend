@@ -193,6 +193,14 @@ export const api = {
 
     delete: <T>(path: string) => request<T>(path, { method: "DELETE" }),
 
+    /**
+     * Multipart upload with arbitrary FormData. Use when you need multiple
+     * files or a JSON metadata part, where the simple `upload` helper isn't
+     * flexible enough.
+     */
+    uploadForm: <T>(path: string, formData: FormData) =>
+        request<T>(path, { method: "POST", formData }),
+
     // In src/lib/api.ts, inside the `api` const, add:
 
     /**

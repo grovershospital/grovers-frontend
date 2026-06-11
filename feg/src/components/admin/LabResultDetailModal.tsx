@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
+import { Download, FileText } from "lucide-react";
 import Modal from "../../ui/Modal";
 import LabResultStatusPill from "./LabResultStatusPill";
-import LabComponentEditor from "./LabComponentEditor";
-import LabResultFiles from "./LabResultFiles";
 import {
+    downloadLabResultFile,
     fetchAdminLabResult,
-    updateLabResultStatus,
-    type AdminLabComponent,
+    notifyLabResult,
     type AdminLabResultDetail,
-    type AdminLabResultFile,
     type AdminLabResultStatus,
 } from "../../data/admin";
 
@@ -19,7 +17,11 @@ type Props = {
     onStatusChanged: (resultId: string, newStatus: AdminLabResultStatus) => void;
 };
 
-type Tab = "components" | "files";
+function formatBytes(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
 
 export default function LabResultDetailModal({
                                                  open,
@@ -28,44 +30,41 @@ export default function LabResultDetailModal({
                                                  onStatusChanged,
                                              }: Props) {
     const [detail, setDetail] = useState<AdminLabResultDetail | null>(null);
-    const [tab, setTab] = useState<Tab>("components");
     const [busy, setBusy] = useState(false);
 
     useEffect(() => {
         if (open && resultId) {
             setDetail(null);
-            setTab("components");
             fetchAdminLabResult(resultId).then(setDetail).catch(() => setDetail(null));
         }
     }, [open, resultId]);
 
-    function handleComponentsChange(components: AdminLabComponent[]) {
-        setDetail((d) =>
-            d ? { ...d, components, componentCount: components.length } : d,
-        );
-    }
-
-    function handleFilesChange(files: AdminLabResultFile[]) {
-        setDetail((d) => (d ? { ...d, files, fileCount: files.length } : d));
-    }
-
-    async function handleStatusToggle() {
+    async function handleNotify() {
         if (!detail) return;
-        const newStatus: AdminLabResultStatus =
-            detail.status === "Pending" ? "Ready to view" : "Pending";
-
-        if (newStatus === "Ready to view" && detail.components.length === 0) {
-            window.alert("Add at least one component before marking as Ready.");
+        if (
+            !window.confirm(
+                "Notify the patient that this result is ready? They'll receive an email and the result will be visible in their portal.",
+            )
+        )
             return;
-        }
 
         setBusy(true);
         try {
-            const updated = await updateLabResultStatus(detail.id, newStatus);
+            const updated = await notifyLabResult(detail.id);
             setDetail(updated);
-            onStatusChanged(detail.id, newStatus);
+            onStatusChanged(detail.id, updated.status);
+        } catch {
+            window.alert("Could not notify the patient. Please try again.");
         } finally {
             setBusy(false);
+        }
+    }
+
+    async function handleDownloadFile(fileId: string, filename: string) {
+        try {
+            await downloadLabResultFile(detail!.id, fileId, filename);
+        } catch {
+            window.alert("Could not download this file. Please try again.");
         }
     }
 
@@ -76,7 +75,7 @@ export default function LabResultDetailModal({
             ) : (
                 <div className="space-y-6">
                     <div className="flex flex-wrap items-center gap-3 text-sm text-neutral-500">
-                        <span>{detail.testDate || "—"}</span>
+                        <span>{detail.testDate}</span>
                         {detail.bookingShortId && (
                             <>
                                 <span>·</span>
@@ -91,86 +90,70 @@ export default function LabResultDetailModal({
                         <p className="text-sm text-brand-ink">{detail.description}</p>
                     )}
 
-                    <div className="border-b border-neutral-200">
-                        <nav className="-mb-px flex gap-6">
-                            <SubTabButton
-                                active={tab === "components"}
-                                onClick={() => setTab("components")}
-                            >
-                                Components ({detail.componentCount})
-                            </SubTabButton>
-                            <SubTabButton
-                                active={tab === "files"}
-                                onClick={() => setTab("files")}
-                            >
-                                Files ({detail.fileCount})
-                            </SubTabButton>
-                        </nav>
-                    </div>
-
-                    {tab === "components" ? (
-                        <LabComponentEditor
-                            resultId={detail.id}
-                            components={detail.components}
-                            onChange={handleComponentsChange}
-                        />
-                    ) : (
-                        <LabResultFiles
-                            resultId={detail.id}
-                            files={detail.files}
-                            onChange={handleFilesChange}
-                        />
-                    )}
+                    <section>
+                        <h3 className="mb-3 text-sm font-bold text-brand-ink">
+                            Files ({detail.files.length})
+                        </h3>
+                        {detail.files.length === 0 ? (
+                            <p className="text-sm text-neutral-500">No files attached.</p>
+                        ) : (
+                            <ul className="space-y-2">
+                                {detail.files.map((f) => (
+                                    <li
+                                        key={f.id}
+                                        className="flex items-center justify-between gap-3 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm"
+                                    >
+                                        <div className="flex items-center gap-3 truncate">
+                                            <FileText
+                                                className="h-5 w-5 flex-shrink-0 text-neutral-400"
+                                                strokeWidth={2}
+                                            />
+                                            <div className="min-w-0">
+                                                <p className="truncate text-brand-ink">
+                                                    {f.originalFileName}
+                                                </p>
+                                                <p className="text-xs text-neutral-500">
+                                                    {formatBytes(f.sizeBytes)}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                handleDownloadFile(f.id, f.originalFileName)
+                                            }
+                                            className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-brand-ink"
+                                            aria-label={`Download ${f.originalFileName}`}
+                                        >
+                                            <Download className="h-4 w-4" strokeWidth={2} />
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </section>
 
                     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-neutral-200 pt-4">
                         <p className="text-xs text-neutral-500">
                             {detail.status === "Pending"
-                                ? "Patient will be notified when you mark this as Ready."
-                                : "Patient can view this result."}
+                                ? "Notify the patient to make this result visible in their portal."
+                                : detail.isNotified
+                                    ? "Patient has been notified."
+                                    : "Patient can view this result."}
                         </p>
-                        <button
-                            type="button"
-                            onClick={handleStatusToggle}
-                            disabled={busy}
-                            className={`inline-flex items-center justify-center rounded-full px-6 py-2 text-sm font-semibold text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60 ${
-                                detail.status === "Pending"
-                                    ? "bg-brand-green hover:bg-brand-blue focus-visible:outline-brand-green"
-                                    : "bg-brand-ink hover:bg-brand-blue focus-visible:outline-brand-ink"
-                            }`}
-                        >
-                            {busy
-                                ? "Working…"
-                                : detail.status === "Pending"
-                                    ? "Mark as Ready"
-                                    : "Revert to Pending"}
-                        </button>
+                        {detail.status === "Pending" && (
+                            <button
+                                type="button"
+                                onClick={handleNotify}
+                                disabled={busy}
+                                className="inline-flex items-center justify-center rounded-full bg-brand-green px-6 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-blue focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green disabled:opacity-60"
+                            >
+                                {busy ? "Working…" : "Notify patient"}
+                            </button>
+                        )}
                     </div>
                 </div>
             )}
         </Modal>
-    );
-}
-
-function SubTabButton({
-                          active,
-                          onClick,
-                          children,
-                      }: {
-    active: boolean;
-    onClick: () => void;
-    children: React.ReactNode;
-}) {
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            className={`whitespace-nowrap border-b-2 px-1 py-3 text-sm transition-colors ${
-                active
-                    ? "border-brand-red font-semibold text-brand-ink"
-                    : "border-transparent text-neutral-500 hover:border-neutral-300 hover:text-brand-ink"
-            }`}
-        >
-            {children}
-        </button>
     );
 }

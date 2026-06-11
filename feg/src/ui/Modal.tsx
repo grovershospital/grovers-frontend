@@ -39,8 +39,13 @@ export default function Modal({ open, onClose, title, children, locked }: Props)
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-black/50"
-                onClick={() => {
-                    if (!locked) onClose();
+                onMouseDown={(e) => {
+                    if (locked) return;
+                    // Only close if the mousedown originated on the backdrop
+                    // itself, not bubbled from a child (e.g. a click event
+                    // dispatched at coordinates outside the modal after the
+                    // OS file picker closes).
+                    if (e.target === e.currentTarget) onClose();
                 }}
                 aria-hidden="true"
             />

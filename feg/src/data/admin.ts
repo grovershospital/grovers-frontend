@@ -1,5 +1,7 @@
 import {api} from '../lib/api'
-import {formatDateLong, formatDateShort, formatMonthYear, formatRelative} from "../lib/format.ts";;
+import {formatDateLong, formatDateShort, formatMonthYear, formatRelative} from "../lib/format.ts";
+
+;
 
 export type AdminUser = {
     firstName: string;
@@ -559,7 +561,7 @@ export async function updateBookingStatus(
         },
     );
 
-    const result: BookingStatusUpdateResult = { booking: toAdminBookingDetail(data) };
+    const result: BookingStatusUpdateResult = {booking: toAdminBookingDetail(data)};
 
     // Backend auto-creates a visit stub when status flips to COMPLETED.
     // Chase its id so AdminBookingDetail can deep-link into the visit edit form.
@@ -582,7 +584,7 @@ export async function updateBookingNotes(
 ): Promise<AdminBookingDetail> {
     const data = await api.put<AdminBookingResponse>(
         `/admin/bookings/${id}/notes`,
-        { adminNotes },
+        {adminNotes},
     );
     return toAdminBookingDetail(data);
 }
@@ -772,9 +774,6 @@ export async function fetchAdminHealthProfile(
     return toAdminHealthProfile(patientId, data);
 }
 
-// Stub data for health profiles — still keyed by stub patient ids until step 2.
-const STUB_HEALTH_PROFILES: Record<string, AdminHealthProfile> = {};
-
 export type AdminPatientPage = {
     entries: AdminPatientSummary[];
     total: number;
@@ -958,7 +957,6 @@ export type AdminCondition = {
 };
 
 
-
 export type ConditionInput = {
     name: string;
     diagnosedDateIso: string;
@@ -970,22 +968,22 @@ export type ConditionInput = {
 type ConditionBackendStatus = "ACTIVE" | "MANAGED" | "IN_REMISSION";
 
 const CONDITION_STATUS_FROM_BACKEND: Record<
-ConditionBackendStatus,
+    ConditionBackendStatus,
     ChronicConditionStatus
-    > = {
-        ACTIVE: "Active",
-        MANAGED: "Managed",
-        IN_REMISSION: "In remission",
-    };
+> = {
+    ACTIVE: "Active",
+    MANAGED: "Managed",
+    IN_REMISSION: "In remission",
+};
 
 const CONDITION_STATUS_TO_BACKEND: Record<
-ChronicConditionStatus,
+    ChronicConditionStatus,
     ConditionBackendStatus
-    > = {
-        Active: "ACTIVE",
-        Managed: "MANAGED",
-        "In remission": "IN_REMISSION",
-    };
+> = {
+    Active: "ACTIVE",
+    Managed: "MANAGED",
+    "In remission": "IN_REMISSION",
+};
 
 type AdminConditionResponse = {
     id: number;
@@ -1257,302 +1255,186 @@ export type AdminLabComponent = {
 
 export type AdminLabResultFile = {
     id: string;
-    fileName: string;
+    originalFileName: string;
     contentType: string;
     sizeBytes: number;
-    uploadedAtDisplay: string;
 };
 
 export type AdminLabResultSummary = {
     id: string;
     patientId: string;
-    title: string;            // e.g. "Annual Wellness Test"
-    testDate: string;         // display e.g. "12th May 2026"
+    title: string;
+    testDate: string;             // display, from createdAt
     bookingShortId: string | null;
     status: AdminLabResultStatus;
-    componentCount: number;
+    isNotified: boolean;
     fileCount: number;
 };
 
 export type AdminLabResultDetail = AdminLabResultSummary & {
     description: string;
-    components: AdminLabComponent[];
+    patientName: string;
+    patientEmail: string;
+    uploadedByName: string;
     files: AdminLabResultFile[];
 };
 
-const STUB_LAB_RESULTS: Record<string, AdminLabResultDetail[]> = {
-    pt_001: [
-        {
-            id: "lr_001",
-            patientId: "pt_001",
-            title: "Annual Wellness Test",
-            testDate: "12th May 2026",
-            bookingShortId: "i9j0k1",
-            status: "Ready to view",
-            description: "Standard annual blood panel. Patient fasted overnight.",
-            componentCount: 3,
-            fileCount: 1,
-            components: [
-                {
-                    id: "cm_001",
-                    name: "Haemoglobin",
-                    value: "13.8",
-                    unit: "g/dL",
-                    referenceRange: "12.0 – 15.5",
-                    flag: "Normal",
-                },
-                {
-                    id: "cm_002",
-                    name: "Total Cholesterol",
-                    value: "245",
-                    unit: "mg/dL",
-                    referenceRange: "< 200",
-                    flag: "High",
-                },
-                {
-                    id: "cm_003",
-                    name: "Fasting Glucose",
-                    value: "68",
-                    unit: "mg/dL",
-                    referenceRange: "70 – 99",
-                    flag: "Low",
-                },
-            ],
-            files: [
-                {
-                    id: "fl_001",
-                    fileName: "annual_wellness_2026_05.pdf",
-                    contentType: "application/pdf",
-                    sizeBytes: 248_320,
-                    uploadedAtDisplay: "12th May 2026",
-                },
-            ],
-        },
-    ],
-    pt_002: [],
-};
-
-export type LabResultCreateInput = {
+type AdminLabResultResponse = {
+    id: number;
     title: string;
-    description: string;
-    testDate: string;
-    bookingShortId?: string;
+    description: string | null;
+    status: "PENDING" | "AVAILABLE";
+    isNotified: boolean;
+    patientId: number;
+    patientName: string;
+    patientEmail: string;
+    uploadedById: number | null;
+    uploadedByName: string | null;
+    bookingId: number | null;
+    files: Array<{
+        id: number;
+        originalFileName: string;
+        contentType: string;
+        fileSize: number;
+    }>;
+    createdAt: string;
+    updatedAt: string;
 };
 
 export type LabComponentInput = Omit<AdminLabComponent, "id">;
 
+const LAB_STATUS_FROM_BACKEND: Record<
+AdminLabResultResponse["status"],
+    AdminLabResultStatus
+    > = {
+        PENDING: "Pending",
+        AVAILABLE: "Ready to view",
+    };
+
 // --- Lab Result list/detail fetchers ---
+
+function toAdminLabResultFile(f: AdminLabResultResponse["files"][number]): AdminLabResultFile {
+    return {
+        id: String(f.id),
+        originalFileName: f.originalFileName,
+        contentType: f.contentType,
+        sizeBytes: f.fileSize,
+    };
+}
+
+function toAdminLabResultSummary(r: AdminLabResultResponse): AdminLabResultSummary {
+    return {
+        id: String(r.id),
+        patientId: String(r.patientId),
+        title: r.title,
+        testDate: formatDateLong(r.createdAt),
+        bookingShortId: r.bookingId ? shortIdFor(r.bookingId) : null,
+        status: LAB_STATUS_FROM_BACKEND[r.status],
+        isNotified: r.isNotified,
+        fileCount: r.files.length,
+    };
+}
+
+function toAdminLabResultDetail(r: AdminLabResultResponse): AdminLabResultDetail {
+    return {
+        ...toAdminLabResultSummary(r),
+        description: r.description ?? "",
+        patientName: r.patientName,
+        patientEmail: r.patientEmail,
+        uploadedByName: r.uploadedByName ?? "—",
+        files: r.files.map(toAdminLabResultFile),
+    };
+}
+
+export type LabResultCreateInput = {
+    patientId: string;
+    title: string;
+    description: string;
+    bookingId?: string;
+    files: File[];
+};
 
 export async function fetchAdminLabResults(
     patientId: string,
 ): Promise<AdminLabResultSummary[]> {
-    // TODO (backend): api.get(`/admin/patients/${patientId}/results`)
-    const list = STUB_LAB_RESULTS[patientId] ?? [];
-    return Promise.resolve(list.map(toLabResultSummary));
+    // Single page large enough for any realistic patient — no UI paginator on
+    // the per-patient tab. Bump if you hit the cap.
+    const data = await api.get<AdminPageResponse<AdminLabResultResponse>>(
+        `/admin/patients/${patientId}/results?page=0&size=100`,
+    );
+    return data.content.map(toAdminLabResultSummary);
 }
 
 export async function fetchAdminLabResult(
     resultId: string,
 ): Promise<AdminLabResultDetail> {
-    // TODO (backend): api.get(`/admin/results/${resultId}`)
-    for (const patientId of Object.keys(STUB_LAB_RESULTS)) {
-        const found = STUB_LAB_RESULTS[patientId].find((r) => r.id === resultId);
-        if (found) return Promise.resolve(found);
-    }
-    return Promise.reject(new Error("Lab result not found"));
+    const data = await api.get<AdminLabResultResponse>(`/admin/results/${resultId}`);
+    return toAdminLabResultDetail(data);
 }
 
 export async function createAdminLabResult(
-    patientId: string,
     input: LabResultCreateInput,
 ): Promise<AdminLabResultDetail> {
-    // TODO (backend): api.post(`/admin/patients/${patientId}/results`, input)
-    const created: AdminLabResultDetail = {
-        id: `lr_${Date.now()}`,
-        patientId,
+    const fd = new FormData();
+    const metadata = {
+        patientId: Number(input.patientId),
         title: input.title,
         description: input.description,
-        testDate: input.testDate,
-        bookingShortId: input.bookingShortId ?? null,
-        status: "Pending",
-        components: [],
-        files: [],
-        componentCount: 0,
-        fileCount: 0,
+        bookingId: input.bookingId ? Number(input.bookingId) : null,
     };
-    STUB_LAB_RESULTS[patientId] = [...(STUB_LAB_RESULTS[patientId] ?? []), created];
-    return Promise.resolve(created);
+    fd.append(
+        "metadata",
+        new Blob([JSON.stringify(metadata)], { type: "application/json" }),
+    );
+    for (const file of input.files) {
+        fd.append("files", file);
+    }
+
+    const data = await api.uploadForm<AdminLabResultResponse>(`/admin/results`, fd);
+    return toAdminLabResultDetail(data);
 }
 
-export async function updateLabResultStatus(
+export async function notifyLabResult(
     resultId: string,
-    status: AdminLabResultStatus,
 ): Promise<AdminLabResultDetail> {
-    // TODO (backend): api.put(`/admin/results/${resultId}/status`, { status })
-    const result = await mutateLabResult(resultId, (r) => ({...r, status}));
-    return result;
+    const data = await api.post<AdminLabResultResponse>(
+        `/admin/results/${resultId}/notify`,
+    );
+    return toAdminLabResultDetail(data);
+}
+
+export async function downloadLabResultFile(
+    resultId: string,
+    fileId: string,
+    filename: string,
+): Promise<void> {
+    await api.downloadFile(
+        `/admin/results/${resultId}/files/${fileId}/download`,
+        filename,
+    );
 }
 
 export async function deleteAdminLabResult(resultId: string): Promise<void> {
-    // TODO (backend): api.delete(`/admin/results/${resultId}`)
-    for (const patientId of Object.keys(STUB_LAB_RESULTS)) {
-        STUB_LAB_RESULTS[patientId] = STUB_LAB_RESULTS[patientId].filter(
-            (r) => r.id !== resultId,
-        );
-    }
-    return Promise.resolve();
+    await api.delete<unknown>(`/admin/results/${resultId}`);
 }
 
 // --- Component fetchers ---
 
-export async function addLabComponent(
-    resultId: string,
-    input: LabComponentInput,
-): Promise<AdminLabComponent> {
-    // TODO (backend): api.post(`/admin/results/${resultId}/components`, input)
-    const created: AdminLabComponent = {id: `cm_${Date.now()}`, ...input};
-    await mutateLabResult(resultId, (r) => ({
-        ...r,
-        components: [...r.components, created],
-        componentCount: r.components.length + 1,
-    }));
-    return Promise.resolve(created);
-}
+// export async function addLabComponent(
+//     resultId: string,
+//     input: LabComponentInput,
+// ): Promise<AdminLabComponent> {
+//     // TODO (backend): api.post(`/admin/results/${resultId}/components`, input)
+//     const created: AdminLabComponent = {id: `cm_${Date.now()}`, ...input};
+//     await mutateLabResult(resultId, (r) => ({
+//         ...r,
+//         components: [...r.components, created],
+//         componentCount: r.components.length + 1,
+//     }));
+//     return Promise.resolve(created);
+// }
 
-export async function bulkReplaceLabComponents(
-    resultId: string,
-    inputs: LabComponentInput[],
-): Promise<AdminLabComponent[]> {
-    // TODO (backend): api.put(`/admin/results/${resultId}/components/bulk`, inputs)
-    const replaced: AdminLabComponent[] = inputs.map((input, i) => ({
-        id: `cm_${Date.now()}_${i}`,
-        ...input,
-    }));
-    await mutateLabResult(resultId, (r) => ({
-        ...r,
-        components: replaced,
-        componentCount: replaced.length,
-    }));
-    return Promise.resolve(replaced);
-}
 
-export async function updateLabComponent(
-    componentId: string,
-    input: LabComponentInput,
-): Promise<AdminLabComponent> {
-    // TODO (backend): api.put(`/admin/components/${componentId}`, input)
-    let updated: AdminLabComponent | null = null;
-    for (const patientId of Object.keys(STUB_LAB_RESULTS)) {
-        for (let ri = 0; ri < STUB_LAB_RESULTS[patientId].length; ri++) {
-            const result = STUB_LAB_RESULTS[patientId][ri];
-            const ci = result.components.findIndex((c) => c.id === componentId);
-            if (ci >= 0) {
-                updated = {id: componentId, ...input};
-                const newComponents = [
-                    ...result.components.slice(0, ci),
-                    updated,
-                    ...result.components.slice(ci + 1),
-                ];
-                STUB_LAB_RESULTS[patientId][ri] = {
-                    ...result,
-                    components: newComponents,
-                };
-                return Promise.resolve(updated);
-            }
-        }
-    }
-    return Promise.reject(new Error("Component not found"));
-}
-
-export async function deleteLabComponent(componentId: string): Promise<void> {
-    // TODO (backend): api.delete(`/admin/components/${componentId}`)
-    for (const patientId of Object.keys(STUB_LAB_RESULTS)) {
-        for (let ri = 0; ri < STUB_LAB_RESULTS[patientId].length; ri++) {
-            const result = STUB_LAB_RESULTS[patientId][ri];
-            const newComponents = result.components.filter((c) => c.id !== componentId);
-            if (newComponents.length !== result.components.length) {
-                STUB_LAB_RESULTS[patientId][ri] = {
-                    ...result,
-                    components: newComponents,
-                    componentCount: newComponents.length,
-                };
-                return Promise.resolve();
-            }
-        }
-    }
-    return Promise.resolve();
-}
-
-// --- File fetchers ---
-
-export async function uploadLabResultFile(
-    resultId: string,
-    file: File,
-): Promise<AdminLabResultFile> {
-    // TODO (backend): api.upload(`/admin/results/${resultId}/files`, file)
-    const created: AdminLabResultFile = {
-        id: `fl_${Date.now()}`,
-        fileName: file.name,
-        contentType: file.type,
-        sizeBytes: file.size,
-        uploadedAtDisplay: "Just now",
-    };
-    await mutateLabResult(resultId, (r) => ({
-        ...r,
-        files: [...r.files, created],
-        fileCount: r.files.length + 1,
-    }));
-    return Promise.resolve(created);
-}
-
-export async function deleteLabResultFile(fileId: string): Promise<void> {
-    // TODO (backend): api.delete(`/admin/result-files/${fileId}`)
-    for (const patientId of Object.keys(STUB_LAB_RESULTS)) {
-        for (let ri = 0; ri < STUB_LAB_RESULTS[patientId].length; ri++) {
-            const result = STUB_LAB_RESULTS[patientId][ri];
-            const newFiles = result.files.filter((f) => f.id !== fileId);
-            if (newFiles.length !== result.files.length) {
-                STUB_LAB_RESULTS[patientId][ri] = {
-                    ...result,
-                    files: newFiles,
-                    fileCount: newFiles.length,
-                };
-                return Promise.resolve();
-            }
-        }
-    }
-    return Promise.resolve();
-}
-
-// --- helpers ---
-
-function toLabResultSummary(r: AdminLabResultDetail): AdminLabResultSummary {
-    return {
-        id: r.id,
-        patientId: r.patientId,
-        title: r.title,
-        testDate: r.testDate,
-        bookingShortId: r.bookingShortId,
-        status: r.status,
-        componentCount: r.componentCount,
-        fileCount: r.fileCount,
-    };
-}
-
-async function mutateLabResult(
-    resultId: string,
-    fn: (r: AdminLabResultDetail) => AdminLabResultDetail,
-): Promise<AdminLabResultDetail> {
-    for (const patientId of Object.keys(STUB_LAB_RESULTS)) {
-        const idx = STUB_LAB_RESULTS[patientId].findIndex((r) => r.id === resultId);
-        if (idx >= 0) {
-            const updated = fn(STUB_LAB_RESULTS[patientId][idx]);
-            STUB_LAB_RESULTS[patientId][idx] = updated;
-            return Promise.resolve(updated);
-        }
-    }
-    return Promise.reject(new Error("Lab result not found"));
-}
 
 // ─── Documents ───────────────────────────────────────────────
 
@@ -1591,6 +1473,7 @@ export type AdminDocument = {
     id: string;
     patientId: string;
     title: string;
+    description: string;
     category: DocumentCategory;
     uploaderType: DocumentUploaderType;
     uploadedByName: string;
@@ -1600,92 +1483,81 @@ export type AdminDocument = {
     uploadedAtDisplay: string;
 };
 
-const STUB_DOCUMENTS: Record<string, AdminDocument[]> = {
-    pt_001: [
-        {
-            id: "doc_001",
-            patientId: "pt_001",
-            title: "AXA Mansard insurance card",
-            category: "INSURANCE",
-            uploaderType: "PATIENT",
-            uploadedByName: "Jesse Okache",
-            originalFileName: "axa_card_jesse.pdf",
-            contentType: "application/pdf",
-            sizeBytes: 142_500,
-            uploadedAtDisplay: "12th May 2026",
-        },
-        {
-            id: "doc_002",
-            patientId: "pt_001",
-            title: "Referral from LUTH Cardiology",
-            category: "REFERRAL",
-            uploaderType: "ADMIN",
-            uploadedByName: "Admin User",
-            originalFileName: "luth_referral_2026.pdf",
-            contentType: "application/pdf",
-            sizeBytes: 248_000,
-            uploadedAtDisplay: "3rd May 2026",
-        },
-    ],
-    pt_002: [],
+type AdminDocumentResponse = {
+    id: number;
+    patientId: number;
+    uploaderType: DocumentUploaderType;
+    uploadedByName: string | null;
+    category: DocumentCategory;
+    title: string;
+    description: string | null;
+    originalFileName: string;
+    contentType: string;
+    fileSize: number;
+    createdAt: string;
 };
+
 
 export type DocumentUploadInput = {
     title: string;
+    description?: string;
     category: DocumentCategory;
     file: File;
 };
 
+function toAdminDocument(d: AdminDocumentResponse): AdminDocument {
+    return {
+        id: String(d.id),
+        patientId: String(d.patientId),
+        title: d.title,
+        description: d.description ?? "",
+        category: d.category,
+        uploaderType: d.uploaderType,
+        uploadedByName: d.uploadedByName ?? "—",
+        originalFileName: d.originalFileName,
+        contentType: d.contentType,
+        sizeBytes: d.fileSize,
+        uploadedAtDisplay: formatRelative(d.createdAt),
+    };
+}
+
 export async function fetchAdminDocuments(
     patientId: string,
 ): Promise<AdminDocument[]> {
-    // TODO (backend): api.get(`/admin/patients/${patientId}/documents`)
-    return Promise.resolve(STUB_DOCUMENTS[patientId] ?? []);
+    const data = await api.get<AdminDocumentResponse[]>(
+        `/admin/patients/${patientId}/documents`,
+    );
+    return data.map(toAdminDocument);
 }
 
 export async function uploadAdminDocument(
     patientId: string,
     input: DocumentUploadInput,
 ): Promise<AdminDocument> {
-    // TODO (backend): api.upload(`/admin/patients/${patientId}/documents`, input)
-    //   multipart/form-data with `title`, `category`, and the `file`.
-    const created: AdminDocument = {
-        id: `doc_${Date.now()}`,
-        patientId,
-        title: input.title || input.file.name,
-        category: input.category,
-        uploaderType: "ADMIN",
-        uploadedByName: "Admin User",
-        originalFileName: input.file.name,
-        contentType: input.file.type,
-        sizeBytes: input.file.size,
-        uploadedAtDisplay: "Just now",
-    };
-    STUB_DOCUMENTS[patientId] = [created, ...(STUB_DOCUMENTS[patientId] ?? [])];
-    return Promise.resolve(created);
+    // Backend takes metadata (title/category/description) as query params and
+    // the file alone in the multipart body. Use `api.upload` with the
+    // pre-built querystring on the path.
+    const params = new URLSearchParams();
+    params.set("category", input.category);
+    params.set("title", input.title || input.file.name);
+    if (input.description) params.set("description", input.description);
+
+    const data = await api.upload<AdminDocumentResponse>(
+        `/admin/patients/${patientId}/documents?${params.toString()}`,
+        input.file,
+    );
+    return toAdminDocument(data);
+}
+
+export async function downloadAdminDocument(
+    documentId: string,
+    filename: string,
+): Promise<void> {
+    await api.downloadFile(`/admin/documents/${documentId}/download`, filename);
 }
 
 export async function deleteAdminDocument(documentId: string): Promise<void> {
-    // TODO (backend): api.delete(`/admin/documents/${documentId}`)
-    for (const patientId of Object.keys(STUB_DOCUMENTS)) {
-        STUB_DOCUMENTS[patientId] = STUB_DOCUMENTS[patientId].filter(
-            (d) => d.id !== documentId,
-        );
-    }
-    return Promise.resolve();
-}
-
-export async function downloadAdminDocument(documentId: string): Promise<void> {
-    // TODO (backend): api.get(`/admin/documents/${documentId}/download`)
-    //   Stream the response as a blob and trigger a browser download.
-    //   Frontend pattern:
-    //     const blob = await api.getBlob(...);
-    //     const url = URL.createObjectURL(blob);
-    //     const a = document.createElement("a");
-    //     a.href = url; a.download = doc.originalFileName; a.click();
-    //     URL.revokeObjectURL(url);
-    console.log("downloadAdminDocument stub:", documentId);
-    return Promise.resolve();
+    await api.delete<unknown>(`/admin/documents/${documentId}`);
 }
 
 // ─── Lab Results (cross-patient view) ────────────────────────
@@ -1706,6 +1578,7 @@ export type CrossPatientLabPage = {
     page: number;
     pageSize: number;
 };
+
 
 export async function fetchCrossPatientLabResults(
     _filters: CrossPatientLabFilters,

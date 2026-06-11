@@ -94,8 +94,7 @@ export default function LabResultsTab() {
                         <thead className="bg-neutral-50">
                         <tr className="text-left text-xs font-semibold uppercase tracking-wider text-neutral-500">
                             <th className="px-4 py-3">Title</th>
-                            <th className="px-4 py-3">Test date</th>
-                            <th className="px-4 py-3">Components</th>
+                            <th className="px-4 py-3">Uploaded</th>
                             <th className="px-4 py-3">Files</th>
                             <th className="px-4 py-3">Status</th>
                             <th className="px-4 py-3" />
@@ -113,9 +112,6 @@ export default function LabResultsTab() {
                                 </td>
                                 <td className="px-4 py-3 text-brand-ink">
                                     {r.testDate || "—"}
-                                </td>
-                                <td className="px-4 py-3 text-brand-ink">
-                                    {r.componentCount}
                                 </td>
                                 <td className="px-4 py-3 text-brand-ink">
                                     {r.fileCount}
@@ -145,7 +141,9 @@ export default function LabResultsTab() {
 
             <LabResultUploadModal
                 open={uploadOpen}
-                onClose={() => setUploadOpen(false)}
+                onClose={() => {
+                    setUploadOpen(false);
+                }}
                 patientId={patient.id}
                 onCreated={handleCreated}
             />

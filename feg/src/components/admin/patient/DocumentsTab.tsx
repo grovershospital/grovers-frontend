@@ -5,8 +5,8 @@ import { useAdminPatient } from "../../../contexts/AdminPatientContext";
 import {
     CATEGORY_LABEL,
     DOCUMENT_CATEGORIES,
-    deleteAdminDocument,
     downloadAdminDocument,
+    deleteAdminDocument,
     fetchAdminDocuments,
     type AdminDocument,
     type DocumentCategory,
@@ -58,19 +58,6 @@ export default function DocumentsTab() {
         return loadDocuments();
     }, [patient.id]);
 
-    const filtered = useMemo(() => {
-        if (categoryFilter === "all") return documents;
-        return documents.filter((d) => d.category === categoryFilter);
-    }, [documents, categoryFilter]);
-
-    async function handleDownload(doc: AdminDocument) {
-        try {
-            await downloadAdminDocument(doc.id);
-        } catch {
-            window.alert("Could not download this document. Please try again.");
-        }
-    }
-
     async function handleDelete(doc: AdminDocument) {
         if (!window.confirm(`Delete "${doc.title}"? This cannot be undone.`)) return;
 
@@ -81,6 +68,19 @@ export default function DocumentsTab() {
         } catch {
             setDocuments(prev);
             window.alert("Could not delete the document. Please try again.");
+        }
+    }
+
+    const filtered = useMemo(() => {
+        if (categoryFilter === "all") return documents;
+        return documents.filter((d) => d.category === categoryFilter);
+    }, [documents, categoryFilter]);
+
+    async function handleDownload(doc: AdminDocument) {
+        try {
+            await downloadAdminDocument(doc.id, doc.originalFileName);
+        } catch {
+            window.alert("Could not download this document. Please try again.");
         }
     }
 

@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
+import { Upload, X } from "lucide-react";
 import Modal from "../../ui/Modal";
-import { createAdminLabResult, type LabResultCreateInput } from "../../data/admin";
+import { createAdminLabResult } from "../../data/admin";
 
 type Props = {
     open: boolean;
@@ -10,48 +11,65 @@ type Props = {
     onCreated: (resultId: string) => void;
 };
 
-const EMPTY: LabResultCreateInput = {
-    title: "",
-    description: "",
-    testDate: "",
-};
-
 export default function LabResultUploadModal({
                                                  open,
                                                  onClose,
                                                  patientId,
                                                  onCreated,
                                              }: Props) {
-    const [form, setForm] = useState<LabResultCreateInput>(EMPTY);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [files, setFiles] = useState<File[]>([]);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const wasOpen = useRef(false);
+
     useEffect(() => {
-        if (open) {
-            setForm(EMPTY);
+
+        if (open && !wasOpen.current) {
+
+            setTitle("");
+            setDescription("");
+            setFiles([]);
             setError(null);
+            if (fileInputRef.current) fileInputRef.current.value = "";
         }
     }, [open]);
 
-    function update<K extends keyof LabResultCreateInput>(
-        key: K,
-        value: LabResultCreateInput[K],
-    ) {
-        setForm((f) => ({ ...f, [key]: value }));
+    function handleFilesPicked(picked: FileList | null) {
+        if (!picked) return;
+        const arr = Array.from(picked);
+        setFiles(arr);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+
+    function removeFile(index: number) {
+        setFiles((current) => current.filter((_, i) => i !== index));
     }
 
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
         setError(null);
 
-        if (!form.title.trim()) {
+        if (!title.trim()) {
             setError("Title is required.");
+            return;
+        }
+        if (files.length === 0) {
+            setError("Attach at least one file.");
             return;
         }
 
         setSubmitting(true);
         try {
-            const created = await createAdminLabResult(patientId, form);
+            const created = await createAdminLabResult({
+                patientId,
+                title,
+                description,
+                files,
+            });
             onCreated(created.id);
             onClose();
         } catch {
@@ -70,8 +88,8 @@ export default function LabResultUploadModal({
         >
             <form onSubmit={handleSubmit} className="space-y-4">
                 <p className="text-sm text-neutral-500">
-                    Create the result record first. Add components and attach files in the
-                    next step.
+                    Attach the result PDFs or images. Files can't be added after creation —
+                    if you need to add more later, upload a new result.
                 </p>
 
                 <Field label="Title" htmlFor="lr-title" required>
@@ -80,19 +98,8 @@ export default function LabResultUploadModal({
                         type="text"
                         required
                         placeholder="e.g. Annual Wellness Test"
-                        value={form.title}
-                        onChange={(e) => update("title", e.target.value)}
-                        className={inputClass}
-                    />
-                </Field>
-
-                <Field label="Test date" htmlFor="lr-date">
-                    <input
-                        id="lr-date"
-                        type="text"
-                        placeholder="e.g. 12th May 2026"
-                        value={form.testDate}
-                        onChange={(e) => update("testDate", e.target.value)}
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
                         className={inputClass}
                     />
                 </Field>
@@ -102,10 +109,55 @@ export default function LabResultUploadModal({
                         id="lr-description"
                         rows={3}
                         placeholder="Brief context about this test."
-                        value={form.description}
-                        onChange={(e) => update("description", e.target.value)}
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
                         className={inputClass}
                     />
+                </Field>
+
+                <Field label="Files" htmlFor="lr-files" required>
+                    <div className="space-y-2">
+                        <input
+                            ref={fileInputRef}
+                            id="lr-files"
+                            type="file"
+                            multiple
+                            accept="application/pdf,image/*"
+                            onChange={(e) => handleFilesPicked(e.target.files)}
+                            className="hidden"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-4 py-1.5 text-sm font-semibold text-brand-ink hover:bg-neutral-100"
+                        >
+                            <Upload className="h-4 w-4" strokeWidth={2.5} />
+                            Add files
+                        </button>
+
+                        {files.length > 0 && (
+                            <ul className="space-y-1.5 pt-1">
+                                {files.map((f, i) => (
+                                    <li
+                                        key={`${f.name}-${i}`}
+                                        className="flex items-center justify-between gap-3 rounded-md bg-neutral-50 px-3 py-2 text-sm"
+                                    >
+                                        <span className="truncate text-brand-ink">
+                                            {f.name}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeFile(i)}
+                                            className="flex-shrink-0 text-neutral-500 hover:text-brand-red"
+                                            aria-label={`Remove ${f.name}`}
+                                        >
+                                            <X className="h-4 w-4" strokeWidth={2} />
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
                 </Field>
 
                 {error && (
@@ -128,7 +180,7 @@ export default function LabResultUploadModal({
                         disabled={submitting}
                         className="inline-flex items-center justify-center rounded-full bg-brand-red px-6 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-blue focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-red disabled:opacity-60"
                     >
-                        {submitting ? "Creating…" : "Create result"}
+                        {submitting ? "Uploading…" : "Create result"}
                     </button>
                 </div>
             </form>

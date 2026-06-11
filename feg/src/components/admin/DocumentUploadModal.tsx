@@ -24,6 +24,7 @@ export default function DocumentUploadModal({
                                             }: Props) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
     const [category, setCategory] = useState<DocumentCategory>("OTHER");
     const [file, setFile] = useState<File | null>(null);
     const [submitting, setSubmitting] = useState(false);
@@ -32,6 +33,7 @@ export default function DocumentUploadModal({
     useEffect(() => {
         if (open) {
             setTitle("");
+            setDescription("");
             setCategory("OTHER");
             setFile(null);
             setError(null);
@@ -50,7 +52,7 @@ export default function DocumentUploadModal({
 
         setSubmitting(true);
         try {
-            await uploadAdminDocument(patientId, { title, category, file });
+            await uploadAdminDocument(patientId, { title, description, category, file });
             onUploaded();
             onClose();
         } catch {
@@ -90,6 +92,17 @@ export default function DocumentUploadModal({
                         placeholder="Defaults to the file's original name"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
+                        className={inputClass}
+                    />
+                </Field>
+
+                <Field label="Description (optional)" htmlFor="doc-description">
+                    <textarea
+                        id="doc-description"
+                        rows={2}
+                        placeholder="Optional context — what's in this document?"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
                         className={inputClass}
                     />
                 </Field>
