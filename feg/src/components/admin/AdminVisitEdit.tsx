@@ -27,17 +27,7 @@ export default function AdminVisitEdit() {
             .then((data) => {
                 if (!alive) return;
                 setVisit(data);
-                setForm({
-                    attendingDoctorText: data.attendingDoctorText,
-                    chiefComplaint: data.chiefComplaint,
-                    status: data.status,
-                    diagnosis: data.diagnosis,
-                    treatment: data.treatment,
-                    clinicalNotes: data.clinicalNotes,
-                    followUpRequired: data.followUpRequired,
-                    followUpDate: data.followUpDate,
-                    followUpInstructions: data.followUpInstructions,
-                });
+                setForm(formFromDetail(data));
             })
             .catch(() => {
                 if (alive) setError("Could not load this visit.");
@@ -62,17 +52,7 @@ export default function AdminVisitEdit() {
         try {
             const updated = await updateAdminVisit(visit.id, updates);
             setVisit(updated);
-            setForm({
-                attendingDoctorText: updated.attendingDoctorText,
-                chiefComplaint: updated.chiefComplaint,
-                status: updated.status,
-                diagnosis: updated.diagnosis,
-                treatment: updated.treatment,
-                clinicalNotes: updated.clinicalNotes,
-                followUpRequired: updated.followUpRequired,
-                followUpDate: updated.followUpDate,
-                followUpInstructions: updated.followUpInstructions,
-            });
+            setForm(formFromDetail(updated));
             setSuccess(true);
         } catch {
             setError("Could not save the visit. Please try again.");
@@ -98,8 +78,12 @@ export default function AdminVisitEdit() {
             setError("Add a diagnosis before marking this visit as completed.");
             return;
         }
+        if (!form.treatment.trim()) {
+            setError("Add a treatment before marking this visit as completed.");
+            return;
+        }
 
-        await persist({ ...form, status: "Completed" });
+        await persist(form);
     }
 
     if (error && !visit) {
@@ -226,38 +210,17 @@ export default function AdminVisitEdit() {
                         </label>
 
                         {form.followUpRequired && (
-                            <>
-                                <Field label="Follow-up date" htmlFor="vs-fu-date">
-                                    <input
-                                        id="vs-fu-date"
-                                        type="text"
-                                        placeholder="e.g. 12th November 2026"
-                                        value={form.followUpDate}
-                                        onChange={(e) =>
-                                            update("followUpDate", e.target.value)
-                                        }
-                                        className={inputClass}
-                                    />
-                                </Field>
-
-                                <Field
-                                    label="Follow-up instructions"
-                                    htmlFor="vs-fu-notes"
-                                >
-                                    <textarea
-                                        id="vs-fu-notes"
-                                        rows={3}
-                                        value={form.followUpInstructions}
-                                        onChange={(e) =>
-                                            update(
-                                                "followUpInstructions",
-                                                e.target.value,
-                                            )
-                                        }
-                                        className={inputClass}
-                                    />
-                                </Field>
-                            </>
+                            <Field label="Follow-up date" htmlFor="vs-fu-date">
+                                <input
+                                    id="vs-fu-date"
+                                    type="date"
+                                    value={form.followUpDateIso}
+                                    onChange={(e) =>
+                                        update("followUpDateIso", e.target.value)
+                                    }
+                                    className={inputClass}
+                                />
+                            </Field>
                         )}
                     </div>
                 </FieldGroup>
@@ -306,6 +269,19 @@ export default function AdminVisitEdit() {
             </form>
         </>
     );
+}
+
+function formFromDetail(d: AdminVisitDetail): VisitUpdateInput {
+    return {
+        visitDateIso: d.visitDateIso,
+        attendingDoctorText: d.attendingDoctorText,
+        chiefComplaint: d.chiefComplaint,
+        diagnosis: d.diagnosis,
+        treatment: d.treatment,
+        clinicalNotes: d.clinicalNotes,
+        followUpRequired: d.followUpRequired,
+        followUpDateIso: d.followUpDateIso,
+    };
 }
 
 function BackLink({ patientId }: { patientId: string | null }) {

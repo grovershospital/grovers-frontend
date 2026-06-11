@@ -1112,103 +1112,132 @@ export type AdminVisitSummary = {
 };
 
 export type AdminVisitDetail = AdminVisitSummary & {
+    visitDateIso: string;       // YYYY-MM-DD — read-only in UI, sent back on PUT
     diagnosis: string;
     treatment: string;
     clinicalNotes: string;
     followUpRequired: boolean;
-    followUpDate: string;       // display string, blank when not required
-    followUpInstructions: string;
+    followUpDate: string;       // display, empty if no date set
+    followUpDateIso: string;    // YYYY-MM-DD for date picker
 };
 
-const STUB_VISITS: Record<string, AdminVisitDetail[]> = {
-    pt_001: [
-        {
-            id: "vs_001",
-            patientId: "pt_001",
-            visitDate: "12th May 2026",
-            department: "Annual Wellness",
-            attendingDoctorText: "Dr. Adewale Okafor",
-            chiefComplaint: "Routine annual physical",
-            status: "Completed",
-            bookingShortId: "i9j0k1",
-            diagnosis: "All vitals within normal range. No acute concerns.",
-            treatment:
-                "Continue current medications. Recommended dietary adjustments — reduce sodium intake.",
-            clinicalNotes:
-                "Patient reports occasional headaches, likely stress-related. Will revisit if persistent.",
-            followUpRequired: true,
-            followUpDate: "12th November 2026",
-            followUpInstructions: "Routine 6-month check-up.",
-        },
-        {
-            id: "vs_002",
-            patientId: "pt_001",
-            visitDate: "3rd April 2026",
-            department: "General Surgery",
-            attendingDoctorText: "",
-            chiefComplaint: "",
-            status: "Draft",
-            bookingShortId: "f6g7h8",
-            diagnosis: "",
-            treatment: "",
-            clinicalNotes: "",
-            followUpRequired: false,
-            followUpDate: "",
-            followUpInstructions: "",
-        },
-    ],
-    pt_002: [],
+export type VisitUpdateInput = {
+    visitDateIso: string;       // carried through; not user-editable
+    attendingDoctorText: string;
+    chiefComplaint: string;
+    diagnosis: string;
+    treatment: string;
+    clinicalNotes: string;
+    followUpRequired: boolean;
+    followUpDateIso: string;
 };
 
-export async function fetchAdminVisits(patientId: string): Promise<AdminVisitSummary[]> {
-    // TODO (backend): api.get(`/admin/patients/${patientId}/visits`)
-    const list = STUB_VISITS[patientId] ?? [];
-    return Promise.resolve(list.map(toVisitSummary));
+type AdminVisitResponse = {
+    id: number;
+    bookingId: number | null;
+    patientId: number;
+    patientName: string;
+    visitDate: string;
+    chiefComplaint: string | null;
+    diagnosis: string | null;
+    treatment: string | null;
+    clinicalNotes: string | null;
+    followUpRequired: boolean;
+    followUpDate: string | null;
+    attendingDoctorId: number | null;
+    attendingDoctorName: string | null;
+    createdAt: string;
+    updatedAt: string;
+};
+
+function deriveVisitStatus(v: AdminVisitResponse): VisitStatus {
+    const hasDiagnosis = (v.diagnosis ?? "").trim().length > 0;
+    const hasTreatment = (v.treatment ?? "").trim().length > 0;
+    return hasDiagnosis && hasTreatment ? "Completed" : "Draft";
+}
+
+async function fetchVisitDepartment(bookingId: number | null): Promise<string> {
+    if (!bookingId) return "—";
+    try {
+        const booking = await api.get<AdminBookingResponse>(
+            `/admin/bookings/${bookingId}`,
+        );
+        return booking.departmentName ?? booking.packageName ?? "—";
+    } catch {
+        // Booking lookup is best-effort — never block the visit list/detail
+        // on a missing or unauthorized booking record.
+        return "—";
+    }
+}
+
+async function toAdminVisitSummary(
+    v: AdminVisitResponse,
+): Promise<AdminVisitSummary> {
+    const department = await fetchVisitDepartment(v.bookingId);
+    return {
+        id: String(v.id),
+        patientId: String(v.patientId),
+        visitDate: formatDateLong(v.visitDate),
+        department,
+        attendingDoctorText: v.attendingDoctorName ?? "",
+        chiefComplaint: v.chiefComplaint ?? "",
+        status: deriveVisitStatus(v),
+        bookingShortId: v.bookingId ? shortIdFor(v.bookingId) : null,
+    };
+}
+
+async function toAdminVisitDetail(
+    v: AdminVisitResponse,
+): Promise<AdminVisitDetail> {
+    const summary = await toAdminVisitSummary(v);
+    return {
+        ...summary,
+        visitDateIso: v.visitDate,
+        diagnosis: v.diagnosis ?? "",
+        treatment: v.treatment ?? "",
+        clinicalNotes: v.clinicalNotes ?? "",
+        followUpRequired: v.followUpRequired,
+        followUpDate: v.followUpDate ? formatDateLong(v.followUpDate) : "",
+        followUpDateIso: v.followUpDate ?? "",
+    };
+}
+
+export async function fetchAdminVisits(
+    patientId: string,
+): Promise<AdminVisitSummary[]> {
+    const data = await api.get<AdminVisitResponse[]>(
+        `/admin/patients/${patientId}/visits`,
+    );
+    // Parallel booking lookups so the department column resolves quickly even
+    // when the patient has many visits across different bookings.
+    return Promise.all(data.map(toAdminVisitSummary));
 }
 
 export async function fetchAdminVisit(visitId: string): Promise<AdminVisitDetail> {
-    // TODO (backend): api.get(`/admin/visits/${visitId}`)
-    for (const patientId of Object.keys(STUB_VISITS)) {
-        const visit = STUB_VISITS[patientId].find((v) => v.id === visitId);
-        if (visit) return Promise.resolve(visit);
-    }
-    return Promise.reject(new Error("Visit not found"));
+    const data = await api.get<AdminVisitResponse>(`/admin/visits/${visitId}`);
+    return toAdminVisitDetail(data);
 }
-
-export type VisitUpdateInput = Omit<AdminVisitDetail, "id" | "patientId" | "visitDate" | "department" | "bookingShortId">;
 
 export async function updateAdminVisit(
     visitId: string,
     input: VisitUpdateInput,
 ): Promise<AdminVisitDetail> {
-    // TODO (backend): api.put(`/admin/visits/${visitId}`, input)
-    for (const patientId of Object.keys(STUB_VISITS)) {
-        const list = STUB_VISITS[patientId];
-        const idx = list.findIndex((v) => v.id === visitId);
-        if (idx >= 0) {
-            const updated: AdminVisitDetail = {...list[idx], ...input};
-            STUB_VISITS[patientId] = [
-                ...list.slice(0, idx),
-                updated,
-                ...list.slice(idx + 1),
-            ];
-            return Promise.resolve(updated);
-        }
-    }
-    return Promise.reject(new Error("Visit not found"));
-}
-
-function toVisitSummary(v: AdminVisitDetail): AdminVisitSummary {
-    return {
-        id: v.id,
-        patientId: v.patientId,
-        visitDate: v.visitDate,
-        department: v.department,
-        attendingDoctorText: v.attendingDoctorText,
-        chiefComplaint: v.chiefComplaint,
-        status: v.status,
-        bookingShortId: v.bookingShortId,
+    const body = {
+        visitDate: input.visitDateIso,
+        chiefComplaint: input.chiefComplaint,
+        diagnosis: input.diagnosis,
+        treatment: input.treatment,
+        clinicalNotes: input.clinicalNotes,
+        followUpRequired: input.followUpRequired,
+        followUpDate:
+            input.followUpRequired && input.followUpDateIso
+                ? input.followUpDateIso
+                : null,
+        attendingDoctorId: null,         // doctor picker deferred
+        attendingDoctorText: input.attendingDoctorText,
     };
+    const data = await api.put<AdminVisitResponse>(`/admin/visits/${visitId}`, body);
+    return toAdminVisitDetail(data);
 }
 
 // ─── Lab Results (admin) ─────────────────────────────────────

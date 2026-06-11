@@ -44,7 +44,7 @@ export default function ConditionFormModal({
                 condition
                     ? {
                         name: condition.name,
-                        diagnosedDateIso: condition.diagnosedDate,
+                        diagnosedDateIso: condition.diagnosedDateIso,
                         status: condition.status,
                         managingDoctorText: condition.managingDoctorText,
                         notes: condition.notes,

@@ -208,7 +208,7 @@ export default function Signup() {
                 <p className="mt-8 text-sm text-brand-ink">
                     Already have an account?{" "}
                     <Link
-                        to="/login"
+                        to="/patient-portal/login"
                         className="font-semibold underline underline-offset-2 hover:no-underline"
                     >
                         Sign in →
