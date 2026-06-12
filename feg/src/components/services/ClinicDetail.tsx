@@ -128,7 +128,7 @@ export default function ClinicDetail({ clinic }: { clinic: ClinicDetailType }) {
 
                         {/* CTA */}
                         <div className="mt-8">
-                            <Button variant="primary" href="/contact">
+                            <Button variant="primary" href="/patient-portal/login">
                                 Book an appointment
                             </Button>
                         </div>
