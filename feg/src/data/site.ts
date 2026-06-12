@@ -186,6 +186,7 @@ export const FOOTER_SERVICES = [
     "Emergency Services",
 ] as const;
 
+// @ts-ignore
 export const FOOTER_QUICK_LINKS = [
     "About Us",
     "Services and Packages",

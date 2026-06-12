@@ -601,3 +601,115 @@ export async function requestAccountDeletion(
 export async function cancelAccountDeletion(password: string): Promise<void> {
     await api.post<unknown>("/portal/account/cancel-deletion", {password});
 }
+
+// ─── Profile Update Requests ─────────────────────────────────
+
+export type ProfileUpdateField =
+    | "BLOOD_GROUP"
+    | "GENOTYPE"
+    | "ALLERGIES"
+    | "OTHER";
+
+export const PROFILE_UPDATE_FIELD_LABEL: Record<ProfileUpdateField, string> = {
+    BLOOD_GROUP: "Blood group",
+    GENOTYPE: "Genotype",
+    ALLERGIES: "Allergies",
+    OTHER: "Other",
+};
+
+export type ProfileUpdateRequestStatus = "Pending" | "Approved" | "Rejected";
+
+const PROFILE_UPDATE_STATUS_MAP: Record<string, ProfileUpdateRequestStatus> = {
+    PENDING: "Pending",
+    APPROVED: "Approved",
+    REJECTED: "Rejected",
+};
+
+export type PortalProfileUpdateRequest = {
+    id: string;
+    field: ProfileUpdateField;
+    fieldLabel: string;            // user-friendly label, OTHER replaced by description
+    currentValue: string;
+    proposedValue: string;
+    patientNote: string;
+    status: ProfileUpdateRequestStatus;
+    submittedAtDisplay: string;
+    decidedAtDisplay: string | null;
+    adminResponse: string | null;
+};
+
+type ProfileUpdateRequestResponse = {
+    id: number;
+    patientId: number;
+    patientName: string;
+    targetField: ProfileUpdateField;
+    otherFieldDescription: string | null;
+    currentValue: string | null;
+    proposedValue: string | null;
+    patientNote: string | null;
+    status: string;
+    reviewedByAdminId: number | null;
+    reviewedByAdminName: string | null;
+    reviewedAt: string | null;
+    adminResponse: string | null;
+    createdAt: string;
+    updatedAt: string;
+};
+
+function toPortalProfileUpdateRequest(
+    r: ProfileUpdateRequestResponse,
+): PortalProfileUpdateRequest {
+    const fieldLabel =
+        r.targetField === "OTHER"
+            ? r.otherFieldDescription || "Other"
+            : PROFILE_UPDATE_FIELD_LABEL[r.targetField];
+
+    return {
+        id: String(r.id),
+        field: r.targetField,
+        fieldLabel,
+        currentValue: r.currentValue ?? "",
+        proposedValue: r.proposedValue ?? "",
+        patientNote: r.patientNote ?? "",
+        status: PROFILE_UPDATE_STATUS_MAP[r.status] ?? "Pending",
+        submittedAtDisplay: formatRelative(r.createdAt),
+        decidedAtDisplay: r.reviewedAt ? formatRelative(r.reviewedAt) : null,
+        adminResponse: r.adminResponse,
+    };
+}
+
+export type ProfileUpdateRequestInput = {
+    targetField: ProfileUpdateField;
+    otherFieldDescription?: string;
+    proposedValue: string;
+    patientNote?: string;
+};
+
+export async function fetchMyProfileUpdateRequests(): Promise<
+PortalProfileUpdateRequest[]
+> {
+    const data = await api.get<ProfileUpdateRequestResponse[]>(
+        "/portal/profile-update-requests",
+    );
+    return data.map(toPortalProfileUpdateRequest);
+}
+
+export async function createProfileUpdateRequest(
+    input: ProfileUpdateRequestInput,
+): Promise<PortalProfileUpdateRequest> {
+    const body: Record<string, unknown> = {
+        targetField: input.targetField,
+        proposedValue: input.proposedValue,
+    };
+    if (input.targetField === "OTHER" && input.otherFieldDescription) {
+        body.otherFieldDescription = input.otherFieldDescription;
+    }
+    if (input.patientNote) {
+        body.patientNote = input.patientNote;
+    }
+    const data = await api.post<ProfileUpdateRequestResponse>(
+        "/portal/profile-update-requests",
+        body,
+    );
+    return toPortalProfileUpdateRequest(data);
+}

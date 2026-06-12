@@ -4,6 +4,7 @@ import PersonalInformation from "../../components/portal/PersonalInformation";
 import ContactDetailsForm from "../../components/portal/ContactDetailsForm";
 import ChangePasswordForm from "../../components/portal/ChangePasswordForm";
 import PrivacyAndData from "../../components/portal/PrivacyAndData";
+import ProfileUpdateRequests from '../../components/portal/ProfileUpdateRequests.tsx'
 import { fetchPortalProfile, type PortalProfile } from "../../data/portal";
 
 export default function Profile() {
@@ -32,6 +33,7 @@ export default function Profile() {
         <>
             <ProfileHero />
             <PersonalInformation profile={profile} />
+            <ProfileUpdateRequests />
             <ContactDetailsForm profile={profile} onUpdated={setProfile} />
             <ChangePasswordForm />
             <PrivacyAndData />
