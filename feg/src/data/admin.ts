@@ -1304,12 +1304,12 @@ type AdminLabResultResponse = {
 export type LabComponentInput = Omit<AdminLabComponent, "id">;
 
 const LAB_STATUS_FROM_BACKEND: Record<
-AdminLabResultResponse["status"],
+    AdminLabResultResponse["status"],
     AdminLabResultStatus
-    > = {
-        PENDING: "Pending",
-        AVAILABLE: "Ready to view",
-    };
+> = {
+    PENDING: "Pending",
+    AVAILABLE: "Ready to view",
+};
 
 // --- Lab Result list/detail fetchers ---
 
@@ -1384,7 +1384,7 @@ export async function createAdminLabResult(
     };
     fd.append(
         "metadata",
-        new Blob([JSON.stringify(metadata)], { type: "application/json" }),
+        new Blob([JSON.stringify(metadata)], {type: "application/json"}),
     );
     for (const file of input.files) {
         fd.append("files", file);
@@ -1433,7 +1433,6 @@ export async function deleteAdminLabResult(resultId: string): Promise<void> {
 //     }));
 //     return Promise.resolve(created);
 // }
-
 
 
 // ─── Documents ───────────────────────────────────────────────
@@ -1652,22 +1651,22 @@ export type ProfileUpdateRequest = {
 type ProfileUpdateBackendStatus = "PENDING" | "APPROVED" | "REJECTED";
 
 const PROFILE_UPDATE_STATUS_FROM_BACKEND: Record<
-ProfileUpdateBackendStatus,
+    ProfileUpdateBackendStatus,
     ProfileUpdateStatus
-    > = {
-        PENDING: "Pending",
-        APPROVED: "Approved",
-        REJECTED: "Rejected",
-    };
+> = {
+    PENDING: "Pending",
+    APPROVED: "Approved",
+    REJECTED: "Rejected",
+};
 
 const PROFILE_UPDATE_STATUS_TO_BACKEND: Record<
-ProfileUpdateStatus,
+    ProfileUpdateStatus,
     ProfileUpdateBackendStatus
-    > = {
-        Pending: "PENDING",
-        Approved: "APPROVED",
-        Rejected: "REJECTED",
-    };
+> = {
+    Pending: "PENDING",
+    Approved: "APPROVED",
+    Rejected: "REJECTED",
+};
 
 type ProfileUpdateRequestResponse = {
     id: number;
@@ -1764,7 +1763,7 @@ export async function approveProfileUpdateRequest(
 ): Promise<ProfileUpdateRequest> {
     const data = await api.post<ProfileUpdateRequestResponse>(
         `/admin/profile-update-requests/${id}/approve`,
-        adminResponse ? { adminResponse } : undefined,
+        adminResponse ? {adminResponse} : undefined,
     );
     return toProfileUpdateRequest(data);
 }
@@ -1775,7 +1774,7 @@ export async function rejectProfileUpdateRequest(
 ): Promise<ProfileUpdateRequest> {
     const data = await api.post<ProfileUpdateRequestResponse>(
         `/admin/profile-update-requests/${id}/reject`,
-        adminResponse ? { adminResponse } : undefined,
+        adminResponse ? {adminResponse} : undefined,
     );
     return toProfileUpdateRequest(data);
 }
@@ -1795,66 +1794,108 @@ export const BLOG_POST_CATEGORIES: ReadonlyArray<BlogPostCategory> = [
     "General Health",
 ];
 
+type BlogPostBackendCategory =
+    | "LIFESTYLE_DISEASES"
+    | "SCREENING_AND_PACKAGES"
+    | "GENERAL_HEALTH";
+
+const CATEGORY_FROM_BACKEND: Record<BlogPostBackendCategory, BlogPostCategory> = {
+    LIFESTYLE_DISEASES: "Lifestyle Diseases",
+    SCREENING_AND_PACKAGES: "Screening and Packages",
+    GENERAL_HEALTH: "General Health",
+};
+
+const CATEGORY_TO_BACKEND: Record<BlogPostCategory, BlogPostBackendCategory> = {
+    "Lifestyle Diseases": "LIFESTYLE_DISEASES",
+    "Screening and Packages": "SCREENING_AND_PACKAGES",
+    "General Health": "GENERAL_HEALTH",
+};
+
+function categoryFromRaw(raw: string | null): BlogPostCategory {
+    if (!raw) return "General Health";
+    // Accept either backend enum or display string in case backend changes its mind.
+    if (raw in CATEGORY_FROM_BACKEND) {
+        return CATEGORY_FROM_BACKEND[raw as BlogPostBackendCategory];
+    }
+    if (BLOG_POST_CATEGORIES.includes(raw as BlogPostCategory)) {
+        return raw as BlogPostCategory;
+    }
+    return "General Health";
+}
+
+// Roughly Medium's reading speed — 200 wpm. Always at least 1 minute.
+function computeReadTime(content: string): number {
+    const words = content.trim().split(/\s+/).filter(Boolean).length;
+    return Math.max(1, Math.ceil(words / 200));
+}
+
 export type AdminBlogPostSummary = {
     id: string;
     slug: string;
     title: string;
     category: BlogPostCategory;
     status: BlogPostStatus;
-    featured: boolean;
     readTimeMinutes: number;
     updatedAtDisplay: string;
 };
 
 export type AdminBlogPost = AdminBlogPostSummary & {
     excerpt: string;
-    body: string;                 // markdown
-    heroImageUrl: string | null;
+    content: string;
+    featuredImage: string | null;
+    tags: string[];
 };
 
-const STUB_BLOG_POSTS: AdminBlogPost[] = [
-    {
-        id: "bp_001",
-        slug: "managing-hypertension-day-to-day",
-        title: "Managing hypertension day-to-day",
-        category: "Lifestyle Diseases",
-        status: "Published",
-        featured: true,
-        readTimeMinutes: 6,
-        updatedAtDisplay: "2 days ago",
-        excerpt:
-            "Practical tips for keeping blood pressure under control between visits — diet, movement, and the warning signs that mean it's time to call us.",
-        body: "## Why daily habits matter\n\nHypertension is a marathon, not a sprint…",
-        heroImageUrl: null,
-    },
-    {
-        id: "bp_002",
-        slug: "what-to-expect-annual-wellness",
-        title: "What to expect at your Annual Wellness screening",
-        category: "Screening and Packages",
-        status: "Published",
-        featured: false,
-        readTimeMinutes: 4,
-        updatedAtDisplay: "1 week ago",
-        excerpt:
-            "Walking you through the visit — from check-in to results — so you can plan your day and know what to bring.",
-        body: "## Before your visit\n\nFasting is required for some of the bloodwork…",
-        heroImageUrl: null,
-    },
-    {
-        id: "bp_003",
-        slug: "draft-anaemia-symptoms",
-        title: "Anaemia: symptoms women often miss",
-        category: "General Health",
-        status: "Draft",
-        featured: false,
-        readTimeMinutes: 5,
-        updatedAtDisplay: "Yesterday",
-        excerpt: "",
-        body: "## Draft notes\n\nNeed to finish the section on iron-rich foods…",
-        heroImageUrl: null,
-    },
-];
+type AdminBlogPostResponse = {
+    id: number;
+    title: string;
+    slug: string;
+    excerpt: string | null;
+    content: string;
+    featuredImage: string | null;
+    tags: string[] | null;
+    metaTitle: string | null;
+    category: string | null;
+    metaDescription: string | null;
+    publishedAt: string | null;
+    updatedAt?: string | null;     // not in swagger but defensive — backend may add
+};
+
+function toAdminBlogPost(r: AdminBlogPostResponse): AdminBlogPost {
+    const status: BlogPostStatus = r.publishedAt ? "Published" : "Draft";
+    return {
+        id: String(r.id),
+        slug: r.slug,
+        title: r.title,
+        category: categoryFromRaw(r.category),
+        status,
+        readTimeMinutes: computeReadTime(r.content ?? ""),
+        // Backend swagger doesn't show updatedAt on the read DTO but the
+        // entity has it — falling back to publishedAt or now is harmless.
+        updatedAtDisplay: r.updatedAt
+            ? formatRelative(r.updatedAt)
+            : r.publishedAt
+                ? formatRelative(r.publishedAt)
+                : "Just now",
+        excerpt: r.excerpt ?? "",
+        content: r.content ?? "",
+        featuredImage: r.featuredImage,
+        tags: r.tags ?? [],
+    };
+}
+
+function toAdminBlogPostSummary(r: AdminBlogPostResponse): AdminBlogPostSummary {
+    const post = toAdminBlogPost(r);
+    return {
+        id: post.id,
+        slug: post.slug,
+        title: post.title,
+        category: post.category,
+        status: post.status,
+        readTimeMinutes: post.readTimeMinutes,
+        updatedAtDisplay: post.updatedAtDisplay,
+    };
+}
 
 export type AdminBlogPostFilters = {
     search?: string;
@@ -1870,16 +1911,29 @@ export type AdminBlogPostPage = {
 };
 
 export type BlogPostInput = {
-    slug: string;
     title: string;
     category: BlogPostCategory;
     excerpt: string;
-    body: string;
-    heroImageUrl: string | null;
-    status: BlogPostStatus;
-    featured: boolean;
-    readTimeMinutes: number;
+    content: string;
+    featuredImage: string | null;
+    tags: string[];
 };
+
+function blogPostInputToBody(input: BlogPostInput, isPublished: boolean) {
+    return {
+        title: input.title,
+        excerpt: input.excerpt,
+        content: input.content,
+        featuredImage: input.featuredImage,
+        // Backend write field is singular `tags: string` — comma-separated.
+        tags: input.tags.join(", "),
+        category: CATEGORY_TO_BACKEND[input.category],
+        // Surface auto-derived SEO meta from the user-facing fields.
+        metaTitle: input.title,
+        metaDescription: input.excerpt,
+        isPublished,
+    };
+}
 
 // --- Fetchers ---
 
@@ -1888,93 +1942,113 @@ export async function fetchAdminBlogPosts(
     page: number,
     pageSize: number,
 ): Promise<AdminBlogPostPage> {
-    // TODO (backend): api.get("/admin/blog-posts", { params: { ...filters, page, size: pageSize } })
-    const filtered = STUB_BLOG_POSTS.filter((p) => {
-        if (filters.category && filters.category !== "all" && p.category !== filters.category)
-            return false;
-        if (filters.status && filters.status !== "all" && p.status !== filters.status)
-            return false;
-        if (filters.search) {
-            const q = filters.search.toLowerCase();
-            if (!p.title.toLowerCase().includes(q)) return false;
-        }
-        return true;
-    });
+    // Backend list endpoint only supports `pageable` server-side. Category,
+    // status, and search are filtered client-side on the returned page.
+    const params = new URLSearchParams();
+    params.set("page", String(page - 1));
+    params.set("size", String(pageSize));
 
-    const start = (page - 1) * pageSize;
-    const entries = filtered.slice(start, start + pageSize).map(toBlogPostSummary);
+    const data = await api.get<AdminPageResponse<AdminBlogPostResponse>>(
+        `/admin/blog?${params.toString()}`,
+    );
 
-    return Promise.resolve({entries, total: filtered.length, page, pageSize});
-}
+    let entries = data.content.map(toAdminBlogPostSummary);
 
-export async function fetchAdminBlogPost(slug: string): Promise<AdminBlogPost> {
-    // TODO (backend): api.get(`/admin/blog-posts/${slug}`)
-    const post = STUB_BLOG_POSTS.find((p) => p.slug === slug);
-    if (!post) return Promise.reject(new Error("Blog post not found"));
-    return Promise.resolve(post);
-}
-
-export async function createAdminBlogPost(input: BlogPostInput): Promise<AdminBlogPost> {
-    // TODO (backend): api.post("/admin/blog-posts", input)
-    if (STUB_BLOG_POSTS.some((p) => p.slug === input.slug)) {
-        return Promise.reject(new Error("A post with this slug already exists."));
+    if (filters.category && filters.category !== "all") {
+        entries = entries.filter((p) => p.category === filters.category);
     }
-    const created: AdminBlogPost = {
-        id: `bp_${Date.now()}`,
-        ...input,
-        updatedAtDisplay: "Just now",
-    };
-    STUB_BLOG_POSTS.unshift(created);
-    return Promise.resolve(created);
-}
-
-export async function updateAdminBlogPost(
-    slug: string,
-    input: BlogPostInput,
-): Promise<AdminBlogPost> {
-    // TODO (backend): api.put(`/admin/blog-posts/${slug}`, input)
-    const idx = STUB_BLOG_POSTS.findIndex((p) => p.slug === slug);
-    if (idx < 0) return Promise.reject(new Error("Blog post not found"));
-
-    // If slug changed, check uniqueness.
-    if (input.slug !== slug && STUB_BLOG_POSTS.some((p) => p.slug === input.slug)) {
-        return Promise.reject(new Error("A post with this slug already exists."));
+    if (filters.status && filters.status !== "all") {
+        entries = entries.filter((p) => p.status === filters.status);
+    }
+    if (filters.search) {
+        const q = filters.search.toLowerCase();
+        entries = entries.filter((p) => p.title.toLowerCase().includes(q));
     }
 
-    const updated: AdminBlogPost = {
-        ...STUB_BLOG_POSTS[idx],
-        ...input,
-        updatedAtDisplay: "Just now",
-    };
-    STUB_BLOG_POSTS[idx] = updated;
-    return Promise.resolve(updated);
-}
-
-export async function deleteAdminBlogPost(slug: string): Promise<void> {
-    // TODO (backend): api.delete(`/admin/blog-posts/${slug}`)
-    const idx = STUB_BLOG_POSTS.findIndex((p) => p.slug === slug);
-    if (idx >= 0) STUB_BLOG_POSTS.splice(idx, 1);
-    return Promise.resolve();
-}
-
-export async function uploadBlogPostImage(file: File): Promise<{ url: string }> {
-    // TODO (backend): multipart POST to /admin/blog-posts/images
-    //   Backend returns the public URL of the uploaded image.
-    console.log("uploadBlogPostImage stub:", file.name);
-    // Use object URL as a stub — works for preview in the editor, won't survive reload.
-    const url = URL.createObjectURL(file);
-    return Promise.resolve({url});
-}
-
-function toBlogPostSummary(p: AdminBlogPost): AdminBlogPostSummary {
     return {
-        id: p.id,
-        slug: p.slug,
-        title: p.title,
-        category: p.category,
-        status: p.status,
-        featured: p.featured,
-        readTimeMinutes: p.readTimeMinutes,
-        updatedAtDisplay: p.updatedAtDisplay,
+        entries,
+        total: data.totalElements,
+        page,
+        pageSize,
     };
 }
+
+// Note: route param is now backend numeric id, not slug, since backend keys
+// everything by id and slug is auto-generated.
+    export async function fetchAdminBlogPost(id: string): Promise<AdminBlogPost> {
+        const data = await api.get<AdminBlogPostResponse>(`/admin/blog/${id}`);
+        return toAdminBlogPost(data);
+    }
+
+    export async function createAdminBlogPost(
+        input: BlogPostInput,
+    ): Promise<AdminBlogPost> {
+        // New posts are created as drafts; admin uses the publish button afterward.
+        const data = await api.post<AdminBlogPostResponse>(
+            `/admin/blog`,
+            blogPostInputToBody(input, false),
+        );
+        return toAdminBlogPost(data);
+    }
+
+    export async function publishAdminBlogPost(id: string): Promise<AdminBlogPost> {
+        const data = await api.put<AdminBlogPostResponse>(`/admin/blog/${id}/publish`);
+        return toAdminBlogPost(data);
+    }
+
+    export async function unpublishAdminBlogPost(
+        id: string,
+        input: BlogPostInput,
+    ): Promise<AdminBlogPost> {
+        // Backend has a dedicated publish endpoint but no unpublish — we fall back
+        // to the normal update with isPublished: false.
+        const data = await api.put<AdminBlogPostResponse>(
+            `/admin/blog/${id}`,
+            blogPostInputToBody(input, false),
+        );
+        return toAdminBlogPost(data);
+    }
+
+    export async function updateAdminBlogPost(
+        id: string,
+        input: BlogPostInput,
+        currentStatus: BlogPostStatus,
+    ): Promise<AdminBlogPost> {
+        // Preserve the current published status on plain edits — toggling is
+        // handled separately via publishAdminBlogPost / unpublishAdminBlogPost.
+        const data = await api.put<AdminBlogPostResponse>(
+            `/admin/blog/${id}`,
+            blogPostInputToBody(input, currentStatus === "Published"),
+        );
+        return toAdminBlogPost(data);
+    }
+
+    export async function deleteAdminBlogPost(id: string): Promise<void> {
+        await api.delete<unknown>(`/admin/blog/${id}`);
+    }
+
+    type ImageUploadResponse = {
+        url: string;
+        fileName: string;
+        size: number;
+    };
+
+const API_ORIGIN = "http://localhost:8080"
+
+    export async function uploadAdminImage(file: File): Promise<string> {
+        const data = await api.upload<ImageUploadResponse>(`/admin/upload/image`, file);
+
+        return `${API_ORIGIN}${data.url}`
+    }
+
+    function toBlogPostSummary(p: AdminBlogPost): AdminBlogPostSummary {
+        return {
+            id: p.id,
+            slug: p.slug,
+            title: p.title,
+            category: p.category,
+            status: p.status,
+            readTimeMinutes: p.readTimeMinutes,
+            updatedAtDisplay: p.updatedAtDisplay,
+        };
+    }

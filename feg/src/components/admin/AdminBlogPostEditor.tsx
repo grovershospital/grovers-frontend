@@ -3,60 +3,60 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import MarkdownBody from "../../components/admin/MarkdownBody";
 import BlogPostEditorSidebar from "../../components/admin/BlogPostEditorSidebar";
+import { slugify } from "../../lib/slugify";
 import {
     BLOG_POST_CATEGORIES,
     createAdminBlogPost,
     deleteAdminBlogPost,
     fetchAdminBlogPost,
+    publishAdminBlogPost,
+    unpublishAdminBlogPost,
     updateAdminBlogPost,
     type AdminBlogPost,
     type BlogPostCategory,
     type BlogPostInput,
+    type BlogPostStatus,
 } from "../../data/admin";
 
 const EMPTY: BlogPostInput = {
-    slug: "",
     title: "",
     category: "General Health",
     excerpt: "",
-    body: "",
-    heroImageUrl: null,
-    status: "Draft",
-    featured: false,
-    readTimeMinutes: 3,
+    content: "",
+    featuredImage: null,
+    tags: [],
 };
 
 export default function AdminBlogPostEditor() {
-    const { slug: routeSlug } = useParams<{ slug: string }>();
-    const isEdit = Boolean(routeSlug);
+    const { id: routeId } = useParams<{ id: string }>();
+    const isEdit = Boolean(routeId);
     const navigate = useNavigate();
 
     const [form, setForm] = useState<BlogPostInput>(EMPTY);
     const [loaded, setLoaded] = useState<AdminBlogPost | null>(null);
+    const [tagsInput, setTagsInput] = useState("");
     const [loading, setLoading] = useState(isEdit);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
-        if (!isEdit || !routeSlug) return;
+        if (!isEdit || !routeId) return;
         let alive = true;
         setLoading(true);
-        fetchAdminBlogPost(routeSlug)
+        fetchAdminBlogPost(routeId)
             .then((post) => {
                 if (!alive) return;
                 setLoaded(post);
                 setForm({
-                    slug: post.slug,
                     title: post.title,
                     category: post.category,
                     excerpt: post.excerpt,
-                    body: post.body,
-                    heroImageUrl: post.heroImageUrl,
-                    status: post.status,
-                    featured: post.featured,
-                    readTimeMinutes: post.readTimeMinutes,
+                    content: post.content,
+                    featuredImage: post.featuredImage,
+                    tags: post.tags,
                 });
+                setTagsInput(post.tags.join(", "));
             })
             .catch(() => {
                 if (alive) setError("Could not load this post.");
@@ -67,54 +67,61 @@ export default function AdminBlogPostEditor() {
         return () => {
             alive = false;
         };
-    }, [isEdit, routeSlug]);
+    }, [isEdit, routeId]);
 
     function update<K extends keyof BlogPostInput>(key: K, value: BlogPostInput[K]) {
         setForm((f) => ({ ...f, [key]: value }));
         if (success) setSuccess(false);
     }
 
+    function handleTagsChange(raw: string) {
+        setTagsInput(raw);
+        const parsed = raw
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean);
+        update("tags", parsed);
+    }
+
     function validate(): string | null {
         if (!form.title.trim()) return "Title is required.";
-        if (!form.slug.trim()) return "Slug is required.";
         return null;
     }
 
-    async function persist(input: BlogPostInput): Promise<AdminBlogPost | null> {
+    function syncFromServer(post: AdminBlogPost) {
+        setLoaded(post);
+        setForm({
+            title: post.title,
+            category: post.category,
+            excerpt: post.excerpt,
+            content: post.content,
+            featuredImage: post.featuredImage,
+            tags: post.tags,
+        });
+        setTagsInput(post.tags.join(", "));
+    }
+
+    async function handleSave() {
         setError(null);
         setSuccess(false);
         const v = validate();
         if (v) {
             setError(v);
-            return null;
+            return;
         }
         setSubmitting(true);
         try {
-            if (isEdit && routeSlug) {
-                const updated = await updateAdminBlogPost(routeSlug, input);
-                setLoaded(updated);
-                setForm({
-                    slug: updated.slug,
-                    title: updated.title,
-                    category: updated.category,
-                    excerpt: updated.excerpt,
-                    body: updated.body,
-                    heroImageUrl: updated.heroImageUrl,
-                    status: updated.status,
-                    featured: updated.featured,
-                    readTimeMinutes: updated.readTimeMinutes,
-                });
-                if (updated.slug !== routeSlug) {
-                    navigate(`/admin/blog-posts/${updated.slug}/edit`, {
-                        replace: true,
-                    });
-                }
+            if (isEdit && routeId && loaded) {
+                const updated = await updateAdminBlogPost(
+                    routeId,
+                    form,
+                    loaded.status,
+                );
+                syncFromServer(updated);
                 setSuccess(true);
-                return updated;
             } else {
-                const created = await createAdminBlogPost(input);
-                navigate(`/admin/blog-posts/${created.slug}/edit`, { replace: true });
-                return created;
+                const created = await createAdminBlogPost(form);
+                navigate(`/admin/blog-posts/${created.id}/edit`, { replace: true });
             }
         } catch (err) {
             setError(
@@ -122,33 +129,35 @@ export default function AdminBlogPostEditor() {
                     ? err.message
                     : "Could not save the post. Please try again.",
             );
-            return null;
         } finally {
             setSubmitting(false);
         }
     }
 
-    async function handleSave() {
-        await persist(form);
-    }
-
     async function handleTogglePublish() {
-        const nextStatus = form.status === "Published" ? "Draft" : "Published";
-        const next = { ...form, status: nextStatus } as BlogPostInput;
-        // Update local state immediately so the button label flips fast,
-        // then persist. If persist fails, revert.
-        setForm(next);
-        const result = await persist(next);
-        if (!result) {
-            setForm((f) => ({ ...f, status: form.status }));
+        if (!isEdit || !routeId || !loaded) return;
+        setError(null);
+        setSuccess(false);
+        setSubmitting(true);
+        try {
+            const updated =
+                loaded.status === "Published"
+                    ? await unpublishAdminBlogPost(routeId, form)
+                    : await publishAdminBlogPost(routeId);
+            syncFromServer(updated);
+            setSuccess(true);
+        } catch {
+            setError("Could not change publication status. Please try again.");
+        } finally {
+            setSubmitting(false);
         }
     }
 
     async function handleDelete() {
-        if (!isEdit || !routeSlug) return;
+        if (!isEdit || !routeId) return;
         setSubmitting(true);
         try {
-            await deleteAdminBlogPost(routeSlug);
+            await deleteAdminBlogPost(routeId);
             navigate("/admin/blog-posts");
         } catch {
             setError("Could not delete the post. Please try again.");
@@ -174,6 +183,11 @@ export default function AdminBlogPostEditor() {
         );
     }
 
+    // For unsaved new posts, the backend hasn't generated a slug yet — preview
+    // it client-side via the same algorithm so the admin knows the URL.
+    const slugPreview = loaded?.slug ?? slugify(form.title);
+    const currentStatus: BlogPostStatus = loaded?.status ?? "Draft";
+
     return (
         <>
             <BackLink />
@@ -196,19 +210,18 @@ export default function AdminBlogPostEditor() {
                         />
                     </Field>
 
-                    <Field label="Slug" htmlFor="bp-slug" required>
-                        <input
-                            id="bp-slug"
-                            type="text"
-                            value={form.slug}
-                            onChange={(e) => update("slug", e.target.value)}
-                            className={`${inputClass} font-mono`}
-                        />
-                        <p className="mt-1 text-xs text-neutral-500">
-                            URL-safe identifier. Appears in the public link
-                            /resources/{form.slug || "your-slug"}.
+                    <div>
+                        <p className="mb-1.5 text-sm font-semibold text-brand-ink">
+                            Public URL
                         </p>
-                    </Field>
+                        <p className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 font-mono text-sm text-neutral-600">
+                            /resources/{slugPreview || "your-slug"}
+                        </p>
+                        <p className="mt-1 text-xs text-neutral-500">
+                            Auto-generated from the title. Updated when the title changes
+                            and the post is saved.
+                        </p>
+                    </div>
 
                     <Field label="Category" htmlFor="bp-category" required>
                         <select
@@ -238,19 +251,34 @@ export default function AdminBlogPostEditor() {
                         />
                     </Field>
 
+                    <Field label="Tags" htmlFor="bp-tags">
+                        <input
+                            id="bp-tags"
+                            type="text"
+                            value={tagsInput}
+                            onChange={(e) => handleTagsChange(e.target.value)}
+                            placeholder="hypertension, diet, prevention"
+                            className={inputClass}
+                        />
+                        <p className="mt-1 text-xs text-neutral-500">
+                            Comma-separated. Helps search and related-article suggestions.
+                        </p>
+                    </Field>
+
                     <div>
                         <label className="mb-1.5 block text-sm font-semibold text-brand-ink">
                             Body
                         </label>
                         <MarkdownBody
-                            value={form.body}
-                            onChange={(v) => update("body", v)}
+                            value={form.content}
+                            onChange={(v) => update("content", v)}
                         />
                     </div>
                 </div>
 
                 <BlogPostEditorSidebar
                     form={form}
+                    status={currentStatus}
                     isEdit={isEdit}
                     onChange={update}
                     onSave={handleSave}

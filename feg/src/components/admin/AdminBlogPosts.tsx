@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Pencil, Plus, Search, Star, Trash2 } from "lucide-react";
+import { Pencil, Plus, Search, Trash2 } from "lucide-react";
 import BlogPostStatusPill from "../../components/admin/BlogPostStatusPill";
 import Pagination from "../../components/admin/Pagination";
 import {
@@ -68,7 +68,7 @@ export default function AdminBlogPosts() {
         const prev = posts;
         setPosts((list) => list.filter((p) => p.id !== post.id));
         try {
-            await deleteAdminBlogPost(post.slug);
+            await deleteAdminBlogPost(post.id);
         } catch {
             setPosts(prev);
             window.alert("Could not delete the post. Please try again.");
@@ -166,24 +166,14 @@ export default function AdminBlogPosts() {
                             <tr
                                 key={p.id}
                                 onClick={() =>
-                                    navigate(`/admin/blog-posts/${p.slug}/edit`)
+                                    navigate(`/admin/blog-posts/${p.id}/edit`)
                                 }
                                 className="cursor-pointer border-t border-neutral-100 text-sm hover:bg-neutral-50"
                             >
                                 <td className="px-4 py-3">
-                                    <div className="flex items-center gap-2">
-                                        {p.featured && (
-                                            <Star
-                                                className="h-4 w-4 flex-shrink-0 text-amber-400"
-                                                fill="currentColor"
-                                                strokeWidth={1.5}
-                                                aria-label="Featured"
-                                            />
-                                        )}
-                                        <p className="font-semibold text-brand-ink">
-                                            {p.title}
-                                        </p>
-                                    </div>
+                                    <p className="font-semibold text-brand-ink">
+                                        {p.title}
+                                    </p>
                                     <p className="mt-0.5 font-mono text-xs text-neutral-500">
                                         /{p.slug}
                                     </p>
@@ -207,7 +197,7 @@ export default function AdminBlogPosts() {
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 navigate(
-                                                    `/admin/blog-posts/${p.slug}/edit`,
+                                                    `/admin/blog-posts/${p.id}/edit`,
                                                 );
                                             }}
                                             className="inline-flex h-8 w-8 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-brand-ink"

@@ -128,7 +128,7 @@ export default function App() {
                     <Route path="/admin/blog-posts" element={<AdminBlogPosts />} />
                     <Route path="/admin/blog-posts/new" element={<AdminBlogPostEditor />} />
                     <Route
-                        path="/admin/blog-posts/:slug/edit"
+                        path="/admin/blog-posts/:id/edit"
                         element={<AdminBlogPostEditor />}
                     />
 
