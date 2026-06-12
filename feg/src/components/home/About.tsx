@@ -6,7 +6,7 @@ export function About() {
             <div className="mx-auto grid max-w-content grid-cols-1 items-center gap-10 px-4 md:px-8 lg:w-[80%] lg:grid-cols-2 lg:gap-16">
                 {/* Left: text column */}
                 <div className={'text-left lg:text-right'}>
-                    <p className="mb-4 text-xs font-bold leading-snug text-brand-ink/70">
+                    <p className="mb-4 text-1xl font-bold leading-snug text-brand-ink/70">
                         Nigeria&apos;s premiere lifestyle clinic, built on over 20 years of
                         healthcare experience.
                     </p>

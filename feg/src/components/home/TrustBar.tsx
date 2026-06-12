@@ -23,6 +23,14 @@ const LOGOS = [
     { src: "zenith.png", alt: "Zenith Bank" },
     { src: "leadway.png", alt: "Leadway Health" },
     { src: "avon.png", alt: "Avon HMO" },
+    {src: "avon-hmo.png", alt: "Avon-hmo" },
+    {src: "axa-mansard.png", alt: "AxaMansard" },
+    {src: "bastion-health.png", alt: "Bastion Health" },
+    {src: "high-commission-of-india.png", alt: "High commission of India" },
+    {src: "palton-morgan.png", alt: "Palton Morgan"},
+    {src: "reliance-hmo.png", alt: "Reliance Hmo" },
+    {src: "sanlam.png", alt: "Sanlam" },
+    {src: "verteville-energy.png", alt: "Verteville Energy" },
 ];
 
 // Vite: import.meta.glob eager-loads every file in the logos folder so we can
