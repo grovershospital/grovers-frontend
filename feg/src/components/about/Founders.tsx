@@ -30,7 +30,7 @@ export default function Founders() {
             </svg>
 
             <div className="mx-auto w-full max-w-content px-6 lg:px-10 lg:w-[70%]">
-                <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">
+                <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-44">
                     {/* Photo column */}
                     <figure className="mx-auto w-full max-w-md">
                         <div className="overflow-hidden rounded-2xl">

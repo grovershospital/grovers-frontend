@@ -36,9 +36,9 @@ export function Emergency() {
                 </defs>
             </svg>
 
-            <div className="mx-auto flex max-w-content flex-col gap-8 px-4 py-16 md:flex-row md:items-end md:justify-center md:px-8 md:py-24">
+            <div className="mx-auto flex max-w-content lg:w-[85%] flex-col gap-8 lg:gap-40 px-4 py-16 md:flex-row md:items-end md:justify-center md:px-8 md:py-24">
                 {/* White unit chips — DOM-first, shows left on desktop */}
-                <div className="order-2 flex flex-wrap gap-3 md:order-1">
+                <div className="order-2 flex flex-wrap gap-6 md:order-1">
                     {EMERGENCY_UNITS.map((unit) => (
                         <div
                             key={unit.name}

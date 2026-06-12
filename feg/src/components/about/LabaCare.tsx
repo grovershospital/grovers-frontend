@@ -4,11 +4,11 @@ import labacareAbout from "../../assets/about-page/labacareAbout.png";
 
 // Top-right chamfered card — same path used by Founders / Emergency / Testimonials.
 const CARD_CLIP =
-    "M0.59594 0.0 L0.14729 0.0 C0.06593 0.0 0.0 0.0563 0.0 0.12578 " +
+    "M0.72 0.0 L0.14729 0.0 C0.06593 0.0 0.0 0.0563 0.0 0.12578 " +
     "L0.0 0.87422 C0.0 0.9437 0.06593 1.0 0.14729 1.0 L0.85277 1.0 " +
-    "C0.93407 1.0 1.0 0.9437 1.0 0.87422 L1.0 0.37089 " +
-    "C1.0 0.33995 0.98664 0.3101 0.96249 0.28703 L0.70572 0.04193 " +
-    "C0.67779 0.01526 0.63784 0.0 0.59594 0.0 Z";
+    "C0.93407 1.0 1.0 0.9437 1.0 0.87422 L1.0 0.30 " +
+    "C1.0 0.27 0.99 0.24 0.97 0.22 L0.82 0.04 " +
+    "C0.79 0.015 0.76 0.0 0.72 0.0 Z";
 
 export default function LabaCare() {
     return (
@@ -53,7 +53,7 @@ export default function LabaCare() {
                             {/* Heading width capped so it wraps clear of the chamfer. */}
                             <h2
                                 id="labacare-heading"
-                                className="max-w-[16rem] text-2xl font-extrabold leading-tight text-brand-ink sm:text-3xl"
+                                className="lg:w-[84%] text-xl font-extrabold leading-tight text-brand-ink sm:text-3xl"
                             >
                                 World-class hospital management, built into everything we do.
                             </h2>
@@ -80,7 +80,7 @@ export default function LabaCare() {
                     <img
                         src={labacareAbout}
                         alt="Operated by LABACare"
-                        className="hidden h-12 w-auto shrink-0 sm:block lg:h-16"
+                        className="hidden h-12 w-auto shrink-0 sm:block lg:h-20"
                     />
                 </div>
             </div>
