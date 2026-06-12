@@ -28,7 +28,7 @@ export default function ClinicDetail({ clinic }: { clinic: ClinicDetailType }) {
     return (
         <section
             id={clinic.slug}
-            className="bg-[#f9f7f0]"
+            className="scroll-mt-24 bg-[#f9f7f0]"
             aria-labelledby={`${clinic.slug}-heading`}
         >
             {/* 2-col grid on desktop, stacked on mobile. items-stretch (default) */}

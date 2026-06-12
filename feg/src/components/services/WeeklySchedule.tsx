@@ -102,7 +102,44 @@ const COLOR_BG: Record<DayColor, string> = {
     blue: "bg-brand-blue",
 };
 
-function DayRow({ day, color, entries }: DayGroup) {
+const DEPARTMENT_LINKS: Record<string, string> = {
+    "Family Medicine": "family-medicine",
+    "Internal Medicine": "internal-medicine",
+    "Obstetrics and Gynaecology": "obgyn",
+    "Gastroenterology": "gastroenterology",
+    "Physiotherapy": "physiotherapy",
+
+    "General Surgery": "general-surgery",
+    "Nephrology": "nephrology",
+    "Paediatrics": "paediatrics",
+    "Neurology": "neurology",
+    "Cardiology": "cardiology",
+    "Endocrinology": "endocrinology",
+
+    "Mental Health Clinic": "mental-health",
+    "ENT (Ear, Nose and Throat)": "ent",
+    "Dermatology": "dermatology",
+
+    "Orthopaedic Surgery": "orthopaedic-surgery",
+    "Dietician": "dietician",
+
+    "Urology": "urology",
+
+    "Hematology": "hematology",
+
+    "Psychiatry": "psychiatry",
+};
+
+function scrollToDepartment(slug: string) {
+    document
+        .getElementById(slug)
+        ?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+        });
+}
+
+function DayRow({day, color, entries}: DayGroup) {
     return (
         <div className="flex flex-col lg:flex-row">
             {/* Colored day band — full-width on mobile, left column on desktop. */}
@@ -119,7 +156,20 @@ function DayRow({ day, color, entries }: DayGroup) {
                         key={dept}
                         className="grid grid-cols-2 gap-4 px-6 py-3 text-xs text-brand-ink sm:text-sm"
                     >
-                        <span>{dept}</span>
+                        {DEPARTMENT_LINKS[dept] ? (
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    scrollToDepartment(DEPARTMENT_LINKS[dept])
+                                }
+                                className="text-left cursor-pointer font-medium text-brand-green transition-colors  hover:underline"
+                            >
+                                {dept}
+                            </button>
+                        ) : (
+                            <span>{dept}</span>
+                        )}
+
                         <span>{hours}</span>
                     </div>
                 ))}
@@ -127,6 +177,7 @@ function DayRow({ day, color, entries }: DayGroup) {
         </div>
     );
 }
+
 
 export default function WeeklySchedule() {
     return (
