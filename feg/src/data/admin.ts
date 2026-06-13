@@ -2116,15 +2116,6 @@ export type AdminPackageSummary = {
     inclusionCount: number;
 };
 
-export type AdminPackage = AdminPackageSummary & {
-    description: string;
-    targetAudience: string;
-    departmentId: string | null;
-    tiers: AdminPackageTier[];
-    inclusions: AdminPackageInclusion[];
-    cells: AdminPackageCell[];
-};
-
 type AdminPackageTierResponse = {
     id: number;
     name: string;
@@ -2133,6 +2124,16 @@ type AdminPackageTierResponse = {
     priceFemale: number;
     notes: string | null;
     displayOrder: number;
+};
+
+export type AdminPackage = AdminPackageSummary & {
+    headline: string;
+    description: string;
+    targetAudience: string;
+    departmentId: string | null;
+    tiers: AdminPackageTier[];
+    inclusions: AdminPackageInclusion[];
+    cells: AdminPackageCell[];
 };
 
 type AdminPackageInclusionResponse = {
@@ -2153,6 +2154,7 @@ type AdminPackageResponse = {
     id: number;
     name: string;
     slug: string;
+    headline: string | null;
     description: string | null;
     targetAudience: string | null;
     departmentId: number | null;
@@ -2208,6 +2210,7 @@ function toAdminPackage(p: AdminPackageResponse): AdminPackage {
         id: String(p.id),
         name: p.name,
         slug: p.slug,
+        headline: p.headline ?? "",
         description: p.description ?? "",
         targetAudience: p.targetAudience ?? "",
         departmentId: p.departmentId ? String(p.departmentId) : null,
@@ -2251,6 +2254,7 @@ export async function fetchAdminPackage(id: string): Promise<AdminPackage> {
 
 export type PackageInput = {
     name: string;
+    headline: string;
     description: string;
     targetAudience: string;
     departmentId: string | null;
@@ -2263,6 +2267,7 @@ export type PackageInput = {
 function packageInputToBody(input: PackageInput) {
     return {
         name: input.name,
+        headline: input.headline,
         description: input.description,
         targetAudience: input.targetAudience,
         departmentId: input.departmentId ? Number(input.departmentId) : null,
