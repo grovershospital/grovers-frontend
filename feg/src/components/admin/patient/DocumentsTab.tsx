@@ -12,6 +12,7 @@ import {
     type DocumentCategory,
     type DocumentUploaderType,
 } from "../../../data/admin";
+import {toast} from 'sonner';
 
 function formatBytes(bytes: number): string {
     if (bytes < 1024) return `${bytes} B`;
@@ -65,9 +66,10 @@ export default function DocumentsTab() {
         setDocuments((list) => list.filter((d) => d.id !== doc.id));
         try {
             await deleteAdminDocument(doc.id);
+            toast.success("Document deleted.");
         } catch {
             setDocuments(prev);
-            window.alert("Could not delete the document. Please try again.");
+            toast.error("Could not delete the document.");
         }
     }
 
@@ -80,9 +82,10 @@ export default function DocumentsTab() {
         try {
             await downloadAdminDocument(doc.id, doc.originalFileName);
         } catch {
-            window.alert("Could not download this document. Please try again.");
+            toast.error("Could not download this document.");
         }
     }
+
 
     return (
         <>

@@ -10,6 +10,7 @@ import {
     type AdminMedication,
     type MedicationInput,
 } from "../../../data/admin";
+import {toast} from 'sonner';
 
 export default function MedicationsTab() {
     const patient = useAdminPatient();
@@ -66,9 +67,10 @@ export default function MedicationsTab() {
         setMedications((list) => list.filter((m) => m.id !== med.id));
         try {
             await deleteAdminMedication(med.id);
+            toast.success("Medication removed.");
         } catch {
             setMedications(prev);
-            window.alert("Could not remove the medication. Please try again.");
+            toast.error("Could not remove the medication.");
         }
     }
 

@@ -8,6 +8,7 @@ import {
     type BloodGroup,
     type Genotype,
 } from "../../../data/admin";
+import {toast} from 'sonner';
 
 const BLOOD_GROUPS: ReadonlyArray<BloodGroup> = [
     "Unknown",
@@ -29,7 +30,6 @@ export default function HealthProfileTab() {
     const [profile, setProfile] = useState<AdminHealthProfile | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [success, setSuccess] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         let alive = true;
@@ -52,15 +52,13 @@ export default function HealthProfileTab() {
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
         if (!profile) return;
-        setError(null);
-        setSuccess(false);
         setSubmitting(true);
         try {
             const updated = await updateAdminHealthProfile(patient.id, profile);
             setProfile(updated);
-            setSuccess(true);
+            toast.success("Health profile saved.");
         } catch {
-            setError("Could not save the health profile. Please try again.");
+            toast.error("Could not save the health profile.");
         } finally {
             setSubmitting(false);
         }
@@ -209,17 +207,6 @@ export default function HealthProfileTab() {
                 >
                     {submitting ? "Saving…" : "Save Health Profile"}
                 </button>
-
-                {error && (
-                    <p className="text-sm text-brand-red" role="alert">
-                        {error}
-                    </p>
-                )}
-                {success && (
-                    <p className="text-sm text-brand-green" role="status">
-                        Health profile saved.
-                    </p>
-                )}
             </div>
         </form>
     );

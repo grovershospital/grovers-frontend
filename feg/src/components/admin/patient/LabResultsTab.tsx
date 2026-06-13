@@ -10,6 +10,7 @@ import {
     type AdminLabResultStatus,
     type AdminLabResultSummary,
 } from "../../../data/admin";
+import { toast } from "sonner";
 
 export default function LabResultsTab() {
     const patient = useAdminPatient();
@@ -57,9 +58,10 @@ export default function LabResultsTab() {
         setResults((list) => list.filter((r) => r.id !== result.id));
         try {
             await deleteAdminLabResult(result.id);
+            toast.success("Result deleted.");
         } catch {
             setResults(prev);
-            window.alert("Could not delete the result. Please try again.");
+            toast.error("Could not delete the result.");
         }
     }
 

@@ -53,7 +53,7 @@ export default function AdminProfileUpdateRequests() {
                 setTotal(res.total);
             })
             .catch(() => {
-                if (alive) toast.error("Could not fetch updates.")
+                if (alive) toast.error("Could not fetch update requests.")
             })
             .finally(() => {
                 if (alive) setLoading(false);

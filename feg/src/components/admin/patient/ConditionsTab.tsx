@@ -11,6 +11,7 @@ import {
     type ChronicConditionStatus,
     type ConditionInput,
 } from "../../../data/admin";
+import {toast} from 'sonner';
 
 const STATUS_TONE: Record<ChronicConditionStatus, string> = {
     Active: "bg-brand-red/10 text-brand-red",
@@ -72,9 +73,10 @@ export default function ConditionsTab() {
         setConditions((list) => list.filter((c) => c.id !== cond.id));
         try {
             await deleteAdminCondition(cond.id);
+            toast.success("Condition removed.");
         } catch {
             setConditions(prev);
-            window.alert("Could not remove the condition. Please try again.");
+            toast.error("Could not remove the condition.");
         }
     }
 
