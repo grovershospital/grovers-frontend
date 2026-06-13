@@ -8,6 +8,7 @@ import {
     type AdminCrossPatientLabResult,
     type AdminLabResultStatus,
 } from "../../data/admin";
+import {toast} from "sonner";
 
 const PAGE_SIZE = 10;
 
@@ -27,6 +28,9 @@ export default function AdminLabResults() {
                 if (!alive) return;
                 setResults(res.entries);
                 setTotal(res.total);
+            })
+            .catch(() => {
+                if (alive) toast.error("Could not fetch results.")
             })
             .finally(() => {
                 if (alive) setLoading(false);

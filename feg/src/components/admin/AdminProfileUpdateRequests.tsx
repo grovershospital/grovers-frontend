@@ -10,6 +10,7 @@ import {
     type ProfileUpdateRequest,
     type ProfileUpdateStatus,
 } from "../../data/admin";
+import {toast} from "sonner";
 
 const PAGE_SIZE = 10;
 
@@ -50,6 +51,9 @@ export default function AdminProfileUpdateRequests() {
                 if (!alive) return;
                 setRequests(res.entries);
                 setTotal(res.total);
+            })
+            .catch(() => {
+                if (alive) toast.error("Could not fetch updates.")
             })
             .finally(() => {
                 if (alive) setLoading(false);

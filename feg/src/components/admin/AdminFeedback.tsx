@@ -12,6 +12,7 @@ import {
     type AdminFeedbackFilters,
     type AdminFeedbackStatus,
 } from "../../data/admin";
+import {toast} from 'sonner';
 
 const PAGE_SIZE = 10;
 
@@ -46,15 +47,8 @@ export default function AdminFeedback() {
                 setEntries(res.entries);
                 setTotal(res.total);
             })
-            .catch((err) => {
-                if (!alive) return;
-                setEntries([]);
-                setTotal(0)
-                setLoadError(
-                    err instanceof Error
-                    ? err.message
-                        : "Could not load feedback"
-                )
+            .catch(() => {
+                if (alive) toast.error("Could not load feedbacks.")
             })
             .finally(() => {
                 if (alive) setLoading(false);
@@ -104,7 +98,7 @@ export default function AdminFeedback() {
                 ),
             );
         } catch {
-            window.alert("Could not update the feedback. Please try again.");
+            toast.error("Could not update the feedback. Please try again.");
             throw new Error("save failed");
         }
     }

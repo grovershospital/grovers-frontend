@@ -12,6 +12,7 @@ import {
     type BlogPostCategory,
     type BlogPostStatus,
 } from "../../data/admin";
+import {toast} from "sonner";
 
 const PAGE_SIZE = 10;
 
@@ -38,6 +39,9 @@ export default function AdminBlogPosts() {
                 if (!alive) return;
                 setPosts(res.entries);
                 setTotal(res.total);
+            })
+            .catch(() => {
+                if (alive) toast.error("Could not load posts.")
             })
             .finally(() => {
                 if (alive) setLoading(false);
@@ -71,7 +75,7 @@ export default function AdminBlogPosts() {
             await deleteAdminBlogPost(post.id);
         } catch {
             setPosts(prev);
-            window.alert("Could not delete the post. Please try again.");
+            toast.error("Could not delete the post. Please try again.");
         }
     }
 
