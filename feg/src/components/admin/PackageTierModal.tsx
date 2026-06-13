@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import Modal from "../../ui/Modal";
 import type { AdminPackageTier, PackageTierInput } from "../../data/admin";
+import {toast} from "sonner";
 
 type Props = {
     open: boolean;
@@ -29,7 +30,6 @@ export default function PackageTierModal({
                                          }: Props) {
     const [form, setForm] = useState<PackageTierInput>(EMPTY);
     const [submitting, setSubmitting] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (open) {
@@ -45,7 +45,7 @@ export default function PackageTierModal({
                     }
                     : { ...EMPTY, displayOrder: defaultDisplayOrder },
             );
-            setError(null);
+
         }
     }, [open, tier, defaultDisplayOrder]);
 
@@ -58,9 +58,8 @@ export default function PackageTierModal({
 
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        setError(null);
         if (!form.name.trim()) {
-            setError("Tier name is required.");
+            toast.error("Tier name is required.");
             return;
         }
         setSubmitting(true);
@@ -68,7 +67,7 @@ export default function PackageTierModal({
             await onSubmit(form);
             onClose();
         } catch {
-            setError("Could not save the tier. Please try again.");
+            toast.error("Could not save the tier. Please try again.");
         } finally {
             setSubmitting(false);
         }
@@ -148,12 +147,6 @@ export default function PackageTierModal({
                         className={inputClass}
                     />
                 </Field>
-
-                {error && (
-                    <p className="text-sm text-brand-red" role="alert">
-                        {error}
-                    </p>
-                )}
 
                 <div className="flex flex-wrap justify-end gap-3 pt-2">
                     <button

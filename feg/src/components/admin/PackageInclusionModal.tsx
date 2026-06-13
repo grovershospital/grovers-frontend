@@ -5,6 +5,7 @@ import type {
     AdminPackageInclusion,
     PackageInclusionInput,
 } from "../../data/admin";
+import {toast} from "sonner";
 
 type Props = {
     open: boolean;
@@ -29,7 +30,6 @@ export default function PackageInclusionModal({
                                               }: Props) {
     const [form, setForm] = useState<PackageInclusionInput>(EMPTY);
     const [submitting, setSubmitting] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (open) {
@@ -42,15 +42,13 @@ export default function PackageInclusionModal({
                     }
                     : { ...EMPTY, displayOrder: defaultDisplayOrder },
             );
-            setError(null);
         }
     }, [open, inclusion, defaultDisplayOrder]);
 
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        setError(null);
         if (!form.label.trim()) {
-            setError("Inclusion label is required.");
+            toast.error("Inclusion label is required.");
             return;
         }
         setSubmitting(true);
@@ -58,7 +56,7 @@ export default function PackageInclusionModal({
             await onSubmit(form);
             onClose();
         } catch {
-            setError("Could not save the inclusion. Please try again.");
+            toast.error("Could not save the inclusion. Please try again.");
         } finally {
             setSubmitting(false);
         }
@@ -114,12 +112,6 @@ export default function PackageInclusionModal({
                         className={inputClass}
                     />
                 </Field>
-
-                {error && (
-                    <p className="text-sm text-brand-red" role="alert">
-                        {error}
-                    </p>
-                )}
 
                 <div className="flex flex-wrap justify-end gap-3 pt-2">
                     <button
