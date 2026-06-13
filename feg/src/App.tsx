@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import {Routes, Route, Navigate} from "react-router-dom";
 import Layout from "./components/Layout";
 import HomePage from "./pages/HomePage";
 import About from "./pages/About";
@@ -38,32 +38,33 @@ import AdminLabResults from "./components/admin/AdminLabResults.tsx";
 import AdminProfileUpdateRequests from "./components/admin/AdminProfileUpdateRequests.tsx";
 import AdminBlogPosts from "./components/admin/AdminBlogPosts.tsx";
 import AdminBlogPostEditor from "./components/admin/AdminBlogPostEditor.tsx";
-import { RequireAuth, RedirectIfAuthed } from "./components/auth/RequireAuth.tsx";
+import {RequireAuth, RedirectIfAuthed} from "./components/auth/RequireAuth.tsx";
 import AdminPackages from "./components/admin/AdminPackages.tsx";
+import AdminPackageEditor from "./components/admin/AdminPackageEditor.tsx";
 
 export default function App() {
     return (
         <>
-            <ScrollToTop />
+            <ScrollToTop/>
             <Routes>
                 {/* Public site — TopBar + Navbar + Footer via Layout */}
-                <Route element={<Layout />}>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/about" element={<About />} />
-                    <Route path="/services" element={<Services />} />
-                    <Route path="/packages" element={<Packages />} />
-                    <Route path="/resources" element={<Resources />} />
-                    <Route path="/resources/:slug" element={<ArticleDetail />} />
+                <Route element={<Layout/>}>
+                    <Route path="/" element={<HomePage/>}/>
+                    <Route path="/about" element={<About/>}/>
+                    <Route path="/services" element={<Services/>}/>
+                    <Route path="/packages" element={<Packages/>}/>
+                    <Route path="/resources" element={<Resources/>}/>
+                    <Route path="/resources/:slug" element={<ArticleDetail/>}/>
 
                     {/* Patient portal landing — public, leads to login/signup */}
-                    <Route path="/patient-portal" element={<PatientPortal />} />
+                    <Route path="/patient-portal" element={<PatientPortal/>}/>
 
                     {/* Auth pages — redirect away if already logged in */}
                     <Route
                         path="/patient-portal/login"
                         element={
                             <RedirectIfAuthed>
-                                <Login />
+                                <Login/>
                             </RedirectIfAuthed>
                         }
                     />
@@ -71,7 +72,7 @@ export default function App() {
                         path="/patient-portal/signup"
                         element={
                             <RedirectIfAuthed>
-                                <Signup />
+                                <Signup/>
                             </RedirectIfAuthed>
                         }
                     />
@@ -79,7 +80,7 @@ export default function App() {
                         path="/patient-portal/forgot-password"
                         element={
                             <RedirectIfAuthed>
-                                <ForgotPassword />
+                                <ForgotPassword/>
                             </RedirectIfAuthed>
                         }
                     />
@@ -87,7 +88,7 @@ export default function App() {
                         path="/admin/login"
                         element={
                             <RedirectIfAuthed>
-                                <AdminLogin />
+                                <AdminLogin/>
                             </RedirectIfAuthed>
                         }
                     />
@@ -97,58 +98,60 @@ export default function App() {
                 <Route
                     element={
                         <RequireAuth role="PATIENT">
-                            <DashboardLayout />
+                            <DashboardLayout/>
                         </RequireAuth>
                     }
                 >
-                    <Route path="/patient-portal/dashboard" element={<Dashboard />} />
-                    <Route path="/patient-portal/appointments" element={<Appointments />} />
-                    <Route path="/patient-portal/lab-results" element={<LabResults />} />
-                    <Route path="/patient-portal/feedback" element={<Feedback />} />
-                    <Route path="/patient-portal/profile" element={<Profile />} />
-                    <Route path="/patient-portal/delete-account" element={<DeleteAccount />} />
+                    <Route path="/patient-portal/dashboard" element={<Dashboard/>}/>
+                    <Route path="/patient-portal/appointments" element={<Appointments/>}/>
+                    <Route path="/patient-portal/lab-results" element={<LabResults/>}/>
+                    <Route path="/patient-portal/feedback" element={<Feedback/>}/>
+                    <Route path="/patient-portal/profile" element={<Profile/>}/>
+                    <Route path="/patient-portal/delete-account" element={<DeleteAccount/>}/>
                 </Route>
 
                 {/* Admin dashboard (authenticated) */}
                 <Route
                     element={
                         <RequireAuth role="ADMIN">
-                            <AdminDashboardLayout />
+                            <AdminDashboardLayout/>
                         </RequireAuth>
                     }
                 >
-                    <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                    <Route path="/admin/bookings" element={<AdminBookings />} />
-                    <Route path="/admin/bookings/:id" element={<AdminBookingDetail />} />
-                    <Route path="/admin/lab-results" element={<AdminLabResults />} />
-                    <Route path="/admin/feedback" element={<AdminFeedback />} />
-                    <Route path={'/admin/packages'} element={<AdminPackages />} />
+                    <Route path="/admin/dashboard" element={<AdminDashboard/>}/>
+                    <Route path="/admin/bookings" element={<AdminBookings/>}/>
+                    <Route path="/admin/bookings/:id" element={<AdminBookingDetail/>}/>
+                    <Route path="/admin/lab-results" element={<AdminLabResults/>}/>
+                    <Route path="/admin/feedback" element={<AdminFeedback/>}/>
+                    <Route path="/admin/packages" element={<AdminPackages/>}/>
+                    <Route path="/admin/packages/:id/edit" element={<AdminPackageEditor/>}/>
+
                     <Route
                         path="/admin/profile-update-requests"
-                        element={<AdminProfileUpdateRequests />}
+                        element={<AdminProfileUpdateRequests/>}
                     />
-                    <Route path="/admin/blog-posts" element={<AdminBlogPosts />} />
-                    <Route path="/admin/blog-posts/new" element={<AdminBlogPostEditor />} />
+                    <Route path="/admin/blog-posts" element={<AdminBlogPosts/>}/>
+                    <Route path="/admin/blog-posts/new" element={<AdminBlogPostEditor/>}/>
                     <Route
                         path="/admin/blog-posts/:id/edit"
-                        element={<AdminBlogPostEditor />}
+                        element={<AdminBlogPostEditor/>}
                     />
 
                     {/* Patients — list + nested tab routes */}
-                    <Route path="/admin/patients" element={<AdminPatients />} />
-                    <Route path="/admin/patients/:id" element={<AdminPatientDetail />}>
-                        <Route index element={<Navigate to="profile" replace />} />
-                        <Route path="profile" element={<ProfileTab />} />
-                        <Route path="health-profile" element={<HealthProfileTab />} />
-                        <Route path="medications" element={<MedicationsTab />} />
-                        <Route path="conditions" element={<ConditionsTab />} />
-                        <Route path="visits" element={<VisitsTab />} />
-                        <Route path="lab-results" element={<LabResultsTab />} />
-                        <Route path="documents" element={<DocumentsTab />} />
+                    <Route path="/admin/patients" element={<AdminPatients/>}/>
+                    <Route path="/admin/patients/:id" element={<AdminPatientDetail/>}>
+                        <Route index element={<Navigate to="profile" replace/>}/>
+                        <Route path="profile" element={<ProfileTab/>}/>
+                        <Route path="health-profile" element={<HealthProfileTab/>}/>
+                        <Route path="medications" element={<MedicationsTab/>}/>
+                        <Route path="conditions" element={<ConditionsTab/>}/>
+                        <Route path="visits" element={<VisitsTab/>}/>
+                        <Route path="lab-results" element={<LabResultsTab/>}/>
+                        <Route path="documents" element={<DocumentsTab/>}/>
                     </Route>
 
                     {/* Visits edit — top-level since it's reachable from booking → completed */}
-                    <Route path="/admin/visits/:visitId/edit" element={<AdminVisitEdit />} />
+                    <Route path="/admin/visits/:visitId/edit" element={<AdminVisitEdit/>}/>
                 </Route>
             </Routes>
         </>

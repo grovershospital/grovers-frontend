@@ -1,52 +1,76 @@
+import { useMemo } from "react";
+import ReactMarkdown from "react-markdown";
 import { Check, X } from "lucide-react";
 import { Button } from "../../ui/Button";
+import type {
+    PublicPackage,
+    PublicPackageTone,
+    InclusionCellStatus,
+} from "../../data/portal";
 
-type ColorTone = "green" | "red";
-
-export type ScreeningPackageData = {
-    slug: string;
-    headline: string;
-    body: string;
-    whoThisIsFor: string;
-    tiers: ReadonlyArray<string>;
-    tests: ReadonlyArray<{
-        name: string;
-        included: ReadonlyArray<boolean>;
-    }>;
-    pricing: ReadonlyArray<{
-        tier: string;
-        male: string;
-        female: string;
-    }>;
-    footerNote: string;
-    ctaLabel: string;
-    ctaHref?: string;
-    headingTone?: ColorTone;  // default "green"
-    pricingTone?: ColorTone;  // default "red"
+const HEADING_TEXT: Record<PublicPackageTone, string> = {
+    GREEN: "text-brand-green",
+    RED: "text-brand-red",
+    BLUE: "text-brand-blue",
+    DARK: "text-brand-ink",
 };
 
-// Tailwind classes keyed by tone. Listed here so the JIT compiler can see
-// the full class strings — interpolating into `bg-${tone}-800` would not work.
-const HEADING_TEXT: Record<ColorTone, string> = {
-    green: "text-brand-green",
-    red: "text-brand-red",
-};
-const PRICING_HEADER_BG: Record<ColorTone, string> = {
-    red: "bg-brand-red",
-    green: "bg-brand-green",
-};
-const PRICING_TIER_BG: Record<ColorTone, string> = {
-    red: "bg-brand-red",
-    green: "bg-brand-green",
+const PRICING_HEADER_BG: Record<PublicPackageTone, string> = {
+    GREEN: "bg-brand-green",
+    RED: "bg-brand-red",
+    BLUE: "bg-brand-blue",
+    DARK: "bg-brand-ink",
 };
 
-export default function ScreeningPackage({
-                                             pkg,
-                                         }: {
-    pkg: ScreeningPackageData;
-}) {
-    const headingTone = pkg.headingTone ?? "green";
-    const pricingTone = pkg.pricingTone ?? "red";
+const PRICING_TIER_BG: Record<PublicPackageTone, string> = {
+    GREEN: "bg-brand-green",
+    RED: "bg-brand-red",
+    BLUE: "bg-brand-blue",
+    DARK: "bg-brand-ink",
+};
+
+// Custom markdown components — bold becomes a brand-green spotlight phrase.
+const markdownComponents = {
+    strong: ({ children }: { children?: React.ReactNode }) => (
+        <strong className="font-extrabold text-brand-green">{children}</strong>
+    ),
+    p: ({ children }: { children?: React.ReactNode }) => (
+        <p className="mt-6 text-sm leading-relaxed text-brand-ink sm:text-base">
+            {children}
+        </p>
+    ),
+};
+
+export default function ScreeningPackage({ pkg }: { pkg: PublicPackage }) {
+    const headingTone = pkg.headingTone;
+    const pricingTone = pkg.pricingTone;
+
+    // Lookup: cell by "tierId::inclusionId". Missing cells default to EXCLUDED.
+    const cellLookup = useMemo(() => {
+        const map: Record<string, { status: InclusionCellStatus; note: string }> = {};
+        for (const c of pkg.cells) {
+            map[`${c.tierId}::${c.inclusionId}`] = { status: c.status, note: c.note };
+        }
+        return map;
+    }, [pkg.cells]);
+
+    // Collect conditional notes with footnote numbers for display under the matrix.
+    const footnotes = useMemo(() => {
+        const seen = new Map<string, number>();
+        const list: { number: number; note: string }[] = [];
+        for (const inclusion of pkg.inclusions) {
+            for (const tier of pkg.tiers) {
+                const cell = cellLookup[`${tier.id}::${inclusion.id}`];
+                if (cell?.status === "CONDITIONAL" && cell.note) {
+                    if (!seen.has(cell.note)) {
+                        seen.set(cell.note, list.length + 1);
+                        list.push({ number: list.length + 1, note: cell.note });
+                    }
+                }
+            }
+        }
+        return { list, lookup: seen };
+    }, [pkg.cells, pkg.inclusions, pkg.tiers, cellLookup]);
 
     return (
         <section
@@ -64,16 +88,21 @@ export default function ScreeningPackage({
                         >
                             {pkg.headline}
                         </h2>
-                        <p className="mt-6 text-sm leading-relaxed text-brand-ink sm:text-base">
-                            {pkg.body}
-                        </p>
-                        <p className="mt-6 text-sm leading-relaxed text-brand-ink sm:text-base">
-                            <strong className="font-extrabold">Who this is for:</strong>{" "}
-                            {pkg.whoThisIsFor}
-                        </p>
 
-                        {/* Pricing table — header strip in darker tone, tier column */}
-                        {/* in brand tone. */}
+                        <div className="prose-sm max-w-none">
+                            <ReactMarkdown components={markdownComponents}>
+                                {pkg.description}
+                            </ReactMarkdown>
+                        </div>
+
+                        {pkg.targetAudience && (
+                            <p className="mt-6 text-sm leading-relaxed text-brand-ink sm:text-base">
+                                <strong className="font-extrabold">Who this is for:</strong>{" "}
+                                {pkg.targetAudience}
+                            </p>
+                        )}
+
+                        {/* Pricing table */}
                         <div className="mt-6 overflow-hidden rounded-lg text-sm">
                             <div
                                 className={`grid grid-cols-[2fr_1fr_1fr] text-white ${PRICING_HEADER_BG[pricingTone]}`}
@@ -82,40 +111,34 @@ export default function ScreeningPackage({
                                 <div className="px-4 py-3 font-extrabold">Male</div>
                                 <div className="px-4 py-3 font-extrabold">Female</div>
                             </div>
-                            {pkg.pricing.map((row) => (
+                            {pkg.tiers.map((tier) => (
                                 <div
-                                    key={row.tier}
+                                    key={tier.id}
                                     className="grid grid-cols-[2fr_1fr_1fr]"
                                 >
                                     <div
                                         className={`px-4 py-3 font-bold text-white ${PRICING_TIER_BG[pricingTone]}`}
                                     >
-                                        {row.tier}
+                                        {tier.name}
                                     </div>
                                     <div className="bg-white px-4 py-3 text-brand-ink">
-                                        {row.male}
+                                        {tier.priceMaleDisplay}
                                     </div>
                                     <div className="bg-white px-4 py-3 text-brand-ink">
-                                        {row.female}
+                                        {tier.priceFemaleDisplay}
                                     </div>
                                 </div>
                             ))}
                         </div>
 
-                        <p className="mt-6 text-sm leading-relaxed text-brand-ink sm:text-base">
-                            {pkg.footerNote}
-                        </p>
-
                         <div className="mt-8">
-                            <Button variant="primary" href={pkg.ctaHref ?? "/contact"}>
-                                {pkg.ctaLabel}
+                            <Button variant="primary" href="/contact">
+                                Book {pkg.name}
                             </Button>
                         </div>
                     </div>
 
-                    {/* Right column — comparison table. */}
-                    {/* overflow-x-auto so it scrolls horizontally on narrow viewports */}
-                    {/* where 6 columns can't fit. */}
+                    {/* Right column — comparison table */}
                     <div className="mt-12 lg:col-span-3 lg:mt-0">
                         <div className="overflow-x-auto overflow-hidden rounded-lg">
                             <table className="w-full border-collapse bg-brand-blue text-sm">
@@ -126,53 +149,94 @@ export default function ScreeningPackage({
                                     </th>
                                     {pkg.tiers.map((tier) => (
                                         <th
-                                            key={tier}
+                                            key={tier.id}
                                             className="whitespace-nowrap px-4 py-3 text-left font-extrabold"
                                         >
-                                            {tier}
+                                            {tier.name}
                                         </th>
                                     ))}
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {pkg.tests.map((test) => (
-                                    <tr key={test.name}>
+                                {pkg.inclusions.map((inclusion) => (
+                                    <tr key={inclusion.id}>
                                         <td className="px-4 py-3 text-xs text-white sm:text-sm">
-                                            {test.name}
+                                            {inclusion.label}
                                         </td>
-                                        {test.included.map((inc, i) => (
-                                            <td
-                                                key={i}
-                                                className="bg-white px-4 py-3 text-center"
-                                            >
-                                                {inc ? (
-                                                    <span
-                                                        className="inline-flex h-5 w-5 items-center justify-center rounded-[3px] bg-brand-green"
-                                                        aria-label="Included"
-                                                    >
-                              <Check
-                                  className="h-3.5 w-3.5 text-white"
-                                  strokeWidth={3}
-                              />
-                            </span>
-                                                ) : (
-                                                    <span
-                                                        className="inline-flex h-5 w-5 items-center justify-center rounded-[3px] bg-brand-red"
-                                                        aria-label="Not included"
-                                                    >
-                              <X
-                                  className="h-3.5 w-3.5 text-white"
-                                  strokeWidth={3}
-                              />
-                            </span>
-                                                )}
-                                            </td>
-                                        ))}
+                                        {pkg.tiers.map((tier) => {
+                                            const cell = cellLookup[
+                                                `${tier.id}::${inclusion.id}`
+                                                ];
+                                            const status = cell?.status ?? "EXCLUDED";
+                                            const note = cell?.note ?? "";
+                                            const footnoteNumber =
+                                                status === "CONDITIONAL" && note
+                                                    ? footnotes.lookup.get(note)
+                                                    : undefined;
+                                            return (
+                                                <td
+                                                    key={tier.id}
+                                                    className="bg-white px-4 py-3 text-center"
+                                                >
+                                                    {status === "INCLUDED" && (
+                                                        <span
+                                                            className="inline-flex h-5 w-5 items-center justify-center rounded-[3px] bg-brand-green"
+                                                            aria-label="Included"
+                                                        >
+                                <Check
+                                    className="h-3.5 w-3.5 text-white"
+                                    strokeWidth={3}
+                                />
+                              </span>
+                                                    )}
+                                                    {status === "EXCLUDED" && (
+                                                        <span
+                                                            className="inline-flex h-5 w-5 items-center justify-center rounded-[3px] bg-brand-red"
+                                                            aria-label="Not included"
+                                                        >
+                                <X
+                                    className="h-3.5 w-3.5 text-white"
+                                    strokeWidth={3}
+                                />
+                              </span>
+                                                    )}
+                                                    {status === "CONDITIONAL" && (
+                                                        <span className="inline-flex items-center gap-1">
+                                <span
+                                    className="inline-flex h-5 w-5 items-center justify-center rounded-[3px] bg-amber-400"
+                                    aria-label="Conditional"
+                                >
+                                  <Check
+                                      className="h-3.5 w-3.5 text-white"
+                                      strokeWidth={3}
+                                  />
+                                </span>
+                                                            {footnoteNumber && (
+                                                                <sup className="text-xs font-bold text-brand-ink">
+                                                                    {footnoteNumber}
+                                                                </sup>
+                                                            )}
+                              </span>
+                                                    )}
+                                                </td>
+                                            );
+                                        })}
                                     </tr>
                                 ))}
                                 </tbody>
                             </table>
                         </div>
+
+                        {footnotes.list.length > 0 && (
+                            <ul className="mt-4 space-y-1 text-xs text-brand-ink/80">
+                                {footnotes.list.map((f) => (
+                                    <li key={f.number}>
+                                        <sup className="font-bold">{f.number}</sup>{" "}
+                                        {f.note}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </div>
                 </div>
             </div>

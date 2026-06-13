@@ -713,3 +713,144 @@ export async function createProfileUpdateRequest(
     );
     return toPortalProfileUpdateRequest(data);
 }
+
+
+// ─── Public Packages ─────────────────────────────────────────
+
+export type PublicPackageTone = "GREEN" | "RED" | "BLUE" | "DARK";
+
+export type InclusionCellStatus = "INCLUDED" | "EXCLUDED" | "CONDITIONAL";
+
+export type PublicPackageTier = {
+    id: string;
+    name: string;
+    priceMaleDisplay: string;       // e.g. "₦50,000"
+    priceFemaleDisplay: string;
+    notes: string;
+};
+
+export type PublicPackageInclusion = {
+    id: string;
+    label: string;
+    description: string;
+};
+
+export type PublicPackageCell = {
+    tierId: string;
+    inclusionId: string;
+    status: InclusionCellStatus;
+    note: string;
+};
+
+export type PublicPackage = {
+    id: string;
+    slug: string;
+    name: string;
+    headline: string;
+    description: string;            // markdown
+    targetAudience: string;
+    headingTone: PublicPackageTone;
+    pricingTone: PublicPackageTone;
+    displayOrder: number;
+    tiers: PublicPackageTier[];
+    inclusions: PublicPackageInclusion[];
+    cells: PublicPackageCell[];
+};
+
+type PublicPackageResponse = {
+    id: number;
+    slug: string;
+    name: string;
+    headline: string | null;
+    description: string | null;
+    targetAudience: string | null;
+    departmentId: number | null;
+    departmentName: string | null;
+    displayOrder: number;
+    isActive: boolean;
+    headingTone: PublicPackageTone;
+    pricingTone: PublicPackageTone;
+    tiers: Array<{
+        id: number;
+        name: string;
+        inclusions: string;
+        priceMale: number;
+        priceFemale: number;
+        notes: string | null;
+        displayOrder: number;
+    }>;
+    inclusions: Array<{
+        id: number;
+        label: string;
+        description: string | null;
+        displayOrder: number;
+    }>;
+    cells: Array<{
+        tierId: number;
+        inclusionId: number;
+        status: InclusionCellStatus;
+        note: string | null;
+    }>;
+};
+
+// Format Naira amounts without trailing decimals when whole.
+function formatNaira(amount: number): string {
+    return `₦${amount.toLocaleString("en-NG")}`;
+}
+
+function toPublicPackage(p: PublicPackageResponse): PublicPackage {
+    const tiers = p.tiers
+        .slice()
+        .sort((a, b) => a.displayOrder - b.displayOrder)
+        .map<PublicPackageTier>((t) => ({
+            id: String(t.id),
+            name: t.name,
+            priceMaleDisplay: formatNaira(t.priceMale),
+            priceFemaleDisplay: formatNaira(t.priceFemale),
+            notes: t.notes ?? "",
+        }));
+
+    const inclusions = p.inclusions
+        .slice()
+        .sort((a, b) => a.displayOrder - b.displayOrder)
+        .map<PublicPackageInclusion>((i) => ({
+            id: String(i.id),
+            label: i.label,
+            description: i.description ?? "",
+        }));
+
+    const cells = p.cells.map<PublicPackageCell>((c) => ({
+        tierId: String(c.tierId),
+        inclusionId: String(c.inclusionId),
+        status: c.status,
+        note: c.note ?? "",
+    }));
+
+    return {
+        id: String(p.id),
+        slug: p.slug,
+        name: p.name,
+        headline: p.headline ?? p.name,
+        description: p.description ?? "",
+        targetAudience: p.targetAudience ?? "",
+        headingTone: p.headingTone,
+        pricingTone: p.pricingTone,
+        displayOrder: p.displayOrder,
+        tiers,
+        inclusions,
+        cells,
+    };
+}
+
+export async function fetchPublicPackages(): Promise<PublicPackage[]> {
+    const data = await api.get<PublicPackageResponse[]>("/packages");
+    return data
+        .filter((p) => p.isActive)
+        .sort((a, b) => a.displayOrder - b.displayOrder)
+        .map(toPublicPackage);
+}
+
+export async function fetchPublicPackage(slug: string): Promise<PublicPackage> {
+    const data = await api.get<PublicPackageResponse>(`/packages/${slug}`);
+    return toPublicPackage(data);
+}

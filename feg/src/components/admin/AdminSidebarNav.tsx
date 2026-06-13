@@ -8,6 +8,7 @@ const ITEMS = [
     { to: "/admin/feedback", label: "Feedback" },
     { to: "/admin/profile-update-requests", label: "Profile Update Requests" },
     { to: "/admin/blog-posts", label: "Blog Posts" },
+    {to: "/admin/packages", label: "Packages"}
 ];
 
 type Props = {
