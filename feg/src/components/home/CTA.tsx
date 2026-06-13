@@ -32,7 +32,7 @@ export function CTA() {
                         constant presence here at Grover&apos;s.
                     </p>
                     <div className="mt-8 flex justify-center">
-                        <Button href="/schedule" variant="primary">
+                        <Button href="/services" variant="primary">
                             View Full Schedule
                         </Button>
                     </div>

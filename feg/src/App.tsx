@@ -39,6 +39,7 @@ import AdminProfileUpdateRequests from "./components/admin/AdminProfileUpdateReq
 import AdminBlogPosts from "./components/admin/AdminBlogPosts.tsx";
 import AdminBlogPostEditor from "./components/admin/AdminBlogPostEditor.tsx";
 import { RequireAuth, RedirectIfAuthed } from "./components/auth/RequireAuth.tsx";
+import AdminPackages from "./components/admin/AdminPackages.tsx";
 
 export default function App() {
     return (
@@ -121,6 +122,7 @@ export default function App() {
                     <Route path="/admin/bookings/:id" element={<AdminBookingDetail />} />
                     <Route path="/admin/lab-results" element={<AdminLabResults />} />
                     <Route path="/admin/feedback" element={<AdminFeedback />} />
+                    <Route path={'/admin/packages'} element={<AdminPackages />} />
                     <Route
                         path="/admin/profile-update-requests"
                         element={<AdminProfileUpdateRequests />}

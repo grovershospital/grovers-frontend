@@ -85,7 +85,7 @@ export function Services() {
                     anytime you want.
                 </p>
                 <div className="mt-6 flex justify-center">
-                    <Button href="/book" variant="primary">
+                    <Button href="/patient-portal/login" variant="primary">
                         Book an Appointment
                     </Button>
                 </div>

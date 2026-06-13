@@ -2052,3 +2052,348 @@ const API_ORIGIN = "http://localhost:8080"
             updatedAtDisplay: p.updatedAtDisplay,
         };
     }
+
+// ─── Health Packages (admin) ─────────────────────────────────
+
+export type PackageTone = "Green" | "Red" | "Blue" | "Dark";
+
+type BackendTone = "GREEN" | "RED" | "BLUE" | "DARK";
+
+const TONE_FROM_BACKEND: Record<BackendTone, PackageTone> = {
+    GREEN: "Green",
+    RED: "Red",
+    BLUE: "Blue",
+    DARK: "Dark",
+};
+
+const TONE_TO_BACKEND: Record<PackageTone, BackendTone> = {
+    Green: "GREEN",
+    Red: "RED",
+    Blue: "BLUE",
+    Dark: "DARK",
+};
+
+// Fix the Dark mapping — kept correct here separately from the typo above.
+TONE_TO_BACKEND.Dark = "DARK";
+
+export const PACKAGE_TONES: ReadonlyArray<PackageTone> = ["Green", "Red", "Blue", "Dark"];
+
+export type InclusionStatus = "INCLUDED" | "EXCLUDED" | "CONDITIONAL";
+
+export type AdminPackageTier = {
+    id: string;
+    name: string;
+    priceMale: number;
+    priceFemale: number;
+    notes: string;
+    displayOrder: number;
+};
+
+export type AdminPackageInclusion = {
+    id: string;
+    label: string;
+    description: string;
+    displayOrder: number;
+};
+
+export type AdminPackageCell = {
+    tierId: string;
+    inclusionId: string;
+    status: InclusionStatus;
+    note: string;
+};
+
+export type AdminPackageSummary = {
+    id: string;
+    name: string;
+    slug: string;
+    departmentName: string;
+    isActive: boolean;
+    headingTone: PackageTone;
+    pricingTone: PackageTone;
+    displayOrder: number;
+    tierCount: number;
+    inclusionCount: number;
+};
+
+export type AdminPackage = AdminPackageSummary & {
+    description: string;
+    targetAudience: string;
+    departmentId: string | null;
+    tiers: AdminPackageTier[];
+    inclusions: AdminPackageInclusion[];
+    cells: AdminPackageCell[];
+};
+
+type AdminPackageTierResponse = {
+    id: number;
+    name: string;
+    inclusions: string;        // legacy field, ignored
+    priceMale: number;
+    priceFemale: number;
+    notes: string | null;
+    displayOrder: number;
+};
+
+type AdminPackageInclusionResponse = {
+    id: number;
+    label: string;
+    description: string | null;
+    displayOrder: number;
+};
+
+type AdminPackageCellResponse = {
+    tierId: number;
+    inclusionId: number;
+    status: InclusionStatus;
+    note: string | null;
+};
+
+type AdminPackageResponse = {
+    id: number;
+    name: string;
+    slug: string;
+    description: string | null;
+    targetAudience: string | null;
+    departmentId: number | null;
+    departmentName: string | null;
+    displayOrder: number;
+    isActive: boolean;
+    headingTone: BackendTone;
+    pricingTone: BackendTone;
+    tiers: AdminPackageTierResponse[];
+    inclusions: AdminPackageInclusionResponse[];
+    cells: AdminPackageCellResponse[];
+};
+
+function toAdminPackageTier(t: AdminPackageTierResponse): AdminPackageTier {
+    return {
+        id: String(t.id),
+        name: t.name,
+        priceMale: t.priceMale,
+        priceFemale: t.priceFemale,
+        notes: t.notes ?? "",
+        displayOrder: t.displayOrder,
+    };
+}
+
+function toAdminPackageInclusion(
+    i: AdminPackageInclusionResponse,
+): AdminPackageInclusion {
+    return {
+        id: String(i.id),
+        label: i.label,
+        description: i.description ?? "",
+        displayOrder: i.displayOrder,
+    };
+}
+
+function toAdminPackageCell(c: AdminPackageCellResponse): AdminPackageCell {
+    return {
+        tierId: String(c.tierId),
+        inclusionId: String(c.inclusionId),
+        status: c.status,
+        note: c.note ?? "",
+    };
+}
+
+function toAdminPackage(p: AdminPackageResponse): AdminPackage {
+    const tiers = p.tiers
+        .map(toAdminPackageTier)
+        .sort((a, b) => a.displayOrder - b.displayOrder);
+    const inclusions = p.inclusions
+        .map(toAdminPackageInclusion)
+        .sort((a, b) => a.displayOrder - b.displayOrder);
+    return {
+        id: String(p.id),
+        name: p.name,
+        slug: p.slug,
+        description: p.description ?? "",
+        targetAudience: p.targetAudience ?? "",
+        departmentId: p.departmentId ? String(p.departmentId) : null,
+        departmentName: p.departmentName ?? "—",
+        displayOrder: p.displayOrder,
+        isActive: p.isActive,
+        headingTone: TONE_FROM_BACKEND[p.headingTone] ?? "Green",
+        pricingTone: TONE_FROM_BACKEND[p.pricingTone] ?? "Green",
+        tiers,
+        inclusions,
+        cells: p.cells.map(toAdminPackageCell),
+        tierCount: tiers.length,
+        inclusionCount: inclusions.length,
+    };
+}
+
+function toAdminPackageSummary(p: AdminPackage): AdminPackageSummary {
+    return {
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        departmentName: p.departmentName,
+        isActive: p.isActive,
+        headingTone: p.headingTone,
+        pricingTone: p.pricingTone,
+        displayOrder: p.displayOrder,
+        tierCount: p.tierCount,
+        inclusionCount: p.inclusionCount,
+    };
+}
+
+export async function fetchAdminPackages(): Promise<AdminPackageSummary[]> {
+    const data = await api.get<AdminPackageResponse[]>("/admin/packages");
+    return data.map((p) => toAdminPackageSummary(toAdminPackage(p)));
+}
+
+export async function fetchAdminPackage(id: string): Promise<AdminPackage> {
+    const data = await api.get<AdminPackageResponse>(`/admin/packages/${id}`);
+    return toAdminPackage(data);
+}
+
+export type PackageInput = {
+    name: string;
+    description: string;
+    targetAudience: string;
+    departmentId: string | null;
+    displayOrder: number;
+    isActive: boolean;
+    headingTone: PackageTone;
+    pricingTone: PackageTone;
+};
+
+function packageInputToBody(input: PackageInput) {
+    return {
+        name: input.name,
+        description: input.description,
+        targetAudience: input.targetAudience,
+        departmentId: input.departmentId ? Number(input.departmentId) : null,
+        displayOrder: input.displayOrder,
+        isActive: input.isActive,
+        headingTone: TONE_TO_BACKEND[input.headingTone],
+        pricingTone: TONE_TO_BACKEND[input.pricingTone],
+    };
+}
+
+export async function createAdminPackage(
+    input: PackageInput,
+): Promise<AdminPackage> {
+    const data = await api.post<AdminPackageResponse>(
+        "/admin/packages",
+        packageInputToBody(input),
+    );
+    return toAdminPackage(data);
+}
+
+export async function updateAdminPackage(
+    id: string,
+    input: PackageInput,
+): Promise<AdminPackage> {
+    const data = await api.put<AdminPackageResponse>(
+        `/admin/packages/${id}`,
+        packageInputToBody(input),
+    );
+    return toAdminPackage(data);
+}
+
+export async function deleteAdminPackage(id: string): Promise<void> {
+    await api.delete<unknown>(`/admin/packages/${id}`);
+}
+
+// --- Tiers ---
+
+export type PackageTierInput = {
+    name: string;
+    priceMale: number;
+    priceFemale: number;
+    notes: string;
+    displayOrder: number;
+    isActive: boolean;
+};
+
+function tierInputToBody(input: PackageTierInput) {
+    return {
+        name: input.name,
+        // Legacy field; backend still expects it but we send empty.
+        inclusions: "",
+        priceMale: input.priceMale,
+        priceFemale: input.priceFemale,
+        notes: input.notes,
+        displayOrder: input.displayOrder,
+        isActive: input.isActive,
+    };
+}
+
+export async function createPackageTier(
+    packageId: string,
+    input: PackageTierInput,
+): Promise<AdminPackageTier> {
+    const data = await api.post<AdminPackageTierResponse>(
+        `/admin/packages/${packageId}/tiers`,
+        tierInputToBody(input),
+    );
+    return toAdminPackageTier(data);
+}
+
+export async function updatePackageTier(
+    tierId: string,
+    input: PackageTierInput,
+): Promise<AdminPackageTier> {
+    const data = await api.put<AdminPackageTierResponse>(
+        `/admin/packages/tiers/${tierId}`,
+        tierInputToBody(input),
+    );
+    return toAdminPackageTier(data);
+}
+
+export async function deletePackageTier(tierId: string): Promise<void> {
+    await api.delete<unknown>(`/admin/packages/tiers/${tierId}`);
+}
+
+// --- Inclusions ---
+
+export type PackageInclusionInput = {
+    label: string;
+    description: string;
+    displayOrder: number;
+};
+
+export async function createPackageInclusion(
+    packageId: string,
+    input: PackageInclusionInput,
+): Promise<AdminPackageInclusion> {
+    const data = await api.post<AdminPackageInclusionResponse>(
+        `/admin/packages/${packageId}/inclusions`,
+        input,
+    );
+    return toAdminPackageInclusion(data);
+}
+
+export async function updatePackageInclusion(
+    inclusionId: string,
+    input: PackageInclusionInput,
+): Promise<AdminPackageInclusion> {
+    const data = await api.put<AdminPackageInclusionResponse>(
+        `/admin/packages/inclusions/${inclusionId}`,
+        input,
+    );
+    return toAdminPackageInclusion(data);
+}
+
+export async function deletePackageInclusion(inclusionId: string): Promise<void> {
+    await api.delete<unknown>(`/admin/packages/inclusions/${inclusionId}`);
+}
+
+// --- Cells (matrix) ---
+
+export async function savePackageCells(
+    packageId: string,
+    cells: AdminPackageCell[],
+): Promise<void> {
+    await api.put<unknown>(`/admin/packages/${packageId}/cells`, {
+        cells: cells.map((c) => ({
+            tierId: Number(c.tierId),
+            inclusionId: Number(c.inclusionId),
+            status: c.status,
+            note: c.note || null,
+        })),
+    });
+}
