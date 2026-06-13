@@ -7,6 +7,7 @@ import BookingDetailsCard from "../../components/admin/BookingDetailsCard";
 import BookingNotesCard from "../../components/admin/BookingNotesCard";
 import BookingActivityCard from "../../components/admin/BookingActivityCard";
 import BookingStatusActions from "../../components/admin/BookingStatusActions";
+import { toast } from "sonner";
 import {
     fetchAdminBookingActivity,
     fetchAdminBookingDetail,
@@ -63,14 +64,20 @@ export default function AdminBookingDetail() {
                 navigate(`/admin/visits/${result.visitId}/edit`);
             }
         } catch {
-            window.alert("Could not update the booking status. Please try again.");
+            toast.error("Could not update the booking status. Please try again.");
         }
     }
 
     async function handleSaveNotes(notes: string) {
         if (!booking) return;
-        const updated = await updateBookingNotes(booking.id, notes);
-        setBooking(updated);
+        try {
+            const updated = await updateBookingNotes(booking.id, notes);
+            setBooking(updated);
+            toast.success("Notes saved.");
+        } catch {
+            toast.error("Could not save the notes. Please try again.");
+            throw new Error("notes save failed");  // surface to BookingNotesCard
+        }
     }
 
     if (error) {

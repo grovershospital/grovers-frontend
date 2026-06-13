@@ -41,6 +41,7 @@ import AdminBlogPostEditor from "./components/admin/AdminBlogPostEditor.tsx";
 import {RequireAuth, RedirectIfAuthed} from "./components/auth/RequireAuth.tsx";
 import AdminPackages from "./components/admin/AdminPackages.tsx";
 import AdminPackageEditor from "./components/admin/AdminPackageEditor.tsx";
+import { Toaster } from "sonner";
 
 export default function App() {
     return (
@@ -154,6 +155,8 @@ export default function App() {
                     <Route path="/admin/visits/:visitId/edit" element={<AdminVisitEdit/>}/>
                 </Route>
             </Routes>
+
+            <Toaster position="top-right" richColors closeButton />
         </>
     );
 }
