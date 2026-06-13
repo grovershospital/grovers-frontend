@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import Modal from "../../ui/Modal";
 import type { AdminMedication, MedicationInput } from "../../data/admin";
+import {toast} from "sonner";
 
 type Props = {
     open: boolean;
@@ -81,7 +82,7 @@ export default function MedicationFormModal({
             await onSubmit(form);
             onClose();
         } catch {
-            setError("Could not save the medication. Please try again.");
+            toast.error("Could not save the medication. Please try again.");
         } finally {
             setSubmitting(false);
         }

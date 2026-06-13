@@ -47,14 +47,21 @@ export default function MedicationsTab() {
     }
 
     async function handleSubmit(input: MedicationInput) {
-        if (editing) {
-            const updated = await updateAdminMedication(editing.id, input);
-            setMedications((list) =>
-                list.map((m) => (m.id === updated.id ? updated : m)),
-            );
-        } else {
-            const created = await createAdminMedication(patient.id, input);
-            setMedications((list) => [...list, created]);
+        try {
+            if (editing) {
+                const updated = await updateAdminMedication(editing.id, input);
+                setMedications((list) =>
+                    list.map((m) => (m.id === updated.id ? updated : m)),
+                );
+                toast.success("Medication updated.");
+            } else {
+                const created = await createAdminMedication(patient.id, input);
+                setMedications((list) => [...list, created]);
+                toast.success("Medication added.");
+            }
+        } catch {
+            toast.error("Could not save the medication.");
+            throw new Error("medication save failed");  // keep modal open
         }
     }
 

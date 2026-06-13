@@ -6,6 +6,7 @@ import type {
     ChronicConditionStatus,
     ConditionInput,
 } from "../../data/admin";
+import {toast} from "sonner";
 
 type Props = {
     open: boolean;
@@ -36,7 +37,6 @@ export default function ConditionFormModal({
                                            }: Props) {
     const [form, setForm] = useState<ConditionInput>(EMPTY);
     const [submitting, setSubmitting] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (open) {
@@ -51,7 +51,6 @@ export default function ConditionFormModal({
                     }
                     : EMPTY,
             );
-            setError(null);
         }
     }, [open, condition]);
 
@@ -64,10 +63,9 @@ export default function ConditionFormModal({
 
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        setError(null);
 
         if (!form.name.trim()) {
-            setError("Condition name is required.");
+            toast.error("Condition name is required.");
             return;
         }
 
@@ -76,7 +74,7 @@ export default function ConditionFormModal({
             await onSubmit(form);
             onClose();
         } catch {
-            setError("Could not save the condition. Please try again.");
+            toast.error("Could not save the condition. Please try again.");
         } finally {
             setSubmitting(false);
         }
@@ -157,12 +155,6 @@ export default function ConditionFormModal({
                         className={inputClass}
                     />
                 </Field>
-
-                {error && (
-                    <p className="text-sm text-brand-red" role="alert">
-                        {error}
-                    </p>
-                )}
 
                 <div className="flex flex-wrap justify-end gap-3 pt-2">
                     <button
