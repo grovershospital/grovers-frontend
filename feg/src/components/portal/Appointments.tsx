@@ -10,7 +10,7 @@ import {
     fetchPastAppointments,
     type Appointment,
 } from "../../data/portal";
-import {toast} from "sonner";
+import { toast } from "sonner";
 
 export default function Appointments() {
     const [upcoming, setUpcoming] = useState<ReadonlyArray<Appointment>>([]);
@@ -44,11 +44,6 @@ export default function Appointments() {
         };
     }, []);
 
-    function handleReschedule(a: Appointment) {
-        // TODO: open reschedule modal / inline date-time picker
-        console.log("reschedule", a);
-    }
-
     function loadUpcoming() {
         setLoadingUpcoming(true);
         return fetchUpcomingAppointments()
@@ -56,29 +51,9 @@ export default function Appointments() {
             .finally(() => setLoadingUpcoming(false));
     }
 
-    useEffect(() => {
-        let alive = true;
-
-        fetchUpcomingAppointments()
-            .then((data) => {
-                if (alive) setUpcoming(data);
-            })
-            .finally(() => {
-                if (alive) setLoadingUpcoming(false);
-            });
-
-        fetchPastAppointments()
-            .then((data) => {
-                if (alive) setPast(data);
-            })
-            .finally(() => {
-                if (alive) setLoadingPast(false);
-            });
-
-        return () => {
-            alive = false;
-        };
-    }, []);
+    function handleReschedule(a: Appointment) {
+        formRef.current?.prefillForReschedule(a);
+    }
 
     async function handleCancel(a: Appointment) {
         const ok = window.confirm(
@@ -86,12 +61,11 @@ export default function Appointments() {
         );
         if (!ok) return;
 
-        // Optimistic removal — restore on failure.
         const prev = upcoming;
         setUpcoming((list) => list.filter((x) => x.id !== a.id));
         try {
             await cancelAppointment(a.id);
-            toast.success("Appointment cancelled");
+            toast.success("Appointment cancelled.");
         } catch {
             setUpcoming(prev);
             toast.error("Could not cancel. Please try again.");
@@ -124,7 +98,7 @@ export default function Appointments() {
                 action={{ kind: "past", onRebook: handleRebook }}
             />
 
-            <BookAppointmentForm ref={formRef} onCreated={loadUpcoming}/>
+            <BookAppointmentForm ref={formRef} onCreated={loadUpcoming} />
         </>
     );
 }

@@ -211,8 +211,11 @@ const STATUS_MAP: Record<string, AppointmentStatus> = {
 export type Appointment = {
     id: string;
     date: string;
+    preferredDateIso: string;
     department: string;
+    departmentId: string | null;
     status: AppointmentStatus;
+    notes: string;
 };
 
 // Departments — kept for the booking form's dropdown. TODO (integration):
@@ -272,6 +275,7 @@ function toAppointment(b: BookingResponse): Appointment {
     return {
         id: String(b.id),
         date: formatDateShort(b.preferredDate),
+        preferredDateIso: b.preferredDate,
         // Backend has no time field on bookings. We display blank until admin
         // confirms with a specific time. When that flow exists, swap this for
         // the confirmed time field.
@@ -279,7 +283,9 @@ function toAppointment(b: BookingResponse): Appointment {
             b.departmentName ??
             b.packageName ??
             "Booking",
+        departmentId: b.departmentId ? String(b.departmentId) : null,
         status: STATUS_MAP[b.status] ?? "Pending",
+        notes: b.notes ?? ""
     };
 }
 

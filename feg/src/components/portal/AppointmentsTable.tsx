@@ -67,14 +67,20 @@ export default function AppointmentsTable({ title, appointments, action, loading
                                             <button
                                                 type="button"
                                                 onClick={() => action.onReschedule(a)}
-                                                className="text-left text-sm text-brand-ink underline underline-offset-2 hover:no-underline"
+                                                disabled={a.status === "Confirmed"}
+                                                title={
+                                                    a.status === "Confirmed"
+                                                        ? "Confirmed appointments can't be rescheduled. Cancel and rebook to change the date."
+                                                        : undefined
+                                                }
+                                                className="text-left text-sm cursor-pointer text-brand-ink underline underline-offset-2 hover:no-underline disabled:cursor-not-allowed disabled:text-neutral-400 disabled:no-underline"
                                             >
                                                 Reschedule
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={() => action.onCancel(a)}
-                                                className="text-left text-sm text-brand-ink underline underline-offset-2 hover:no-underline"
+                                                className="text-left text-sm cursor-pointer text-brand-ink underline underline-offset-2 hover:no-underline"
                                             >
                                                 Cancel
                                             </button>
