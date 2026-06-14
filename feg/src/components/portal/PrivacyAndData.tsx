@@ -1,6 +1,7 @@
 import {useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import {requestDataDownload} from "../../data/portal.ts";
+import {toast} from "sonner";
 
 export default function PrivacyAndData() {
     const navigate = useNavigate();
@@ -15,11 +16,12 @@ export default function PrivacyAndData() {
         setDownloading(true);
         try {
             await requestDataDownload();
+            toast.success("Data export requested. You'll receive an email shortly")
             setDownloadMessage(
                 "We've started preparing your data. You'll receive an email with a download link shortly.",
             );
         } catch {
-            setError("Could not request your data. Please try again.");
+            toast.error("Could not request your data. Please try again.");
         } finally {
             setDownloading(false);
         }

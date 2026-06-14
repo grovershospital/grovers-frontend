@@ -8,6 +8,7 @@ import {
     type ContactMethod,
     type FeedbackType,
 } from "../../data/portal";
+import {toast} from "sonner";
 
 const MAX_MESSAGE_LENGTH = 500;
 
@@ -20,22 +21,17 @@ export default function FeedbackForm() {
     const [hoverRating, setHoverRating] = useState(0);
 
     const [submitting, setSubmitting] = useState(false);
-    const [success, setSuccess] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
     const displayRating = hoverRating || rating;
 
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        setError(null);
-        setSuccess(false);
 
         if (!type || !wantsResponse) {
-            setError("Please fill out all required fields.");
+            toast.error("Please fill out all required fields.");
             return;
         }
         if (rating === 0) {
-            setError("Please rate your experience.");
+            toast.error("Please rate your experience.");
             return;
         }
 
@@ -48,14 +44,14 @@ export default function FeedbackForm() {
                 contactMethod,
                 rating,
             });
-            setSuccess(true);
+            toast.success("Thanks for your feedback.")
             setType("");
             setMessage("");
             setWantsResponse("");
             setContactMethod("None");
             setRating(0);
         } catch {
-            setError("Could not submit your feedback. Please try again.");
+            toast.error("Could not submit your feedback. Please try again.");
         } finally {
             setSubmitting(false);
         }
@@ -198,17 +194,6 @@ export default function FeedbackForm() {
                         {submitting ? "Submitting…" : "Submit Feedback"}
                     </button>
                 </div>
-
-                {error && (
-                    <p className="text-sm text-brand-red" role="alert">
-                        {error}
-                    </p>
-                )}
-                {success && (
-                    <p className="text-sm text-brand-green" role="status">
-                        Thank you for your feedback. Our management team will review it.
-                    </p>
-                )}
             </form>
         </section>
     );

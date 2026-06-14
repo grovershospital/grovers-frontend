@@ -1,6 +1,7 @@
 import {useState} from "react";
 import type {FormEvent} from "react";
 import {updateContactDetails, type PortalProfile} from "../../data/portal";
+import {toast} from "sonner";
 
 type Props = {
     profile: PortalProfile;
@@ -13,20 +14,16 @@ export default function ContactDetailsForm({profile, onUpdated}: Props) {
     const [whatsapp, setWhatsapp] = useState(profile.whatsapp);
 
     const [submitting, setSubmitting] = useState(false);
-    const [success, setSuccess] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        setError(null);
-        setSuccess(false);
         setSubmitting(true);
         try {
             const updated = await updateContactDetails({email, phone, whatsapp});
             onUpdated(updated);
-            setSuccess(true);
+            toast.success("Contact saved.");
         } catch {
-            setError("Could not save your changes. Please try again.");
+            toast.error("Could not save your changes. Please try again.");
         } finally {
             setSubmitting(false);
         }
@@ -82,17 +79,6 @@ export default function ContactDetailsForm({profile, onUpdated}: Props) {
                         {submitting ? "Saving…" : "Save Changes"}
                     </button>
                 </div>
-
-                {error && (
-                    <p className="text-sm text-brand-red" role="alert">
-                        {error}
-                    </p>
-                )}
-                {success && (
-                    <p className="text-sm text-brand-green" role="status">
-                        Your contact details have been updated.
-                    </p>
-                )}
             </form>
         </section>
     );

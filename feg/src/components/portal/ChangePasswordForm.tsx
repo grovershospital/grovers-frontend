@@ -1,6 +1,7 @@
 import {useState} from "react";
 import type {FormEvent} from "react";
 import {updatePassword} from "../../data/portal";
+import {toast} from "sonner";
 
 export default function ChangePasswordForm() {
     const [currentPassword, setCurrentPassword] = useState("");
@@ -32,12 +33,12 @@ export default function ChangePasswordForm() {
         setSubmitting(true);
         try {
             await updatePassword({currentPassword, newPassword});
-            setSuccess(true);
+            toast.success("Password changed")
             setCurrentPassword("");
             setNewPassword("");
             setConfirmPassword("");
         } catch {
-            setError("Could not update your password. Please try again.");
+            toast.error("Could not update your password. Please try again.");
         } finally {
             setSubmitting(false);
         }
