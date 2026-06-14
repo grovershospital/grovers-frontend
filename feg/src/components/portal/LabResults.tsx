@@ -9,6 +9,7 @@ import {
     type LabResult,
     type LabResultDetail,
 } from "../../data/portal";
+import {toast} from "sonner";
 
 export default function LabResults() {
     const [results, setResults] = useState<ReadonlyArray<LabResult>>([]);
@@ -64,9 +65,12 @@ export default function LabResults() {
         };
     }, [selectedId]);
 
-    function handleDownload(id: string) {
-        // TODO: surface success/error toast once we have one
-        downloadLabResultPDF(id);
+    async function handleDownload(id: string) {
+        try {
+            await downloadLabResultPDF(id);
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Could not download this result.");
+        }
     }
 
     return (

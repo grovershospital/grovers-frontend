@@ -10,6 +10,7 @@ import {
     fetchPastAppointments,
     type Appointment,
 } from "../../data/portal";
+import {toast} from "sonner";
 
 export default function Appointments() {
     const [upcoming, setUpcoming] = useState<ReadonlyArray<Appointment>>([]);
@@ -90,9 +91,10 @@ export default function Appointments() {
         setUpcoming((list) => list.filter((x) => x.id !== a.id));
         try {
             await cancelAppointment(a.id);
+            toast.success("Appointment cancelled");
         } catch {
             setUpcoming(prev);
-            window.alert("Could not cancel. Please try again.");
+            toast.error("Could not cancel. Please try again.");
         }
     }
 

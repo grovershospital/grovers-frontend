@@ -12,6 +12,7 @@ import {
     type BookingType,
     type Department,
 } from "../../data/portal";
+import {toast} from "sonner";
 
 export type BookAppointmentFormHandle = {
     /** Pre-fills department + scrolls the form into view. */
@@ -106,11 +107,11 @@ const BookAppointmentForm = forwardRef<BookAppointmentFormHandle, Props>(functio
         }
 
         if (!departmentId) {
-            setError("Please choose a department.");
+            toast.error("Please choose a department.");
             return;
         }
         if (!date) {
-            setError("Please choose a date.");
+            toast.error("Please choose a date.");
             return;
         }
 
@@ -122,6 +123,7 @@ const BookAppointmentForm = forwardRef<BookAppointmentFormHandle, Props>(functio
                 preferredDate: date,
                 notes: notes || undefined,
             });
+            toast.success("Booking submitted. We'll confirm shortly.")
             setSuccess(true);
             setDepartmentId("");
             setDate("");
@@ -132,7 +134,7 @@ const BookAppointmentForm = forwardRef<BookAppointmentFormHandle, Props>(functio
                 block: "start"
             })
         } catch (err) {
-            setError(
+            toast.error(
                 err instanceof Error
                     ? err.message
                     : "Could not submit your request. Please try again.",
