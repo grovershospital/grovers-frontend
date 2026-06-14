@@ -9,6 +9,7 @@ import {
     rejectProfileUpdateRequest,
     type ProfileUpdateRequest,
 } from "../../data/admin";
+import {toast} from "sonner";
 
 type Props = {
     open: boolean;
@@ -47,8 +48,9 @@ export default function ProfileUpdateDetailModal({
             const updated = await approveProfileUpdateRequest(req.id, response);
             onDecided(updated);
             onClose();
+            toast.success("Request approved.")
         } catch {
-            setError("Could not approve this request. Please try again.");
+            toast.error("Could not approve this request. Please try again.");
         } finally {
             setBusy(false);
         }
@@ -62,8 +64,9 @@ export default function ProfileUpdateDetailModal({
             const updated = await rejectProfileUpdateRequest(req.id, response);
             onDecided(updated);
             onClose();
+            toast.success("Request rejected.")
         } catch {
-            setError("Could not reject this request. Please try again.");
+            toast.error("Could not reject this request. Please try again.");
         } finally {
             setBusy(false);
         }
@@ -174,12 +177,6 @@ export default function ProfileUpdateDetailModal({
                                     className="w-full resize-y rounded-2xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
                                 />
                             </div>
-
-                            {error && (
-                                <p className="text-sm text-brand-red" role="alert">
-                                    {error}
-                                </p>
-                            )}
 
                             <div className="flex flex-wrap justify-end gap-3">
                                 <button

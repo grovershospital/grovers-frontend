@@ -29,6 +29,7 @@ import {
     type PackageTone,
 } from "../../data/admin";
 import {type Department, fetchDepartments} from '../../data/portal'
+import {toast} from 'sonner';
 
 type Tab = "details" | "tiers" | "inclusions" | "matrix";
 
@@ -119,7 +120,7 @@ export default function AdminPackageEditor() {
                 navigate(`/admin/packages/${created.id}/edit`, { replace: true });
             }
         } catch {
-            setError("Could not save the package. Please try again.");
+            toast.error("Could not save the package. Please try again.");
         } finally {
             setSubmitting(false);
         }
@@ -138,7 +139,7 @@ export default function AdminPackageEditor() {
             await deleteAdminPackage(routeId);
             navigate("/admin/packages");
         } catch {
-            setError("Could not delete the package. Please try again.");
+            toast.error("Could not delete the package. Please try again.");
             setSubmitting(false);
         }
     }
@@ -178,9 +179,10 @@ export default function AdminPackageEditor() {
         });
         try {
             await deletePackageTier(tier.id);
+            toast.success("Tier deleted")
         } catch {
             setPkg(prev);
-            window.alert("Could not delete the tier.");
+            toast.error("Could not delete the tier")
         }
     }
 
@@ -222,16 +224,23 @@ export default function AdminPackageEditor() {
         });
         try {
             await deletePackageInclusion(inclusion.id);
+            toast.success("Inclusion deleted")
         } catch {
             setPkg(prev);
-            window.alert("Could not delete the inclusion.");
+            toast.error("Could not delete the inclusion.");
         }
     }
 
     async function handleMatrixSave(cells: AdminPackageCell[]) {
         if (!pkg) return;
-        await savePackageCells(pkg.id, cells);
-        setPkg({ ...pkg, cells });
+        try {
+            await savePackageCells(pkg.id, cells);
+            setPkg({ ...pkg, cells });
+            toast.success("Matrix saved.");
+        } catch {
+            toast.error("Could not save the matrix.");
+            throw new Error("matrix save failed");  // so the matrix component re-enables save button
+        }
     }
 
     if (loading) {
@@ -452,17 +461,6 @@ export default function AdminPackageEditor() {
                         />
                         Active — shown on the public Packages page
                     </label>
-
-                    {error && (
-                        <p className="text-sm text-brand-red" role="alert">
-                            {error}
-                        </p>
-                    )}
-                    {success && (
-                        <p className="text-sm text-brand-green" role="status">
-                            Saved.
-                        </p>
-                    )}
 
                     <div className="flex justify-end">
                         <button

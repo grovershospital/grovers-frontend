@@ -6,6 +6,7 @@ import {
     fetchAdminPackages,
     type AdminPackageSummary,
 } from "../../data/admin";
+import {toast} from "sonner";
 
 export default function AdminPackages() {
     const navigate = useNavigate();
@@ -38,9 +39,10 @@ export default function AdminPackages() {
         setPackages((list) => list.filter((p) => p.id !== pkg.id));
         try {
             await deleteAdminPackage(pkg.id);
+            toast.success("Package deleted")
         } catch {
             setPackages(prev);
-            window.alert("Could not delete the package. Please try again.");
+            toast.error("Could not delete the package. Please try again.");
         }
     }
 

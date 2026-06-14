@@ -6,6 +6,7 @@ import type {
     AdminPackageTier,
     InclusionStatus,
 } from "../../data/admin";
+import {toast} from "sonner";
 
 type Props = {
     tiers: AdminPackageTier[];
@@ -35,7 +36,6 @@ export default function PackageInclusionMatrix({
     const [cellMap, setCellMap] = useState<Record<string, AdminPackageCell>>({});
     const [originalKey, setOriginalKey] = useState("");
     const [saving, setSaving] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const next: Record<string, AdminPackageCell> = {};
@@ -85,13 +85,12 @@ export default function PackageInclusionMatrix({
     }
 
     async function handleSave() {
-        setError(null);
         setSaving(true);
         try {
             await onSave(Object.values(cellMap));
             setOriginalKey(JSON.stringify(cellMap));
         } catch {
-            setError("Could not save the matrix. Please try again.");
+            toast.error("Could not save the matrix. Please try again.");
         } finally {
             setSaving(false);
         }
@@ -121,12 +120,6 @@ export default function PackageInclusionMatrix({
                     {saving ? "Saving…" : "Save matrix"}
                 </button>
             </div>
-
-            {error && (
-                <p className="text-sm text-brand-red" role="alert">
-                    {error}
-                </p>
-            )}
 
             <div className="overflow-x-auto rounded-2xl border border-neutral-200 bg-white">
                 <table className="w-full border-collapse">

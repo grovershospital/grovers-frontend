@@ -17,6 +17,7 @@ import {
     type BlogPostInput,
     type BlogPostStatus,
 } from "../../data/admin";
+import {toast} from 'sonner';
 
 const EMPTY: BlogPostInput = {
     title: "",
@@ -118,13 +119,13 @@ export default function AdminBlogPostEditor() {
                     loaded.status,
                 );
                 syncFromServer(updated);
-                setSuccess(true);
+                toast.success("Post saved.")
             } else {
                 const created = await createAdminBlogPost(form);
                 navigate(`/admin/blog-posts/${created.id}/edit`, { replace: true });
             }
         } catch (err) {
-            setError(
+            toast.error(
                 err instanceof Error
                     ? err.message
                     : "Could not save the post. Please try again.",
