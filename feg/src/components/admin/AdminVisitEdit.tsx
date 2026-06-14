@@ -9,6 +9,7 @@ import {
     type AdminVisitDetail,
     type VisitUpdateInput,
 } from "../../data/admin";
+import {toast} from 'sonner';
 
 export default function AdminVisitEdit() {
     const { visitId } = useParams<{ visitId: string }>();
@@ -47,15 +48,14 @@ export default function AdminVisitEdit() {
 
     async function persist(updates: VisitUpdateInput) {
         if (!visit) return;
-        setError(null);
         setSubmitting(true);
         try {
             const updated = await updateAdminVisit(visit.id, updates);
             setVisit(updated);
             setForm(formFromDetail(updated));
-            setSuccess(true);
+            toast.success("Visit saved.");
         } catch {
-            setError("Could not save the visit. Please try again.");
+            toast.error("Could not save the visit.");
         } finally {
             setSubmitting(false);
         }
@@ -71,22 +71,22 @@ export default function AdminVisitEdit() {
         if (!form) return;
 
         if (!form.chiefComplaint.trim()) {
-            setError("Add a chief complaint before marking this visit as completed.");
+            toast.error("Add a chief complaint before marking this visit as completed.");
             return;
         }
         if (!form.diagnosis.trim()) {
-            setError("Add a diagnosis before marking this visit as completed.");
+            toast.error("Add a diagnosis before marking this visit as completed.");
             return;
         }
         if (!form.treatment.trim()) {
-            setError("Add a treatment before marking this visit as completed.");
+            toast.error("Add a treatment before marking this visit as completed.");
             return;
         }
 
         await persist(form);
     }
 
-    if (error && !visit) {
+    if (!visit) {
         return (
             <>
                 <BackLink patientId={null} />
@@ -224,17 +224,6 @@ export default function AdminVisitEdit() {
                         )}
                     </div>
                 </FieldGroup>
-
-                {error && (
-                    <p className="text-sm text-brand-red" role="alert">
-                        {error}
-                    </p>
-                )}
-                {success && (
-                    <p className="text-sm text-brand-green" role="status">
-                        Visit saved.
-                    </p>
-                )}
 
                 <div className="flex flex-wrap items-center justify-between gap-4 border-t border-neutral-200 pt-6">
                     <button

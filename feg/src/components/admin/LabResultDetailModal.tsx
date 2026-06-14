@@ -9,6 +9,7 @@ import {
     type AdminLabResultDetail,
     type AdminLabResultStatus,
 } from "../../data/admin";
+import {toast} from 'sonner';
 
 type Props = {
     open: boolean;
@@ -54,7 +55,7 @@ export default function LabResultDetailModal({
             setDetail(updated);
             onStatusChanged(detail.id, updated.status);
         } catch {
-            window.alert("Could not notify the patient. Please try again.");
+            toast.error("Could not notify the patient.");
         } finally {
             setBusy(false);
         }
@@ -64,7 +65,7 @@ export default function LabResultDetailModal({
         try {
             await downloadLabResultFile(detail!.id, fileId, filename);
         } catch {
-            window.alert("Could not download this file. Please try again.");
+            toast.error("Could not download this file. Please try again.");
         }
     }
 

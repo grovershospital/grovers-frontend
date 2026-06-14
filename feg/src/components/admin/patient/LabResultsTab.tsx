@@ -41,9 +41,9 @@ export default function LabResultsTab() {
     }, [patient.id]);
 
     function handleCreated(resultId: string) {
-        // Refresh list + jump straight into the detail modal for the new result.
         loadResults();
         setDetailResultId(resultId);
+        toast.success("Lab result uploaded.");
     }
 
     function handleStatusChanged(resultId: string, newStatus: AdminLabResultStatus) {
