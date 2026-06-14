@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Download, Plus, Trash2 } from "lucide-react";
+import { Download, Plus, Trash2, ChevronDown } from "lucide-react";
 import DocumentUploadModal from "../../../components/admin/DocumentUploadModal";
 import { useAdminPatient } from "../../../contexts/AdminPatientContext";
 import {
@@ -107,13 +107,13 @@ export default function DocumentsTab() {
                 </button>
             </div>
 
-            <div className="mb-6">
+            <div className="mb-6 relative inline-block">
                 <select
                     value={categoryFilter}
                     onChange={(e) =>
                         setCategoryFilter(e.target.value as DocumentCategory | "all")
                     }
-                    className="rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+                    className="appearance-none rounded-full border border-neutral-300 bg-white pl-4 cursor-pointer px-8 py-2 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
                 >
                     <option value="all">All categories</option>
                     {DOCUMENT_CATEGORIES.map((c) => (
@@ -122,6 +122,10 @@ export default function DocumentsTab() {
                         </option>
                     ))}
                 </select>
+                <ChevronDown
+                    className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500"
+                    strokeWidth={2}
+                />
             </div>
 
             {loading ? (

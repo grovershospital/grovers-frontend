@@ -9,6 +9,7 @@ import {
     type Genotype,
 } from "../../../data/admin";
 import {toast} from 'sonner';
+import {ChevronDown} from "lucide-react";
 
 const BLOOD_GROUPS: ReadonlyArray<BloodGroup> = [
     "Unknown",
@@ -73,37 +74,49 @@ export default function HealthProfileTab() {
             <FieldGroup title="Vitals">
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                     <Field label="Blood Group" htmlFor="hp-blood">
-                        <select
-                            id="hp-blood"
-                            value={profile.bloodGroup}
-                            onChange={(e) =>
-                                update("bloodGroup", e.target.value as BloodGroup)
-                            }
-                            className={inputClass}
-                        >
-                            {BLOOD_GROUPS.map((g) => (
-                                <option key={g} value={g}>
-                                    {g}
-                                </option>
-                            ))}
-                        </select>
+                        <div className="relative">
+                            <select
+                                id="hp-blood"
+                                value={profile.bloodGroup}
+                                onChange={(e) =>
+                                    update("bloodGroup", e.target.value as BloodGroup)
+                                }
+                                className={`${inputClass} appearance-none pr-10`}
+                            >
+                                {BLOOD_GROUPS.map((g) => (
+                                    <option key={g} value={g}>
+                                        {g}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown
+                                className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500"
+                                strokeWidth={2}
+                            />
+                        </div>
                     </Field>
 
                     <Field label="Genotype" htmlFor="hp-genotype">
-                        <select
-                            id="hp-genotype"
-                            value={profile.genotype}
-                            onChange={(e) =>
-                                update("genotype", e.target.value as Genotype)
-                            }
-                            className={inputClass}
-                        >
-                            {GENOTYPES.map((g) => (
-                                <option key={g} value={g}>
-                                    {g}
-                                </option>
-                            ))}
-                        </select>
+                        <div className="relative">
+                            <select
+                                id="hp-genotype"
+                                value={profile.genotype}
+                                onChange={(e) =>
+                                    update("genotype", e.target.value as Genotype)
+                                }
+                                className={`${inputClass} appearance-none pr-10`}
+                            >
+                                {GENOTYPES.map((g) => (
+                                    <option key={g} value={g}>
+                                        {g}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown
+                                className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500"
+                                strokeWidth={2}
+                            />
+                        </div>
                     </Field>
 
                     <Field label="Height (cm)" htmlFor="hp-height">

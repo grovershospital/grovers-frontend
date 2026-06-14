@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { Search, ChevronDown } from "lucide-react";
 import type {
     AdminBookingFilters,
     AdminBookingStatus,
@@ -43,35 +43,47 @@ export default function BookingsFilters({ filters, onChange }: Props) {
                 />
             </div>
 
-            <select
-                value={filters.status ?? "all"}
-                onChange={(e) =>
-                    update("status", e.target.value as AdminBookingStatus | "all")
-                }
-                className="rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
-            >
-                <option value="all">All statuses</option>
-                {STATUSES.map((s) => (
-                    <option key={s} value={s}>
-                        {s}
-                    </option>
-                ))}
-            </select>
+            <div className="relative">
+                <select
+                    value={filters.status ?? "all"}
+                    onChange={(e) =>
+                        update("status", e.target.value as AdminBookingStatus | "all")
+                    }
+                    className="w-full appearance-none cursor-pointer rounded-full border border-neutral-300 bg-white py-2 pl-4 pr-10 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+                >
+                    <option value="all">All statuses</option>
+                    {STATUSES.map((s) => (
+                        <option key={s} value={s}>
+                            {s}
+                        </option>
+                    ))}
+                </select>
+                <ChevronDown
+                    className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500"
+                    strokeWidth={2}
+                />
+            </div>
 
-            <select
-                value={filters.type ?? "all"}
-                onChange={(e) =>
-                    update("type", e.target.value as AdminBookingType | "all")
-                }
-                className="rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
-            >
-                <option value="all">All types</option>
-                {TYPES.map((t) => (
-                    <option key={t} value={t}>
-                        {t}
-                    </option>
-                ))}
-            </select>
+            <div className="relative">
+                <select
+                    value={filters.type ?? "all"}
+                    onChange={(e) =>
+                        update("type", e.target.value as AdminBookingType | "all")
+                    }
+                    className="w-full appearance-none cursor-pointer rounded-full border border-neutral-300 bg-white py-2 pl-4 pr-10 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+                >
+                    <option value="all">All types</option>
+                    {TYPES.map((t) => (
+                        <option key={t} value={t}>
+                            {t}
+                        </option>
+                    ))}
+                </select>
+                <ChevronDown
+                    className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500"
+                    strokeWidth={2}
+                />
+            </div>
         </div>
     );
 }
