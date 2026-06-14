@@ -7,6 +7,7 @@ import {
     type PortalProfileUpdateRequest,
     type ProfileUpdateField,
 } from "../../data/portal";
+import {toast} from "sonner";
 
 type Props = {
     open: boolean;
@@ -34,7 +35,6 @@ export default function ProfileUpdateRequestModal({
     const [proposedValue, setProposedValue] = useState("");
     const [patientNote, setPatientNote] = useState("");
     const [submitting, setSubmitting] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (open) {
@@ -42,7 +42,6 @@ export default function ProfileUpdateRequestModal({
             setOtherDescription("");
             setProposedValue("");
             setPatientNote("");
-            setError(null);
         }
     }, [open]);
 
@@ -55,14 +54,13 @@ export default function ProfileUpdateRequestModal({
 
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        setError(null);
 
         if (!proposedValue.trim()) {
-            setError("Please enter the new value you're proposing.");
+            toast.error("Please enter the new value you're proposing.");
             return;
         }
         if (field === "OTHER" && !otherDescription.trim()) {
-            setError("Please describe what you'd like to change.");
+            toast.error("Please describe what you'd like to change.");
             return;
         }
 
@@ -77,8 +75,9 @@ export default function ProfileUpdateRequestModal({
             });
             onSubmitted(created);
             onClose();
+            toast.success("Request submitted. We'll review it soon.")
         } catch (err) {
-            setError(
+            toast.error(
                 err instanceof Error
                     ? err.message
                     : "Could not submit the request. Please try again.",
@@ -196,13 +195,6 @@ export default function ProfileUpdateRequestModal({
                         className={inputClass}
                     />
                 </Field>
-
-                {error && (
-                    <p className="text-sm text-brand-red" role="alert">
-                        {error}
-                    </p>
-                )}
-
                 <div className="flex flex-wrap justify-end gap-3 pt-2">
                     <button
                         type="button"

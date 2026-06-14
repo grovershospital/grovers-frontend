@@ -8,6 +8,7 @@ import {
     type NotificationType,
     type PortalNotification,
 } from "../../data/portal";
+import {toast} from "sonner";
 
 const EMOJI: Record<NotificationType, string> = {
     "lab-ready": "🔬",
@@ -65,9 +66,10 @@ export default function SidebarNotifications({ onNavigate }: Props) {
         setNotifications((list) => list.map((n) => ({ ...n, read: true })));
         try {
             await markAllNotificationsRead();
+            toast.success("All notifications marked as read")
         } catch {
             setNotifications(prev);
-            window.alert("Could not mark notifications as read. Please try again.");
+            toast.error("Could not mark notifications as read. Please try again.");
         }
     }
 
