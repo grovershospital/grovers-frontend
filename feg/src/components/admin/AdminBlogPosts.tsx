@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Pencil, Plus, Search, Trash2 } from "lucide-react";
+import {ChevronDown, Pencil, Plus, Search, Trash2} from "lucide-react";
 import BlogPostStatusPill from "../../components/admin/BlogPostStatusPill";
 import Pagination from "../../components/admin/Pagination";
 import {
@@ -115,35 +115,48 @@ export default function AdminBlogPosts() {
                     />
                 </div>
 
-                <select
-                    value={filters.category ?? "all"}
-                    onChange={(e) =>
-                        update("category", e.target.value as BlogPostCategory | "all")
-                    }
-                    className="rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
-                >
-                    <option value="all">All categories</option>
-                    {BLOG_POST_CATEGORIES.map((c) => (
-                        <option key={c} value={c}>
-                            {c}
-                        </option>
-                    ))}
-                </select>
+                <div className={'relative'}>
+                    <select
+                        value={filters.category ?? "all"}
+                        onChange={(e) =>
+                            update("category", e.target.value as BlogPostCategory | "all")
+                        }
+                        className="appearance-none rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+                    >
+                        <option value="all">All categories</option>
+                        {BLOG_POST_CATEGORIES.map((c) => (
+                            <option key={c} value={c}>
+                                {c}
+                            </option>
+                        ))}
+                    </select>
+                    <ChevronDown
+                        className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500"
+                        strokeWidth={2}
+                    />
+                </div>
 
-                <select
-                    value={filters.status ?? "all"}
-                    onChange={(e) =>
-                        update("status", e.target.value as BlogPostStatus | "all")
-                    }
-                    className="rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
-                >
-                    <option value="all">All statuses</option>
-                    {STATUS_OPTIONS.map((s) => (
-                        <option key={s} value={s}>
-                            {s}
-                        </option>
-                    ))}
-                </select>
+                <div className={'relative'}>
+                    <select
+                        value={filters.status ?? "all"}
+                        onChange={(e) =>
+                            update("status", e.target.value as BlogPostStatus | "all")
+                        }
+                        className="appearance-none rounded-full border border-neutral-300 bg-white py-2 pl-4 pr-10 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+                    >
+                        <option value="all">All statuses</option>
+                        {STATUS_OPTIONS.map((s) => (
+                            <option key={s} value={s}>
+                                {s}
+                            </option>
+                        ))}
+                    </select>
+                    <ChevronDown
+                        className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500"
+                        strokeWidth={2}
+                    />
+                </div>
+
             </div>
 
             {loading ? (

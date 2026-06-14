@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Pencil, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, Pencil, Plus, Trash2, ChevronDown } from "lucide-react";
 import PackageTierModal from "../../components/admin/PackageTierModal";
 import PackageInclusionModal from "../../components/admin/PackageInclusionModal";
 import PackageInclusionMatrix from "../../components/admin/PackageInclusionMatrix";
@@ -340,23 +340,30 @@ export default function AdminPackageEditor() {
                             </p>
                         </Field>
 
-                        <Field label="Department" htmlFor="pkg-dept">
-                            <select
-                                id="pkg-dept"
-                                value={form.departmentId ?? ""}
-                                onChange={(e) =>
-                                    update("departmentId", e.target.value || null)
-                                }
-                                className={inputClass}
-                            >
-                                <option value="">—</option>
-                                {departments.map((d) => (
-                                    <option key={d.id} value={d.id}>
-                                        {d.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </Field>
+                        <div className={'relative'}>
+                            <Field label="Department" htmlFor="pkg-dept">
+                                <select
+                                    id="pkg-dept"
+                                    value={form.departmentId ?? ""}
+                                    onChange={(e) =>
+                                        update("departmentId", e.target.value || null)
+                                    }
+                                    className={`${inputClass} appearance-none cursor-pointer`}
+                                >
+                                    <option value="">—</option>
+                                    {departments.map((d) => (
+                                        <option key={d.id} value={d.id}>
+                                            {d.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown
+                                    className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500"
+                                    strokeWidth={2}
+                                />
+                            </Field>
+                        </div>
+
                     </div>
 
                     <Field label="Headline" htmlFor="pkg-headline">

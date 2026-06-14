@@ -11,6 +11,7 @@ import {
     type ProfileUpdateStatus,
 } from "../../data/admin";
 import {toast} from "sonner";
+import {ChevronDown} from "lucide-react";
 
 const PAGE_SIZE = 10;
 
@@ -89,7 +90,7 @@ export default function AdminProfileUpdateRequests() {
                 </p>
             </div>
 
-            <div className="mb-8">
+            <div className="mb-8 relative inline-block">
                 <select
                     value={filters.status ?? "Pending"}
                     onChange={(e) =>
@@ -97,7 +98,7 @@ export default function AdminProfileUpdateRequests() {
                             status: e.target.value as ProfileUpdateStatus | "all",
                         })
                     }
-                    className="rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+                    className="appearance-none rounded-full border border-neutral-300 bg-white px-4 pl-4 pr-10 py-2 text-sm text-brand-ink focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
                 >
                     {STATUS_OPTIONS.map((s) => (
                         <option key={s} value={s}>
@@ -106,6 +107,10 @@ export default function AdminProfileUpdateRequests() {
                     ))}
                     <option value="all">All</option>
                 </select>
+                <ChevronDown
+                    className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500"
+                    strokeWidth={2}
+                />
             </div>
 
             {loading ? (
