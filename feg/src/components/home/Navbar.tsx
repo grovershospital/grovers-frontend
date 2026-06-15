@@ -13,6 +13,7 @@ function handleNavClick(e: React.MouseEvent<HTMLAnchorElement>, href: string) {
 
 export function Navbar() {
     const [open, setOpen] = useState(false);
+    const [expandedLabel, setExpandedLabel] = useState<string | null>(null);
 
     return (
         <header className={'w-full border-b sticky top-0 z-50 border-black/5 bg-white'}>
@@ -98,38 +99,73 @@ export function Navbar() {
                 </button>
             </nav>
 
-            {/*    Mobile dropdown panel */}
+            {/* Mobile dropdown panel */}
             {open && (
-                <div className={'border-t border-black/5 md:hidden'}>
-                    <ul className={'mx-auto flex max-w-content flex-col gap-1 px-4 py-3'}>
-                        {NAV_LINKS.map((link) => (
-                            <li key={link.label}>
-                                <a
-                                    href={link.href}
-                                    onClick={(e) => {
-                                        handleNavClick(e, link.href);
-                                        setOpen(false);
-                                    }}
-                                    className="block rounded-md px-2 py-2.5 text-sm text-brand-ink/90 hover:bg-brand-green/5 hover:text-brand-green"
-                                >
-                                    {link.label}
-                                </a>
+                <div className='border-t border-black/5 md:hidden'>
+                    <ul className='mx-auto flex max-w-content flex-col gap-1 px-4 py-3'>
+                        {NAV_LINKS.map((link) => {
+                            const hasChildren = "children" in link;
+                            const isExpanded = expandedLabel === link.label;
 
-                                {"children" in link &&
-                                    link.children.map((child) => (
-                                        <a
-                                            key={child.label}
-                                            href={child.href}
-                                            onClick={() => setOpen(false)}
-                                            className="ml-4 block rounded-md px-2 py-2 text-sm text-brand-ink/70 hover:bg-brand-green/5 hover:text-brand-green"
+                            return (
+                                <li key={link.label}>
+                                    {hasChildren ? (
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setExpandedLabel(
+                                                    isExpanded ? null : link.label,
+                                                )
+                                            }
+                                            aria-expanded={isExpanded}
+                                            className="flex w-full items-center justify-between rounded-md px-2 py-2.5 text-left text-sm text-brand-ink/90 hover:bg-brand-green/5 hover:text-brand-green"
                                         >
-                                            {child.label}
+                                            <span>{link.label}</span>
+                                            <ChevronDown
+                                                className={`h-4 w-4 transition-transform duration-200 ${
+                                                    isExpanded ? "rotate-180" : ""
+                                                }`}
+                                                strokeWidth={2.5}
+                                            />
+                                        </button>
+                                    ) : (
+                                        /* Fixed: Restored opening <a token */
+                                        <a
+                                            href={link.href}
+                                            onClick={(e) => {
+                                                handleNavClick(e, link.href);
+                                                setOpen(false);
+                                            }}
+                                            className="block rounded-md px-2 py-2.5 text-sm text-brand-ink/90 hover:bg-brand-green/5 hover:text-brand-green"
+                                        >
+                                            {link.label}
                                         </a>
-                                    ))}
-                            </li>
-                        ))}
-                        <li className={'pt-2'}>
-                            <Button href={'/patient-portal'} variant={'primary'} className={"w-full"}>
+                                    )}
+
+                                    {/* Fixed: Wrapped child mapped links in a container div for layout safety */}
+                                    {hasChildren && isExpanded && (
+                                        <div className="mt-1 flex flex-col gap-1 pl-4">
+                                            {link.children.map((child) => (
+                                                /* Fixed: Restored opening <a token */
+                                                <a
+                                                    key={child.label}
+                                                    href={child.href}
+                                                    onClick={() => {
+                                                        setOpen(false);
+                                                        setExpandedLabel(null);
+                                                    }}
+                                                    className="block rounded-md px-2 py-2 text-sm text-brand-ink/70 hover:bg-brand-green/5 hover:text-brand-green"
+                                                >
+                                                    {child.label}
+                                                </a>
+                                            ))}
+                                        </div>
+                                    )}
+                                </li>
+                            );
+                        })}
+                        <li className='pt-2'>
+                            <Button href='/patient-portal' variant='primary' className="w-full">
                                 Patient Portal
                             </Button>
                         </li>
