@@ -231,8 +231,14 @@ export type AdminFeedbackPage = {
 
 type AdminFeedbackListResponse = {
     id: number;
-    name: string | null;
-    email: string | null;
+    // Backend inconsistency: list endpoint returns `name`/`email`, detail
+    // endpoint returns `submitterName`/`submitterEmail`/`submitterPhone`.
+    // We accept both and normalise in the mapper.
+    name?: string | null;
+    email?: string | null;
+    submitterName?: string | null;
+    submitterEmail?: string | null;
+    submitterPhone?: string | null;
     subject: string | null;
     message: string;
     source: "HOMEPAGE" | "PORTAL";
@@ -248,12 +254,8 @@ type AdminFeedbackListResponse = {
 
 type AdminFeedbackDetailResponse = AdminFeedbackListResponse & {
     adminInternalNotes: string | null;
-    // Detail endpoint includes patient identity fields when source = PORTAL.
-    // Field names assumed; adjust mapping below if backend uses different keys.
-    patientFirstName?: string | null;
-    patientLastName?: string | null;
-    patientPhone?: string | null;
 };
+
 
 // Recent feedback card on the admin dashboard. Fetches the latest 5 portal
 // feedback entries, sorted newest-first. Same shape as AdminFeedbackEntry but
@@ -278,7 +280,7 @@ export async function fetchRecentAdminFeedback(): Promise<AdminFeedbackSummary[]
 
         return {
             id: String(f.id),
-            patientName: f.patientId ? `Patient #${f.patientId}` : "Anonymous",
+            patientName: patientNameFromResponse(f),
             type: TYPE_FROM_BACKEND[f.type] ?? "General feedback",
             excerpt,
             status: STATUS_FROM_BACKEND[f.status] ?? "Pending",
@@ -290,12 +292,8 @@ export async function fetchRecentAdminFeedback(): Promise<AdminFeedbackSummary[]
 function patientNameFromResponse(
     f: AdminFeedbackListResponse | AdminFeedbackDetailResponse,
 ): string {
-    // PORTAL feedback: backend should have patient identity. Detail endpoint
-    // gives us firstName/lastName if available.
-    if ("patientFirstName" in f && f.patientFirstName) {
-        return `${f.patientFirstName} ${f.patientLastName ?? ""}`.trim();
-    }
-    // List endpoint doesn't include name; show patient id placeholder.
+    const name = f.submitterName ?? f.name;
+    if (name) return name;
     if (f.patientId) return `Patient #${f.patientId}`;
     return "Anonymous";
 }
@@ -306,9 +304,8 @@ function toFeedbackEntry(
     return {
         id: String(f.id),
         patientName: patientNameFromResponse(f),
-        patientEmail: f.email,
-        patientPhone:
-            "patientPhone" in f ? f.patientPhone ?? null : null,
+        patientEmail: f.submitterEmail ?? f.email ?? null,
+        patientPhone: f.submitterPhone ?? null,
         type: TYPE_FROM_BACKEND[f.type] ?? "General feedback",
         subject: f.subject ?? "",
         message: f.message,
@@ -597,20 +594,6 @@ export async function fetchAdminBookingActivity(
     return Promise.resolve([]);
 }
 
-function toSummary(b: AdminBookingDetail): AdminBookingSummary {
-    return {
-        id: b.id,
-        shortId: b.shortId,
-        patientName: b.patientName,
-        patientId: b.patientId,
-        department: b.department,
-        type: b.type,
-        preferredDate: b.preferredDate,
-        status: b.status,
-        createdAtDisplay: b.createdAtDisplay,
-    };
-}
-
 // ─── Patients ────────────────────────────────────────────────
 
 export type AdminPatientGender = "Male" | "Female" | "Other" | "Not specified";
@@ -858,16 +841,6 @@ export async function updateAdminHealthProfile(
     return toAdminHealthProfile(patientId, data);
 }
 
-function toPatientSummary(p: AdminPatientProfile): AdminPatientSummary {
-    return {
-        id: p.id,
-        firstName: p.firstName,
-        lastName: p.lastName,
-        email: p.email,
-        phone: p.phone,
-        memberSinceDisplay: p.memberSinceDisplay,
-    };
-}
 
 // ─── Medications & Conditions ────────────────────────────────
 
@@ -2041,17 +2014,6 @@ const API_ORIGIN = "http://localhost:8080"
         return `${API_ORIGIN}${data.url}`
     }
 
-    function toBlogPostSummary(p: AdminBlogPost): AdminBlogPostSummary {
-        return {
-            id: p.id,
-            slug: p.slug,
-            title: p.title,
-            category: p.category,
-            status: p.status,
-            readTimeMinutes: p.readTimeMinutes,
-            updatedAtDisplay: p.updatedAtDisplay,
-        };
-    }
 
 // ─── Health Packages (admin) ─────────────────────────────────
 
