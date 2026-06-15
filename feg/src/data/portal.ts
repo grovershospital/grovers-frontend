@@ -755,6 +755,7 @@ export type PublicPackage = {
     headline: string;
     description: string;            // markdown
     targetAudience: string;
+    pricingNote: string;
     headingTone: PublicPackageTone;
     pricingTone: PublicPackageTone;
     displayOrder: number;
@@ -770,6 +771,7 @@ type PublicPackageResponse = {
     headline: string | null;
     description: string | null;
     targetAudience: string | null;
+    pricingNote: string | null;
     departmentId: number | null;
     departmentName: string | null;
     displayOrder: number;
@@ -839,6 +841,7 @@ function toPublicPackage(p: PublicPackageResponse): PublicPackage {
         headline: p.headline ?? p.name,
         description: p.description ?? "",
         targetAudience: p.targetAudience ?? "",
+        pricingNote: p.pricingNote ?? "",
         headingTone: p.headingTone,
         pricingTone: p.pricingTone,
         displayOrder: p.displayOrder,

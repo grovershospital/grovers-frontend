@@ -1,7 +1,7 @@
-import { useMemo } from "react";
+import {useMemo} from "react";
 import ReactMarkdown from "react-markdown";
-import { Check, X } from "lucide-react";
-import { Button } from "../../ui/Button";
+import {Check, X} from "lucide-react";
+import {Button} from "../../ui/Button";
 import type {
     PublicPackage,
     PublicPackageTone,
@@ -31,17 +31,17 @@ const PRICING_TIER_BG: Record<PublicPackageTone, string> = {
 
 // Custom markdown components — bold becomes a brand-green spotlight phrase.
 const markdownComponents = {
-    strong: ({ children }: { children?: React.ReactNode }) => (
+    strong: ({children}: { children?: React.ReactNode }) => (
         <strong className="font-extrabold text-brand-green">{children}</strong>
     ),
-    p: ({ children }: { children?: React.ReactNode }) => (
+    p: ({children}: { children?: React.ReactNode }) => (
         <p className="mt-6 text-sm leading-relaxed text-brand-ink sm:text-base">
             {children}
         </p>
     ),
 };
 
-export default function ScreeningPackage({ pkg }: { pkg: PublicPackage }) {
+export default function ScreeningPackage({pkg}: { pkg: PublicPackage }) {
     const headingTone = pkg.headingTone;
     const pricingTone = pkg.pricingTone;
 
@@ -49,7 +49,7 @@ export default function ScreeningPackage({ pkg }: { pkg: PublicPackage }) {
     const cellLookup = useMemo(() => {
         const map: Record<string, { status: InclusionCellStatus; note: string }> = {};
         for (const c of pkg.cells) {
-            map[`${c.tierId}::${c.inclusionId}`] = { status: c.status, note: c.note };
+            map[`${c.tierId}::${c.inclusionId}`] = {status: c.status, note: c.note};
         }
         return map;
     }, [pkg.cells]);
@@ -64,12 +64,12 @@ export default function ScreeningPackage({ pkg }: { pkg: PublicPackage }) {
                 if (cell?.status === "CONDITIONAL" && cell.note) {
                     if (!seen.has(cell.note)) {
                         seen.set(cell.note, list.length + 1);
-                        list.push({ number: list.length + 1, note: cell.note });
+                        list.push({number: list.length + 1, note: cell.note});
                     }
                 }
             }
         }
-        return { list, lookup: seen };
+        return {list, lookup: seen};
     }, [pkg.cells, pkg.inclusions, pkg.tiers, cellLookup]);
 
     return (
@@ -78,7 +78,7 @@ export default function ScreeningPackage({ pkg }: { pkg: PublicPackage }) {
             className="bg-[#f9f7f0] py-16 sm:py-20 lg:py-24"
             aria-labelledby={`${pkg.slug}-heading`}
         >
-            <div className="mx-auto w-full lg:w-[80%] max-w-content px-6 lg:px-10">
+            <div className="mx-auto w-full lg:w-[75%] max-w-content px-6 lg:px-10">
                 <div className="lg:grid lg:grid-cols-5 lg:gap-12">
                     {/* Left column — content + pricing table */}
                     <div className="lg:col-span-2">
@@ -131,6 +131,12 @@ export default function ScreeningPackage({ pkg }: { pkg: PublicPackage }) {
                             ))}
                         </div>
 
+                        {pkg.pricingNote && (
+                            <p className="mt-6 text-sm leading-relaxed text-brand-ink sm:text-base">
+                                {pkg.pricingNote}
+                            </p>
+                        )}
+
                         <div className="mt-8">
                             <Button variant="primary" href="/contact">
                                 Book {pkg.name}
@@ -141,7 +147,16 @@ export default function ScreeningPackage({ pkg }: { pkg: PublicPackage }) {
                     {/* Right column — comparison table */}
                     <div className="mt-12 lg:col-span-3 lg:mt-0">
                         <div className="overflow-x-auto overflow-hidden rounded-lg">
-                            <table className="w-full border-collapse bg-brand-blue text-sm">
+                            <table className="w-full table-fixed border-collapse bg-brand-blue text-sm">
+                                <colgroup>
+                                    <col className={'w-[40%]'}/>
+                                    {pkg.tiers.map((tier) => (
+                                        <col
+                                            key={tier.id}
+                                            style={{width: `${60 / pkg.tiers.length}%`}}
+                                        />
+                                    ))}
+                                </colgroup>
                                 <thead>
                                 <tr className="bg-brand-blue text-white">
                                     <th className="whitespace-nowrap px-4 py-3 text-left font-extrabold">
@@ -150,7 +165,7 @@ export default function ScreeningPackage({ pkg }: { pkg: PublicPackage }) {
                                     {pkg.tiers.map((tier) => (
                                         <th
                                             key={tier.id}
-                                            className="whitespace-nowrap px-4 py-3 text-left font-extrabold"
+                                            className="whitespace-nowrap px-4 py-3 text-center font-extrabold"
                                         >
                                             {tier.name}
                                         </th>

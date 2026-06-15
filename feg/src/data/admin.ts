@@ -2092,6 +2092,7 @@ export type AdminPackage = AdminPackageSummary & {
     headline: string;
     description: string;
     targetAudience: string;
+    pricingNote: string;
     departmentId: string | null;
     tiers: AdminPackageTier[];
     inclusions: AdminPackageInclusion[];
@@ -2119,6 +2120,7 @@ type AdminPackageResponse = {
     headline: string | null;
     description: string | null;
     targetAudience: string | null;
+    pricingNote: string | null;
     departmentId: number | null;
     departmentName: string | null;
     displayOrder: number;
@@ -2175,6 +2177,7 @@ function toAdminPackage(p: AdminPackageResponse): AdminPackage {
         headline: p.headline ?? "",
         description: p.description ?? "",
         targetAudience: p.targetAudience ?? "",
+        pricingNote: p.pricingNote ?? "",
         departmentId: p.departmentId ? String(p.departmentId) : null,
         departmentName: p.departmentName ?? "—",
         displayOrder: p.displayOrder,
@@ -2219,6 +2222,7 @@ export type PackageInput = {
     headline: string;
     description: string;
     targetAudience: string;
+    pricingNote: string;
     departmentId: string | null;
     displayOrder: number;
     isActive: boolean;
@@ -2232,6 +2236,7 @@ function packageInputToBody(input: PackageInput) {
         headline: input.headline,
         description: input.description,
         targetAudience: input.targetAudience,
+        pricingNote: input.pricingNote,
         departmentId: input.departmentId ? Number(input.departmentId) : null,
         displayOrder: input.displayOrder,
         isActive: input.isActive,

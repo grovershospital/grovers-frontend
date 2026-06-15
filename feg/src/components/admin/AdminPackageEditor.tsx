@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
-import type { FormEvent } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Pencil, Plus, Trash2, ChevronDown } from "lucide-react";
+import {useEffect, useState} from "react";
+import type {FormEvent} from "react";
+import {Link, useNavigate, useParams} from "react-router-dom";
+import {ChevronLeft, Pencil, Plus, Trash2, ChevronDown} from "lucide-react";
 import PackageTierModal from "../../components/admin/PackageTierModal";
 import PackageInclusionModal from "../../components/admin/PackageInclusionModal";
 import PackageInclusionMatrix from "../../components/admin/PackageInclusionMatrix";
-import { slugify } from "../../lib/slugify";
+import {slugify} from "../../lib/slugify";
 import {
     PACKAGE_TONES,
     createAdminPackage,
@@ -38,6 +38,7 @@ const EMPTY: PackageInput = {
     headline: "",
     description: "",
     targetAudience: "",
+    pricingNote: "",
     departmentId: null,
     displayOrder: 0,
     isActive: true,
@@ -46,7 +47,7 @@ const EMPTY: PackageInput = {
 };
 
 export default function AdminPackageEditor() {
-    const { id: routeId } = useParams<{ id: string }>();
+    const {id: routeId} = useParams<{ id: string }>();
     const isEdit = Boolean(routeId);
     const navigate = useNavigate();
 
@@ -62,11 +63,11 @@ export default function AdminPackageEditor() {
     const [tierModal, setTierModal] = useState<{
         open: boolean;
         editing: AdminPackageTier | null;
-    }>({ open: false, editing: null });
+    }>({open: false, editing: null});
     const [inclusionModal, setInclusionModal] = useState<{
         open: boolean;
         editing: AdminPackageInclusion | null;
-    }>({ open: false, editing: null });
+    }>({open: false, editing: null});
 
     useEffect(() => {
         fetchDepartments().then(setDepartments).catch(() => setDepartments([]));
@@ -94,7 +95,7 @@ export default function AdminPackageEditor() {
     }, [isEdit, routeId]);
 
     function update<K extends keyof PackageInput>(key: K, value: PackageInput[K]) {
-        setForm((f) => ({ ...f, [key]: value }));
+        setForm((f) => ({...f, [key]: value}));
         if (success) setSuccess(false);
     }
 
@@ -114,10 +115,10 @@ export default function AdminPackageEditor() {
                 const updated = await updateAdminPackage(routeId, form);
                 setPkg(updated);
                 setForm(packageToInput(updated));
-                setSuccess(true);
+                toast.success("Successfully updated package.");
             } else {
                 const created = await createAdminPackage(form);
-                navigate(`/admin/packages/${created.id}/edit`, { replace: true });
+                navigate(`/admin/packages/${created.id}/edit`, {replace: true});
             }
         } catch {
             toast.error("Could not save the package. Please try again.");
@@ -235,7 +236,7 @@ export default function AdminPackageEditor() {
         if (!pkg) return;
         try {
             await savePackageCells(pkg.id, cells);
-            setPkg({ ...pkg, cells });
+            setPkg({...pkg, cells});
             toast.success("Matrix saved.");
         } catch {
             toast.error("Could not save the matrix.");
@@ -246,7 +247,7 @@ export default function AdminPackageEditor() {
     if (loading) {
         return (
             <>
-                <BackLink />
+                <BackLink/>
                 <p className="text-sm text-neutral-500">Loading…</p>
             </>
         );
@@ -255,7 +256,7 @@ export default function AdminPackageEditor() {
     if (error && !pkg && isEdit) {
         return (
             <>
-                <BackLink />
+                <BackLink/>
                 <p className="text-sm text-brand-red">{error}</p>
             </>
         );
@@ -265,7 +266,7 @@ export default function AdminPackageEditor() {
 
     return (
         <>
-            <BackLink />
+            <BackLink/>
 
             <div className="mb-8 flex flex-wrap items-start justify-between gap-3">
                 <div>
@@ -285,7 +286,7 @@ export default function AdminPackageEditor() {
                         disabled={submitting}
                         className="inline-flex items-center gap-2 rounded-full border border-brand-red px-4 py-2 text-sm font-semibold text-brand-red transition-colors hover:bg-brand-red/10 disabled:opacity-60"
                     >
-                        <Trash2 className="h-4 w-4" strokeWidth={2.5} />
+                        <Trash2 className="h-4 w-4" strokeWidth={2.5}/>
                         Delete
                     </button>
                 )}
@@ -404,6 +405,23 @@ export default function AdminPackageEditor() {
                         />
                     </Field>
 
+                    <Field label="Pricing note" htmlFor="pkg-pricing-note">
+                        <textarea
+                            id="pkg-pricing-note"
+                            rows={3}
+                            placeholder="e.g. Female pricing is higher in most tiers due to inclusion of Mammogram, Breast Scan and PAP Smear."
+                            value={form.pricingNote}
+                            onChange={(e) =>
+                                update("pricingNote", e.target.value)
+                            }
+                            className={inputClass}
+                        />
+                        <p className="mt-1 text-xs text-neutral-500">
+                            Short note shown below the pricing table on the public page. Use it to explain pricing logic
+                            or call out important inclusions.
+                        </p>
+                    </Field>
+
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                         <Field label="Heading tone" htmlFor="pkg-h-tone">
                             <select
@@ -490,7 +508,7 @@ export default function AdminPackageEditor() {
                     title="Tiers"
                     emptyText="No tiers yet. Add Basic, Standard, Deluxe etc. here."
                     addLabel="Add tier"
-                    onAdd={() => setTierModal({ open: true, editing: null })}
+                    onAdd={() => setTierModal({open: true, editing: null})}
                     rows={pkg.tiers.map((t) => ({
                         key: t.id,
                         cells: [
@@ -508,7 +526,7 @@ export default function AdminPackageEditor() {
                             </span>,
                             <span className="text-brand-ink">{t.displayOrder}</span>,
                         ],
-                        onEdit: () => setTierModal({ open: true, editing: t }),
+                        onEdit: () => setTierModal({open: true, editing: t}),
                         onDelete: () => handleTierDelete(t),
                     }))}
                     headers={["Name", "Price ♂", "Price ♀", "Notes", "Order"]}
@@ -521,7 +539,7 @@ export default function AdminPackageEditor() {
                     emptyText="No inclusions yet. Add the tests or services this package covers."
                     addLabel="Add inclusion"
                     onAdd={() =>
-                        setInclusionModal({ open: true, editing: null })
+                        setInclusionModal({open: true, editing: null})
                     }
                     rows={pkg.inclusions.map((i) => ({
                         key: i.id,
@@ -535,7 +553,7 @@ export default function AdminPackageEditor() {
                             <span className="text-brand-ink">{i.displayOrder}</span>,
                         ],
                         onEdit: () =>
-                            setInclusionModal({ open: true, editing: i }),
+                            setInclusionModal({open: true, editing: i}),
                         onDelete: () => handleInclusionDelete(i),
                     }))}
                     headers={["Label", "Description", "Order"]}
@@ -553,7 +571,7 @@ export default function AdminPackageEditor() {
 
             <PackageTierModal
                 open={tierModal.open}
-                onClose={() => setTierModal({ open: false, editing: null })}
+                onClose={() => setTierModal({open: false, editing: null})}
                 tier={tierModal.editing}
                 onSubmit={handleTierSubmit}
                 defaultDisplayOrder={pkg ? pkg.tiers.length + 1 : 1}
@@ -562,7 +580,7 @@ export default function AdminPackageEditor() {
             <PackageInclusionModal
                 open={inclusionModal.open}
                 onClose={() =>
-                    setInclusionModal({ open: false, editing: null })
+                    setInclusionModal({open: false, editing: null})
                 }
                 inclusion={inclusionModal.editing}
                 onSubmit={handleInclusionSubmit}
@@ -578,6 +596,7 @@ function packageToInput(p: AdminPackage): PackageInput {
         headline: p.headline,
         description: p.description,
         targetAudience: p.targetAudience,
+        pricingNote: p.pricingNote,
         departmentId: p.departmentId,
         displayOrder: p.displayOrder,
         isActive: p.isActive,
@@ -592,7 +611,7 @@ function BackLink() {
             to="/admin/packages"
             className="mb-6 inline-flex items-center gap-1 text-sm text-brand-ink hover:text-brand-blue"
         >
-            <ChevronLeft className="h-4 w-4" strokeWidth={2} />
+            <ChevronLeft className="h-4 w-4" strokeWidth={2}/>
             All packages
         </Link>
     );
@@ -653,7 +672,7 @@ function SubResourceTable({
                     onClick={onAdd}
                     className="inline-flex items-center gap-2 rounded-full bg-brand-red px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-brand-blue focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-red"
                 >
-                    <Plus className="h-4 w-4" strokeWidth={2.5} />
+                    <Plus className="h-4 w-4" strokeWidth={2.5}/>
                     {addLabel}
                 </button>
             </div>
@@ -672,7 +691,7 @@ function SubResourceTable({
                                     {h}
                                 </th>
                             ))}
-                            <th className="px-4 py-3" />
+                            <th className="px-4 py-3"/>
                         </tr>
                         </thead>
                         <tbody>
