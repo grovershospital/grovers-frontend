@@ -78,7 +78,7 @@ export default function ScreeningPackage({pkg}: { pkg: PublicPackage }) {
             className="bg-[#f9f7f0] py-16 sm:py-20 lg:py-24"
             aria-labelledby={`${pkg.slug}-heading`}
         >
-            <div className="mx-auto w-full lg:w-[75%] max-w-content px-6 lg:px-10">
+            <div className="mx-auto w-full lg:w-[80%] max-w-content px-6 lg:px-10">
                 <div className="lg:grid lg:grid-cols-5 lg:gap-12">
                     {/* Left column — content + pricing table */}
                     <div className="lg:col-span-2">

@@ -16,7 +16,7 @@ export function Navbar() {
     const [expandedLabel, setExpandedLabel] = useState<string | null>(null);
 
     return (
-        <header className={'w-full border-b sticky top-0 z-50 border-black/5 bg-white'}>
+        <header className={'w-full border-b border-black/5 bg-white'}>
             <nav className={"mx-auto flex max-w-content items-center justify-between px-4 py-4 md:px-8"}>
                 {/*  Logo  */}
                 <a href="/" className={"flex items-center"} aria-label={`Grover's Hospital home`}>

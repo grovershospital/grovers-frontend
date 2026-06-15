@@ -50,7 +50,7 @@ export default function ArticleDetail() {
     return (
         <>
             <article className="bg-[#f9f7f0]">
-                <div className="mx-auto w-full max-w-4xl px-6 py-12 sm:py-16 lg:px-8 lg:py-20">
+                <div className="mx-auto w-full max-w-6xl px-6 py-12 sm:py-16 lg:px-8 lg:py-20">
                     {/* Top row — back link, category pill, read time */}
                     <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
                         <Link
@@ -63,97 +63,95 @@ export default function ArticleDetail() {
                         <span
                             className={`inline-flex items-center rounded-md px-4 py-2 text-xs font-medium tracking-wide text-white ${categoryStyle.bg}`}
                         >
-            {article.category}
-          </span>
+                            {article.category}
+                        </span>
                         <span className="text-sm font-bold text-brand-ink">
-            {article.readMinutes} min read
-          </span>
+                            {article.readMinutes} min read
+                        </span>
                     </div>
 
+                    {/* Hero image */}
                     {/* Hero image */}
                     <img
                         src={article.heroImage}
                         alt={article.title}
-                        className="mt-8 aspect-[16/9] w-full rounded-2xl object-cover sm:aspect-[2/1]"
+                        className="mt-8 aspect-[16/10] w-full rounded-3xl object-cover"
                     />
 
-                    {/* Title */}
-                    <h1 className="mt-8 text-3xl font-extrabold leading-tight tracking-tight text-brand-blue sm:text-4xl lg:text-5xl">
-                        {article.title}
-                    </h1>
+                 <div className={'mx-auto max-w-4xl'}>
+                     <h1 className="mt-8 text-3xl font-extrabold leading-tight tracking-tight text-brand-blue sm:text-4xl lg:text-5xl">
+                         {article.title}
+                     </h1>
 
-                    {/* Body — react-markdown with custom component overrides for typography. */}
-                    {/* The clearfix wrapper (overflow-hidden) prevents floated images from */}
-                    {/* bleeding into the section that follows the article. */}
-                    <div className="mt-8 overflow-hidden">
-                        <ReactMarkdown
-                            remarkPlugins={[remarkGfm]}
-                            rehypePlugins={[rehypeRaw]}
-                            components={{
-                                h2: ({...props}) => (
-                                    <h2
-                                        className="mt-10 text-lg font-extrabold text-brand-ink sm:text-xl"
-                                        {...props}
-                                    />
-                                ),
-                                h3: ({...props}) => (
-                                    <h3
-                                        className="mt-8 text-base font-extrabold text-brand-ink sm:text-lg"
-                                        {...props}
-                                    />
-                                ),
-                                p: ({...props}) => (
-                                    <p
-                                        className="mt-4 text-sm leading-relaxed text-brand-ink sm:text-base"
-                                        {...props}
-                                    />
-                                ),
-                                ul: ({...props}) => (
-                                    <ul
-                                        className="mt-4 list-disc space-y-1 pl-5 text-sm leading-relaxed text-brand-ink sm:text-base"
-                                        {...props}
-                                    />
-                                ),
-                                ol: ({...props}) => (
-                                    <ol
-                                        className="mt-4 list-decimal space-y-1 pl-5 text-sm leading-relaxed text-brand-ink sm:text-base"
-                                        {...props}
-                                    />
-                                ),
-                                a: ({...props}) => (
-                                    <a
-                                        className="text-brand-blue underline underline-offset-2 hover:text-brand-green"
-                                        {...props}
-                                    />
-                                ),
-                                blockquote: ({...props}) => (
-                                    <blockquote
-                                        className="mt-6 border-l-4 border-brand-blue pl-4 text-sm italic text-brand-ink/80 sm:text-base"
-                                        {...props}
-                                    />
-                                ),
-                                // Images: detect float-left / float-right classes from the admin's
-                                // markdown and apply Tailwind float utilities. Mobile always shows
-                                // full-width block — float only kicks in at sm+ breakpoint so text
-                                // wrap has enough horizontal space to look right.
-                                img: ({className, alt, ...props}) => {
-                                    const isFloatLeft = className?.includes("float-left");
-                                    const isFloatRight = className?.includes("float-right");
-                                    let cls = "my-6 w-full rounded-2xl object-cover";
-                                    if (isFloatLeft) {
-                                        cls +=
-                                            " sm:float-left sm:mt-2 sm:mr-6 sm:mb-2 sm:w-[40%]";
-                                    } else if (isFloatRight) {
-                                        cls +=
-                                            " sm:float-right sm:mt-2 sm:ml-6 sm:mb-2 sm:w-[40%]";
-                                    }
-                                    return <img alt={alt || ""} className={cls} {...props} />;
-                                },
-                            }}
-                        >
-                            {article.body}
-                        </ReactMarkdown>
-                    </div>
+                     {/* Body — react-markdown with custom component overrides for typography. */}
+                     {/* The clearfix wrapper (overflow-hidden) prevents floated images from */}
+                     {/* bleeding into the section that follows the article. */}
+                     <div className="mt-8 overflow-hidden">
+                         <ReactMarkdown
+                             remarkPlugins={[remarkGfm]}
+                             rehypePlugins={[rehypeRaw]}
+                             components={{
+                                 h2: ({...props}) => (
+                                     <h2
+                                         className="mt-10 text-lg font-extrabold text-brand-ink sm:text-xl"
+                                         {...props}
+                                     />
+                                 ),
+                                 h3: ({...props}) => (
+                                     <h3
+                                         className="mt-8 text-base font-extrabold text-brand-ink sm:text-lg"
+                                         {...props}
+                                     />
+                                 ),
+                                 p: ({...props}) => (
+                                     <p
+                                         className="mt-4 text-sm leading-relaxed text-brand-ink sm:text-base"
+                                         {...props}
+                                     />
+                                 ),
+                                 ul: ({...props}) => (
+                                     <ul
+                                         className="mt-4 list-disc space-y-1 pl-5 text-sm leading-relaxed text-brand-ink sm:text-base"
+                                         {...props}
+                                     />
+                                 ),
+                                 ol: ({...props}) => (
+                                     <ol
+                                         className="mt-4 list-decimal space-y-1 pl-5 text-sm leading-relaxed text-brand-ink sm:text-base"
+                                         {...props}
+                                     />
+                                 ),
+                                 a: ({...props}) => (
+                                     <a
+                                         className="text-brand-blue underline underline-offset-2 hover:text-brand-green"
+                                         {...props}
+                                     />
+                                 ),
+                                 blockquote: ({...props}) => (
+                                     <blockquote
+                                         className="mt-6 border-l-4 border-brand-blue pl-4 text-sm italic text-brand-ink/80 sm:text-base"
+                                         {...props}
+                                     />
+                                 ),
+                                 // Images: detect float-left / float-right classes from the admin's
+                                 // markdown and apply Tailwind float utilities. Mobile always shows
+                                 // full-width block — float only kicks in at sm+ breakpoint so text
+                                 // wrap has enough horizontal space to look right.
+                                 img: ({alt, ...props}) => (
+                                     <img
+                                         alt={alt || ""}
+                                         className="mt-12 mb-12 block w-full rounded-2xl object-cover sm:mx-auto sm:w-[60%]"
+                                         {...props}
+                                     />
+                                 ),
+                             }}
+                         >
+                             {article.body}
+                         </ReactMarkdown>
+                     </div>
+                 </div>
+                    {/* Title */}
+
                 </div>
             </article>
 
@@ -162,7 +160,7 @@ export default function ArticleDetail() {
                 currentSlug={article.slug}
                 currentCategory={article.category}
             />
-            <Contact />
+            <Contact/>
         </>
     );
 }

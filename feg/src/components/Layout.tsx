@@ -1,19 +1,22 @@
-// src/components/Layout.tsx
-import { Outlet } from "react-router-dom";
-import { TopBar } from "./home/TopBar";
-import { Navbar } from "./home/Navbar";
+import {Outlet} from "react-router-dom";
+import {TopBar} from "./home/TopBar";
+import {Navbar} from "./home/Navbar";
 import {Footer} from "./home/Footer.tsx";
-// import { Footer } from "./home/Footer"; // add when we build it
+import WhatsAppChat from "./shared/WhatsAppChat";
 
 export default function Layout() {
     return (
         <>
-            <TopBar />
-            <Navbar />
+            <div className={'sticky top-0 z-50'}>
+                <TopBar/>
+                <Navbar/>
+            </div>
+
             <main>
-                <Outlet /> {/* current route's page renders here */}
+                <Outlet/>
             </main>
-            <Footer />
+            <Footer/>
+            <WhatsAppChat/>
         </>
     );
 }
