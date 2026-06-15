@@ -75,8 +75,8 @@ export function Footer() {
             <div className="border-t border-white/20">
                 <div className="mx-auto max-w-content px-4 py-5 text-center text-xs text-white/70 md:px-8">
                     © 2026 Grover&apos;s Hospital. Operated by LABACare. |{" "}
-                    <a href="#" className="hover:text-white">Privacy Policy</a> |{" "}
-                    <a href="#" className="hover:text-white">Terms of Use</a>
+                    <a href="/legal" className="hover:text-white">Privacy Policy</a> |{" "}
+                    <a href="/legal" className="hover:text-white">Terms of Use</a>
                 </div>
             </div>
         </footer>

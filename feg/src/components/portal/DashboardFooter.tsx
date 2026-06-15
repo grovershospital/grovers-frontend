@@ -8,14 +8,14 @@ export default function DashboardFooter() {
 
                 <p>
                     <Link
-                        to="/privacy"
+                        to="/legal"
                         className="underline underline-offset-2 hover:no-underline"
                     >
                         Privacy Policy
                     </Link>{" "}
                     |{" "}
                     <Link
-                        to="/terms"
+                        to="/legal"
                         className="underline underline-offset-2 hover:no-underline"
                     >
                         Terms of Use
