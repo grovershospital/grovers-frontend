@@ -44,6 +44,7 @@ import AdminPackageEditor from "./components/admin/AdminPackageEditor.tsx";
 import {HelmetProvider} from "react-helmet-async";
 import {Toaster} from "sonner";
 import Legal from "./pages/Legal.tsx";
+import ResetPassword from "./pages/ResetPassword.tsx";
 
 export default function App() {
     return (
@@ -59,7 +60,8 @@ export default function App() {
                         <Route path="/packages" element={<Packages/>}/>
                         <Route path="/resources" element={<Resources/>}/>
                         <Route path="/resources/:slug" element={<ArticleDetail/>}/>
-                        <Route path={'/legal'} element={<Legal />}/>
+                        <Route path={'/legal'} element={<Legal/>}/>
+                        <Route path={'/forgot-password'} element={<ForgotPassword/>}/>
 
                         {/* Patient portal landing — public, leads to login/signup */}
                         <Route path="/patient-portal" element={<PatientPortal/>}/>
@@ -94,6 +96,14 @@ export default function App() {
                             element={
                                 <RedirectIfAuthed>
                                     <AdminLogin/>
+                                </RedirectIfAuthed>
+                            }
+                        />
+                        <Route
+                            path="/reset-password"
+                            element={
+                                <RedirectIfAuthed>
+                                    <ResetPassword/>
                                 </RedirectIfAuthed>
                             }
                         />
