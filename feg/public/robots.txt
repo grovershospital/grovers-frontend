@@ -1,7 +1,7 @@
 User-agent: *
 Allow: /
-
+Disallow: /patient-portal/
 Disallow: /admin/
+Disallow: /legal
 
-// Replace when domain gotten
-Sitemap: https://yoursite.com/sitemap.xml
+Sitemap: https://YOUR-DOMAIN.com/sitemap.xml

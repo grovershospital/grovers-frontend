@@ -12,6 +12,7 @@ import {
 import ArticleConsultationCTA from "../components/resources/ArticleConsultationCTA";
 import RelatedArticles from "../components/resources/RelatedArticles";
 import {Contact} from '../components/shared/Contact.tsx';
+import {Helmet} from "react-helmet-async";
 
 export default function ArticleDetail() {
     const {slug} = useParams<{ slug: string }>();
@@ -49,6 +50,14 @@ export default function ArticleDetail() {
 
     return (
         <>
+            <Helmet>
+                <title>{article.title} | Grover's Hospital</title>
+                <meta name="description" content={article.excerpt} />
+                <meta property="og:type" content="article" />
+                <meta property="og:title" content={article.title} />
+                <meta property="og:description" content={article.excerpt} />
+                <meta property="og:image" content={article.heroImage} />
+            </Helmet>
             <article className="bg-[#f9f7f0]">
                 <div className="mx-auto w-full max-w-6xl px-6 py-12 sm:py-16 lg:px-8 lg:py-20">
                     {/* Top row — back link, category pill, read time */}

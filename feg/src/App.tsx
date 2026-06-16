@@ -129,6 +129,7 @@ export default function App() {
                         <Route path="/admin/lab-results" element={<AdminLabResults/>}/>
                         <Route path="/admin/feedback" element={<AdminFeedback/>}/>
                         <Route path="/admin/packages" element={<AdminPackages/>}/>
+                        <Route path="/admin/packages/new" element={<AdminPackageEditor/>}/>
                         <Route path="/admin/packages/:id/edit" element={<AdminPackageEditor/>}/>
 
                         <Route
