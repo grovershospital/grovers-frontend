@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import {useEffect, useState} from "react";
+import {Link, useNavigate} from "react-router-dom";
+import {Plus, Power, PowerOff} from "lucide-react";
 import {
-    deleteAdminPackage,
+    deactivateAdminPackage,
+    updateAdminPackage,
+    fetchAdminPackage,
     fetchAdminPackages,
     type AdminPackageSummary,
 } from "../../data/admin";
@@ -27,22 +29,45 @@ export default function AdminPackages() {
         };
     }, []);
 
-    async function handleDelete(pkg: AdminPackageSummary) {
-        if (
-            !window.confirm(
-                `Delete "${pkg.name}"? Tiers, inclusions, and matrix cells will be removed too. This cannot be undone.`,
-            )
-        )
-            return;
+    async function handleToggleActive(pkg: AdminPackageSummary) {
+        const next = !pkg.isActive;
+        const verb = next ? "Reactivate" : "Deactivate";
+        const message = next
+            ? `Reactivate "${pkg.name}"? It will reappear on the public Packages page.`
+            : `Deactivate "${pkg.name}"? It will be hidden from the public site. Patients who've already booked it are unaffected.`;
 
+        if (!window.confirm(message)) return;
+
+        // Optimistic flip
         const prev = packages;
-        setPackages((list) => list.filter((p) => p.id !== pkg.id));
+        setPackages((list) =>
+            list.map((p) => (p.id === pkg.id ? {...p, isActive: next} : p)),
+        );
+
         try {
-            await deleteAdminPackage(pkg.id);
-            toast.success("Package deleted")
+            if (next) {
+                // Reactivate — backend doesn't have a dedicated endpoint, so we
+                // PUT a full update with isActive: true. Need to load detail first.
+                const detail = await fetchAdminPackage(pkg.id);
+                await updateAdminPackage(pkg.id, {
+                    name: detail.name,
+                    headline: detail.headline,
+                    description: detail.description,
+                    targetAudience: detail.targetAudience,
+                    pricingNote: detail.pricingNote,
+                    departmentId: detail.departmentId,
+                    displayOrder: detail.displayOrder,
+                    isActive: true,
+                    headingTone: detail.headingTone,
+                    pricingTone: detail.pricingTone,
+                });
+            } else {
+                await deactivateAdminPackage(pkg.id);
+            }
+            toast.success(`Package ${verb.toLowerCase()}d.`);
         } catch {
             setPackages(prev);
-            toast.error("Could not delete the package. Please try again.");
+            toast.error(`Could not ${verb.toLowerCase()} the package.`);
         }
     }
 
@@ -63,7 +88,7 @@ export default function AdminPackages() {
                     to="/admin/packages/new"
                     className="inline-flex items-center gap-2 rounded-full bg-brand-red px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-blue focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-red"
                 >
-                    <Plus className="h-4 w-4" strokeWidth={2.5} />
+                    <Plus className="h-4 w-4" strokeWidth={2.5}/>
                     New package
                 </Link>
             </div>
@@ -85,7 +110,7 @@ export default function AdminPackages() {
                             <th className="px-4 py-3">Inclusions</th>
                             <th className="px-4 py-3">Status</th>
                             <th className="px-4 py-3">Order</th>
-                            <th className="px-4 py-3" />
+                            <th className="px-4 py-3"/>
                         </tr>
                         </thead>
                         <tbody>
@@ -132,29 +157,21 @@ export default function AdminPackages() {
                                             type="button"
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                navigate(`/admin/packages/${p.id}/edit`);
+                                                handleToggleActive(p);
                                             }}
-                                            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-brand-ink"
-                                            aria-label={`Edit ${p.name}`}
+                                            className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-neutral-500 ${
+                                                p.isActive
+                                                    ? "hover:bg-brand-red/10 hover:text-brand-red"
+                                                    : "hover:bg-brand-green/10 hover:text-brand-green"
+                                            }`}
+                                            aria-label={`${p.isActive ? "Deactivate" : "Reactivate"} ${p.name}`}
+                                            title={p.isActive ? "Deactivate" : "Reactivate"}
                                         >
-                                            <Pencil
-                                                className="h-4 w-4"
-                                                strokeWidth={2}
-                                            />
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleDelete(p);
-                                            }}
-                                            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-neutral-500 hover:bg-brand-red/10 hover:text-brand-red"
-                                            aria-label={`Delete ${p.name}`}
-                                        >
-                                            <Trash2
-                                                className="h-4 w-4"
-                                                strokeWidth={2}
-                                            />
+                                            {p.isActive ? (
+                                                <PowerOff className="h-4 w-4" strokeWidth={2}/>
+                                            ) : (
+                                                <Power className="h-4 w-4" strokeWidth={2}/>
+                                            )}
                                         </button>
                                     </div>
                                 </td>

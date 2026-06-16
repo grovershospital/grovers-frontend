@@ -127,24 +127,6 @@ export default function AdminPackageEditor() {
         }
     }
 
-    async function handleDelete() {
-        if (!isEdit || !routeId) return;
-        if (
-            !window.confirm(
-                "Delete this package along with its tiers, inclusions and matrix? This cannot be undone.",
-            )
-        )
-            return;
-        setSubmitting(true);
-        try {
-            await deleteAdminPackage(routeId);
-            navigate("/admin/packages");
-        } catch {
-            toast.error("Could not delete the package. Please try again.");
-            setSubmitting(false);
-        }
-    }
-
     async function handleTierSubmit(input: PackageTierInput) {
         if (!pkg) return;
         if (tierModal.editing) {
@@ -279,17 +261,6 @@ export default function AdminPackageEditor() {
                         </p>
                     )}
                 </div>
-                {isEdit && (
-                    <button
-                        type="button"
-                        onClick={handleDelete}
-                        disabled={submitting}
-                        className="inline-flex items-center gap-2 rounded-full border border-brand-red px-4 py-2 text-sm font-semibold text-brand-red transition-colors hover:bg-brand-red/10 disabled:opacity-60"
-                    >
-                        <Trash2 className="h-4 w-4" strokeWidth={2.5}/>
-                        Delete
-                    </button>
-                )}
             </div>
 
             {isEdit && pkg && (

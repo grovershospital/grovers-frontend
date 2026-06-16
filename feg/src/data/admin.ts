@@ -2270,6 +2270,10 @@ export async function deleteAdminPackage(id: string): Promise<void> {
     await api.delete<unknown>(`/admin/packages/${id}`);
 }
 
+export async function deactivateAdminPackage(id: string): Promise<void> {
+    await api.patch<unknown>(`/admin/packages/${id}/deactivate`);
+}
+
 // --- Tiers ---
 
 export type PackageTierInput = {
