@@ -11,7 +11,6 @@ import {
     createAdminPackage,
     createPackageInclusion,
     createPackageTier,
-    deleteAdminPackage,
     deletePackageInclusion,
     deletePackageTier,
     fetchAdminPackage,
