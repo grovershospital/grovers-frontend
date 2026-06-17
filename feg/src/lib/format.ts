@@ -12,11 +12,6 @@ const MONTHS_LONG = [
     "July", "August", "September", "October", "November", "December",
 ];
 
-const MONTHS_SHORT = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-];
-
 function ordinalSuffix(day: number): string {
     if (day >= 11 && day <= 13) return "th";
     switch (day % 10) {

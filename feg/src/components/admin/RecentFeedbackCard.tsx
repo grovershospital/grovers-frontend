@@ -17,8 +17,10 @@ const TYPE_TONE: Record<AdminFeedbackType, string> = {
 };
 
 const STATUS_TONE: Record<AdminFeedbackStatus, string> = {
-    New: "text-brand-red font-semibold",
-    Actioned: "text-neutral-500",
+    Pending: "text-brand-red font-semibold",
+    "Under review": "text-brand-blue font-semibold",
+    Reviewed: "text-neutral-500",
+    "Response sent": "text-brand-green font-semibold",
 };
 
 export default function RecentFeedbackCard({ feedback }: Props) {
