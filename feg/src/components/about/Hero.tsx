@@ -45,7 +45,7 @@ export default function Hero() {
 
                     {/* CTA — reuses the existing primary variant (blue → green hover) */}
                     <div className="mt-8">
-                        <Button variant="primary" href="/contact">
+                        <Button variant="primary" href="/patient-portal/login">
                             Book an appointment
                         </Button>
                     </div>

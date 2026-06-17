@@ -39,7 +39,7 @@ export default function Hero() {
                     </p>
 
                     <div className="mt-8">
-                        <Button variant="primary" href="/contact">
+                        <Button variant="primary" href="/patient-portal/login">
                             Book an Appointment
                         </Button>
                     </div>

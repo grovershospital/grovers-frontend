@@ -29,7 +29,7 @@ export function Hero() {
                 </p>
 
                 <div className={'mt-9 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center'}>
-                    <Button href={'/book'} variant={"primary"}>
+                    <Button href={'/patient-portal/login'} variant={"primary"}>
                         Book an appointment
                     </Button>
                     <Button href={'/contact'} variant={'light'}>

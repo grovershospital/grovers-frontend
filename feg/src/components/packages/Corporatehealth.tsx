@@ -67,7 +67,7 @@ export default function CorporateHealth() {
                         </ul>
 
                         <div className="mt-8">
-                            <Button variant="primary" href="/contact" className={"lg:px-10"}>
+                            <Button variant="primary" href="/patient-portal/login" className={"lg:px-10"}>
                                 Talk To Us
                             </Button>
                         </div>

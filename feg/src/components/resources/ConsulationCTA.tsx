@@ -63,7 +63,7 @@ export default function ConsultationCTA() {
                         {/* via default align-items: stretch — matches the design where */}
                         {/* both buttons are visually the same size. */}
                         <div className="mt-8 flex flex-col gap-8">
-                            <Button variant="primary" className={'py-4 px-7'} href="/contact">
+                            <Button variant="primary" className={'py-4 px-7'} href="/patient-portal/login">
                                 Book an appointment
                             </Button>
                             <Button variant="red" className={'py-4 px-7'} href="tel:09022012109">

@@ -67,7 +67,7 @@ export default function PackageHelp() {
 
                             <div className="mt-10">
                                 <a
-                                    href="/contact"
+                                    href="/patient-portal/login"
                                     className="inline-flex items-center justify-center rounded-full bg-blue-600 px-14 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-green focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
                                 >
                                     Book a Screening

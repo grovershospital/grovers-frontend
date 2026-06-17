@@ -138,7 +138,7 @@ export default function ScreeningPackage({pkg}: { pkg: PublicPackage }) {
                         )}
 
                         <div className="mt-8">
-                            <Button variant="primary" href="/contact">
+                            <Button variant="primary" href="/patient-portal/login">
                                 Book {pkg.name}
                             </Button>
                         </div>
