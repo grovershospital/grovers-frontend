@@ -5,7 +5,7 @@ type Props = {
     detail: LabResultDetail | null;
     loading: boolean;
     error: string | null;
-    onDownload: () => void;
+    onEmailLink: () => void;
 };
 
 const FLAG_DISPLAY: Record<LabResultFlag, string> = {
@@ -14,7 +14,10 @@ const FLAG_DISPLAY: Record<LabResultFlag, string> = {
     Low: "Low ↓",
 };
 
-export default function ResultDetails({ detail, loading, error, onDownload }: Props) {
+export default function ResultDetails({ detail, loading, error, onEmailLink }: Props) {
+
+
+
     return (
         <section className="mb-12">
             <h2 className="mb-6 text-2xl font-bold text-brand-ink">Result Details</h2>
@@ -87,10 +90,10 @@ export default function ResultDetails({ detail, loading, error, onDownload }: Pr
                         </Link>
                         <button
                             type="button"
-                            onClick={onDownload}
+                            onClick={onEmailLink}
                             className="inline-flex items-center justify-center rounded-full cursor-pointer bg-brand-ink px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-blue focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-ink"
                         >
-                            Download PDF
+                            Email me the download link
                         </button>
                     </div>
                 </>

@@ -3,7 +3,7 @@ import LabResultsHero from "../../components/portal/LabResultsHero";
 import AllResultsTable from "../../components/portal/AllResultsTable";
 import ResultDetails from "../../components/portal/ResultDetails";
 import {
-    downloadLabResultPDF,
+    emailLabResultLink,
     fetchLabResultDetail,
     fetchRecentLabResults,
     type LabResult,
@@ -65,11 +65,16 @@ export default function LabResults() {
         };
     }, [selectedId]);
 
-    async function handleDownload(id: string) {
+    const selectedResult: LabResult | undefined = results.find(
+        (result) => result.id === selectedId
+    );
+
+    async function handleEmailLink(resultId: string) {
         try {
-            await downloadLabResultPDF(id);
-        } catch (err) {
-            toast.error(err instanceof Error ? err.message : "Could not download this result.");
+            await emailLabResultLink(resultId);
+            toast.success("Check your email for the download link.");
+        } catch {
+            toast.error("Could not send the email. Please try again.");
         }
     }
 
@@ -81,14 +86,18 @@ export default function LabResults() {
                 results={results}
                 loading={loadingResults}
                 onView={setSelectedId}
-                onDownload={handleDownload}
+                onDownload={handleEmailLink}
             />
 
             <ResultDetails
                 detail={detail}
                 error={detailError}
                 loading={loadingDetail}
-                onDownload={() => detail && handleDownload(detail.id)}
+                onEmailLink={() => {
+                    if (selectedResult) {
+                        handleEmailLink(selectedResult.id);
+                    }
+                }}
             />
         </>
     );

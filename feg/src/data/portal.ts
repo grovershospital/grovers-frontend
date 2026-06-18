@@ -132,7 +132,7 @@ const NOTIFICATION_TYPE_MAP: Record<string, NotificationType> = {
     BOOKING_CONFIRMED: "appointment-confirmed",
     BOOKING_CANCELLED: "appointment-cancelled",
     BOOKING_REMINDER: "appointment-reminder",
-    LAB_RESULT_READY: "lab-ready",
+    RESULT_READY: "lab-ready",
     MEDICAL_HISTORY_UPDATED: "medical-history",
     FEEDBACK_RECEIVED: "feedback",
 };
@@ -497,16 +497,8 @@ export async function fetchLabResultDetail(id: string): Promise<LabResultDetail>
  * its specific fileId. If the patient lab page eventually shows multiple files
  * per result, we'll need a different signature that takes (resultId, fileId).
  */
-export async function downloadLabResultPDF(id: string): Promise<void> {
-    const meta = await api.get<LabResultResponse>(`/portal/results/${id}`);
-    if (meta.files.length === 0) {
-        throw new Error("No file is attached to this result yet.");
-    }
-    const file = meta.files[0];
-    await api.downloadFile(
-        `/portal/results/${id}/files/${file.id}/download`,
-        file.originalFileName,
-    );
+export async function emailLabResultLink(id: string): Promise<void> {
+    await api.post<unknown>(`/portal/results/${id}/email-link`);
 }
 
 // ─── Feedback ────────────────────────────────────────────────
