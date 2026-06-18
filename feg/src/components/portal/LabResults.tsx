@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import {useCallback, useEffect, useState} from "react";
 import LabResultsHero from "../../components/portal/LabResultsHero";
 import AllResultsTable from "../../components/portal/AllResultsTable";
 import ResultDetails from "../../components/portal/ResultDetails";
@@ -11,62 +11,75 @@ import {
 } from "../../data/portal";
 import {toast} from "sonner";
 
+type ListStatus = "loading" | "error" | "ready";
+type DetailStatus = "idle" | "loading" | "error" | "ready";
+
 export default function LabResults() {
     const [results, setResults] = useState<ReadonlyArray<LabResult>>([]);
-    const [loadingResults, setLoadingResults] = useState(true);
+    const [listStatus, setListStatus] = useState<ListStatus>("loading");
 
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [detail, setDetail] = useState<LabResultDetail | null>(null);
     const [detailError, setDetailError] = useState<string | null>(null);
-    const [loadingDetail, setLoadingDetail] = useState(false);
+    const [detailStatus, setDetailStatus] = useState<DetailStatus>("idle");
+    const [detailReloadKey, setDetailReloadKey] = useState(0);
 
-    // Load the results list once.
-    useEffect(() => {
-        let alive = true;
-        fetchRecentLabResults()
-            .then((data) => {
-                if (!alive) return;
-                setResults(data);
-                // Auto-select the first "Ready" result so details aren't empty.
-                const firstReady = data.find((r) => r.status === "Ready to view");
-                if (firstReady) setSelectedId(firstReady.id);
-            })
-            .finally(() => {
-                if (alive) setLoadingResults(false);
+    // ─── Load the results list ──────────────────────────────
+    const loadResults = useCallback(async () => {
+        setListStatus("loading");
+        try {
+            const data = await fetchRecentLabResults();
+            setResults(data);
+            setListStatus("ready");
+            // Auto-select first "Ready" only if nothing is currently selected.
+            // Functional setState avoids stale-closure bugs on retry.
+            setSelectedId((current) => {
+                if (current) return current;
+                return data.find((r) => r.status === "Ready to view")?.id ?? null;
             });
-        return () => {
-            alive = false;
-        };
+        } catch {
+            setListStatus("error");
+        }
     }, []);
 
-    // Fetch detail whenever the selection changes.
     useEffect(() => {
-        if (!selectedId) return;
+        void loadResults();
+    }, [loadResults]);
+
+    // ─── Load the selected result's detail ──────────────────
+    useEffect(() => {
+        if (!selectedId) {
+            setDetailStatus("idle");
+            setDetail(null);
+            setDetailError(null);
+            return;
+        }
         let alive = true;
-        setLoadingDetail(true);
+        setDetailStatus("loading");
         setDetailError(null);
         fetchLabResultDetail(selectedId)
             .then((d) => {
-                if (alive) setDetail(d);
+                if (!alive) return;
+                setDetail(d);
+                setDetailStatus("ready");
             })
             .catch((err) => {
                 if (!alive) return;
                 setDetail(null);
                 setDetailError(
-                    err instanceof Error
-                    ? err.message : "Could not load this result.",
+                    err instanceof Error ? err.message : "Could not load this result.",
                 );
-            })
-            .finally(() => {
-                if (alive) setLoadingDetail(false);
+                setDetailStatus("error");
             });
         return () => {
             alive = false;
         };
-    }, [selectedId]);
+    }, [selectedId, detailReloadKey]);
+
+    const retryDetail = () => setDetailReloadKey((k) => k + 1);
 
     const selectedResult: LabResult | undefined = results.find(
-        (result) => result.id === selectedId
+        (result) => result.id === selectedId,
     );
 
     async function handleEmailLink(resultId: string) {
@@ -80,19 +93,21 @@ export default function LabResults() {
 
     return (
         <>
-            <LabResultsHero />
+            <LabResultsHero/>
 
             <AllResultsTable
                 results={results}
-                loading={loadingResults}
+                status={listStatus}
+                onRetry={loadResults}
                 onView={setSelectedId}
                 onDownload={handleEmailLink}
             />
 
             <ResultDetails
                 detail={detail}
-                error={detailError}
-                loading={loadingDetail}
+                status={detailStatus}
+                errorMessage={detailError ?? undefined}
+                onRetry={retryDetail}
                 onEmailLink={() => {
                     if (selectedResult) {
                         handleEmailLink(selectedResult.id);

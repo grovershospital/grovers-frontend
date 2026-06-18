@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import AppointmentsHero from "../../components/portal/AppointmentsHero";
 import AppointmentsTable from "../../components/portal/AppointmentsTable";
 import BookAppointmentForm, {
@@ -10,46 +10,47 @@ import {
     fetchPastAppointments,
     type Appointment,
 } from "../../data/portal";
-import { toast } from "sonner";
+import {toast} from "sonner";
+
+type Status = "loading" | "error" | "ready";
 
 export default function Appointments() {
     const [upcoming, setUpcoming] = useState<ReadonlyArray<Appointment>>([]);
     const [past, setPast] = useState<ReadonlyArray<Appointment>>([]);
-    const [loadingUpcoming, setLoadingUpcoming] = useState(true);
-    const [loadingPast, setLoadingPast] = useState(true);
+    const [upcomingStatus, setUpcomingStatus] = useState<Status>("loading");
+    const [pastStatus, setPastStatus] = useState<Status>("loading");
 
     const formRef = useRef<BookAppointmentFormHandle>(null);
 
-    useEffect(() => {
-        let alive = true;
-
-        fetchUpcomingAppointments()
-            .then((data) => {
-                if (alive) setUpcoming(data);
-            })
-            .finally(() => {
-                if (alive) setLoadingUpcoming(false);
-            });
-
-        fetchPastAppointments()
-            .then((data) => {
-                if (alive) setPast(data);
-            })
-            .finally(() => {
-                if (alive) setLoadingPast(false);
-            });
-
-        return () => {
-            alive = false;
-        };
+    // Upcoming and past are fetched independently — if one fails, the other
+    // still loads. Each has its own retry. This is also reused by onCreated
+    // after booking to refresh the upcoming list.
+    const loadUpcoming = useCallback(async () => {
+        setUpcomingStatus("loading");
+        try {
+            const data = await fetchUpcomingAppointments();
+            setUpcoming(data);
+            setUpcomingStatus("ready");
+        } catch {
+            setUpcomingStatus("error");
+        }
     }, []);
 
-    function loadUpcoming() {
-        setLoadingUpcoming(true);
-        return fetchUpcomingAppointments()
-            .then((data) => setUpcoming(data))
-            .finally(() => setLoadingUpcoming(false));
-    }
+    const loadPast = useCallback(async () => {
+        setPastStatus("loading");
+        try {
+            const data = await fetchPastAppointments();
+            setPast(data);
+            setPastStatus("ready");
+        } catch {
+            setPastStatus("error");
+        }
+    }, []);
+
+    useEffect(() => {
+        void loadUpcoming();
+        void loadPast();
+    }, [loadUpcoming, loadPast]);
 
     function handleReschedule(a: Appointment) {
         formRef.current?.prefillForReschedule(a);
@@ -78,12 +79,13 @@ export default function Appointments() {
 
     return (
         <>
-            <AppointmentsHero />
+            <AppointmentsHero/>
 
             <AppointmentsTable
                 title="Upcoming Appointments"
                 appointments={upcoming}
-                loading={loadingUpcoming}
+                status={upcomingStatus}
+                onRetry={loadUpcoming}
                 action={{
                     kind: "upcoming",
                     onReschedule: handleReschedule,
@@ -94,11 +96,12 @@ export default function Appointments() {
             <AppointmentsTable
                 title="Past Appointments"
                 appointments={past}
-                loading={loadingPast}
-                action={{ kind: "past", onRebook: handleRebook }}
+                status={pastStatus}
+                onRetry={loadPast}
+                action={{kind: "past", onRebook: handleRebook}}
             />
 
-            <BookAppointmentForm ref={formRef} onCreated={loadUpcoming} />
+            <BookAppointmentForm ref={formRef} onCreated={loadUpcoming}/>
         </>
     );
 }

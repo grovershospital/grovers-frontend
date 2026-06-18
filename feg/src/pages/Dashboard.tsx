@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import {useEffect, useState} from "react";
+import {Link} from "react-router-dom";
 import {
     fetchPortalUser,
     fetchUpcomingAppointments,
@@ -10,6 +10,7 @@ import {
     type LabResultStatus,
     type PortalUser,
 } from "../data/portal";
+import {Skeleton} from "../ui/Skeleton";
 
 // Status color lookups — listed as full class strings so Tailwind's JIT
 // picks them up. Interpolating like `text-${tone}-...` would fail.
@@ -17,7 +18,7 @@ const APPT_STATUS_COLOR: Record<AppointmentStatus, string> = {
     Confirmed: "text-brand-green",
     Pending: "text-brand-red",
     Cancelled: "text-brand-red",
-    Completed: "text-brand-purple"
+    Completed: "text-brand-purple",
 };
 
 const LAB_STATUS_COLOR: Record<LabResultStatus, string> = {
@@ -69,13 +70,18 @@ const QUICK_ACTIONS: QuickAction[] = [
     },
 ];
 
+type Status = "loading" | "error" | "ready";
+
 export default function Dashboard() {
     const [user, setUser] = useState<PortalUser | null>(null);
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [labResults, setLabResults] = useState<LabResult[]>([]);
+    const [status, setStatus] = useState<Status>("loading");
+    const [reloadKey, setReloadKey] = useState(0);
 
     useEffect(() => {
         let cancelled = false;
+        setStatus("loading");
         Promise.all([
             fetchPortalUser(),
             fetchUpcomingAppointments(),
@@ -86,22 +92,29 @@ export default function Dashboard() {
                 setUser(u);
                 setAppointments(a);
                 setLabResults(l);
+                setStatus("ready");
             })
-            .catch((err) =>
-                console.error("Failed to load dashboard data", err),
-            );
+            .catch(() => {
+                if (!cancelled) setStatus("error");
+            });
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [reloadKey]);
+
+    const retry = () => setReloadKey((k) => k + 1);
 
     return (
         <div className="space-y-12">
             {/* Welcome */}
             <section>
-                <h1 className="text-3xl font-extrabold text-brand-red sm:text-4xl">
-                    Hi {user ? user.firstName : "..."}!
-                </h1>
+                {status === "loading" ? (
+                    <Skeleton className="h-9 w-48 sm:h-10 sm:w-64"/>
+                ) : (
+                    <h1 className="text-3xl font-extrabold text-brand-red sm:text-4xl">
+                        {user?.firstName ? `Hi ${user.firstName}!` : "Welcome back!"}
+                    </h1>
+                )}
                 <p className="mt-4 max-w-2xl text-sm leading-relaxed text-brand-ink sm:text-base">
                     Welcome to your Grover's Hospital patient dashboard. Here you can
                     manage your appointments, view your lab results, access your medical
@@ -109,7 +122,8 @@ export default function Dashboard() {
                 </p>
             </section>
 
-            {/* Quick action cards — 2x2 grid on sm+, single column on mobile */}
+            {/* Quick action cards — always visible, no backend dependency. */}
+            {/* 2x2 grid on sm+, single column on mobile.                   */}
             <section
                 aria-label="Quick actions"
                 className="grid gap-5 sm:grid-cols-2 sm:gap-6"
@@ -137,119 +151,228 @@ export default function Dashboard() {
                 ))}
             </section>
 
-            {/* Upcoming Appointments */}
-            <section aria-labelledby="upcoming-appointments-heading">
-                <h2
-                    id="upcoming-appointments-heading"
-                    className="text-2xl font-extrabold text-brand-ink sm:text-3xl"
+            {status === "error" ? (
+                <section
+                    className="rounded-2xl border-2 border-black bg-white p-8 text-center sm:p-12"
+                    aria-live="polite"
                 >
-                    Upcoming Appointments
-                </h2>
+                    <h2 className="text-xl font-extrabold text-brand-ink sm:text-2xl">
+                        Couldn't load your dashboard
+                    </h2>
+                    <p className="mt-2 text-sm text-brand-ink/70 sm:text-base">
+                        Check your connection and try again.
+                    </p>
+                    <button
+                        type="button"
+                        onClick={retry}
+                        className="mt-6 inline-flex items-center rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-red/85"
+                    >
+                        Try again
+                    </button>
+                </section>
+            ) : (
+                <>
+                    {/* Upcoming Appointments */}
+                    <section aria-labelledby="upcoming-appointments-heading">
+                        <h2
+                            id="upcoming-appointments-heading"
+                            className="text-2xl font-extrabold text-brand-ink sm:text-3xl"
+                        >
+                            Upcoming Appointments
+                        </h2>
 
-                <div className="mt-6 overflow-x-auto">
-                    <table className="w-full min-w-[480px] border-collapse text-sm">
-                        <thead>
-                        <tr className="text-left">
-                            <th className="py-3 pr-4 font-extrabold text-brand-ink">
-                                Date
-                            </th>
-                            <th className="py-3 pr-4 font-extrabold text-brand-ink">
-                                Department
-                            </th>
-                            <th className="py-3 pr-4 font-extrabold text-brand-ink">
-                                Status
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {appointments.map((appt) => (
-                            <tr key={appt.id} className="border-t border-neutral-200">
-                                <td className="py-4 pr-4 font-bold text-brand-ink">
-                                    {appt.date}
-                                </td>
-                                <td className="py-4 pr-4 font-bold text-brand-ink">
-                                    {appt.department}
-                                </td>
-                                <td
-                                    className={`py-4 pr-4 italic ${APPT_STATUS_COLOR[appt.status]}`}
-                                >
-                                    {appt.status}
-                                </td>
-                            </tr>
+                        {status === "loading" ? (
+                            <DataTableSkeleton
+                                columns={["Date", "Department", "Status"]}
+                                widths={["w-24", "w-32", "w-20"]}
+                            />
+                        ) : appointments.length === 0 ? (
+                            <EmptyBlock message="No upcoming appointments."/>
+                        ) : (
+                            <div className="mt-6 overflow-x-auto">
+                                <table className="w-full min-w-[480px] border-collapse text-sm">
+                                    <thead>
+                                    <tr className="text-left">
+                                        <th className="py-3 pr-4 font-extrabold text-brand-ink">
+                                            Date
+                                        </th>
+                                        <th className="py-3 pr-4 font-extrabold text-brand-ink">
+                                            Department
+                                        </th>
+                                        <th className="py-3 pr-4 font-extrabold text-brand-ink">
+                                            Status
+                                        </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {appointments.map((appt) => (
+                                        <tr
+                                            key={appt.id}
+                                            className="border-t border-neutral-200"
+                                        >
+                                            <td className="py-4 pr-4 font-bold text-brand-ink">
+                                                {appt.date}
+                                            </td>
+                                            <td className="py-4 pr-4 font-bold text-brand-ink">
+                                                {appt.department}
+                                            </td>
+                                            <td
+                                                className={`py-4 pr-4 italic ${APPT_STATUS_COLOR[appt.status]}`}
+                                            >
+                                                {appt.status}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+
+                        <div className="mt-8 flex flex-wrap gap-4">
+                            <Link
+                                to="/patient-portal/appointments"
+                                className="inline-flex items-center justify-center rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-red/85"
+                            >
+                                View All Appointments
+                            </Link>
+                            <Link
+                                to="/patient-portal/appointments"
+                                className="inline-flex items-center justify-center rounded-full bg-brand-ink px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-ink/85"
+                            >
+                                Book New Appointment
+                            </Link>
+                        </div>
+                    </section>
+
+                    {/* Recent Lab Results */}
+                    <section aria-labelledby="recent-lab-results-heading">
+                        <h2
+                            id="recent-lab-results-heading"
+                            className="text-2xl font-extrabold text-brand-ink sm:text-3xl"
+                        >
+                            Recent Lab Results
+                        </h2>
+
+                        {status === "loading" ? (
+                            <DataTableSkeleton
+                                columns={["Date", "Test", "Status"]}
+                                widths={["w-24", "w-40", "w-24"]}
+                            />
+                        ) : labResults.length === 0 ? (
+                            <EmptyBlock message="No lab results yet."/>
+                        ) : (
+                            <div className="mt-6 overflow-x-auto">
+                                <table className="w-full min-w-[480px] border-collapse text-sm">
+                                    <thead>
+                                    <tr className="text-left">
+                                        <th className="py-3 pr-4 font-extrabold text-brand-ink">
+                                            Date
+                                        </th>
+                                        <th className="py-3 pr-4 font-extrabold text-brand-ink">
+                                            Test
+                                        </th>
+                                        <th className="py-3 pr-4 font-extrabold text-brand-ink">
+                                            Status
+                                        </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {labResults.map((lab) => (
+                                        <tr
+                                            key={lab.id}
+                                            className="border-t border-neutral-200"
+                                        >
+                                            <td className="py-4 pr-4 font-bold text-brand-ink">
+                                                {lab.date}
+                                            </td>
+                                            <td className="py-4 pr-4 font-bold text-brand-ink">
+                                                {lab.test}
+                                            </td>
+                                            <td
+                                                className={`py-4 pr-4 italic ${LAB_STATUS_COLOR[lab.status]}`}
+                                            >
+                                                {lab.status}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+
+                        <div className="mt-8">
+                            <Link
+                                to="/patient-portal/lab-results"
+                                className="inline-flex items-center justify-center rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-red/85"
+                            >
+                                View All Results
+                            </Link>
+                        </div>
+                    </section>
+                </>
+            )}
+        </div>
+    );
+}
+
+// ─── Local helpers ──────────────────────────────────────────
+
+/**
+ * Skeleton table that mirrors the real data table layout exactly — same
+ * header row, same column structure — so there's no shift when real data
+ * arrives. `widths` lets each section size its skeleton cells differently
+ * (e.g. test names are typically longer than dates).
+ */
+function DataTableSkeleton({
+                               columns,
+                               widths,
+                           }: {
+    columns: string[];
+    widths: string[];
+}) {
+    const rows = 3;
+    return (
+        <div className="mt-6 overflow-x-auto">
+            <table className="w-full min-w-[480px] border-collapse text-sm">
+                <thead>
+                <tr className="text-left">
+                    {columns.map((col) => (
+                        <th
+                            key={col}
+                            className="py-3 pr-4 font-extrabold text-brand-ink"
+                        >
+                            {col}
+                        </th>
+                    ))}
+                </tr>
+                </thead>
+                <tbody>
+                {Array.from({length: rows}).map((_, rowIdx) => (
+                    <tr
+                        key={rowIdx}
+                        className="border-t border-neutral-200"
+                    >
+                        {columns.map((_, colIdx) => (
+                            <td key={colIdx} className="py-4 pr-4">
+                                <Skeleton className={`h-4 ${widths[colIdx]}`}/>
+                            </td>
                         ))}
-                        </tbody>
-                    </table>
-                </div>
+                    </tr>
+                ))}
+                </tbody>
+            </table>
+        </div>
+    );
+}
 
-                <div className="mt-8 flex flex-wrap gap-4">
-                    <Link
-                        to="/patient-portal/appointments"
-                        className="inline-flex items-center justify-center rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-red/85"
-                    >
-                        View All Appointments
-                    </Link>
-                    <Link
-                        to="/patient-portal/appointments"
-                        className="inline-flex items-center justify-center rounded-full bg-brand-ink px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-ink/85"
-                    >
-                        Book New Appointment
-                    </Link>
-                </div>
-            </section>
-
-            {/* Recent Lab Results */}
-            <section aria-labelledby="recent-lab-results-heading">
-                <h2
-                    id="recent-lab-results-heading"
-                    className="text-2xl font-extrabold text-brand-ink sm:text-3xl"
-                >
-                    Recent Lab Results
-                </h2>
-
-                <div className="mt-6 overflow-x-auto">
-                    <table className="w-full min-w-[480px] border-collapse text-sm">
-                        <thead>
-                        <tr className="text-left">
-                            <th className="py-3 pr-4 font-extrabold text-brand-ink">
-                                Date
-                            </th>
-                            <th className="py-3 pr-4 font-extrabold text-brand-ink">
-                                Test
-                            </th>
-                            <th className="py-3 pr-4 font-extrabold text-brand-ink">
-                                Status
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {labResults.map((lab) => (
-                            <tr key={lab.id} className="border-t border-neutral-200">
-                                <td className="py-4 pr-4 font-bold text-brand-ink">
-                                    {lab.date}
-                                </td>
-                                <td className="py-4 pr-4 font-bold text-brand-ink">
-                                    {lab.test}
-                                </td>
-                                <td
-                                    className={`py-4 pr-4 italic ${LAB_STATUS_COLOR[lab.status]}`}
-                                >
-                                    {lab.status}
-                                </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                </div>
-
-                <div className="mt-8">
-                    <Link
-                        to="/patient-portal/lab-results"
-                        className="inline-flex items-center justify-center rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-red/85"
-                    >
-                        View All Results
-                    </Link>
-                </div>
-            </section>
+/**
+ * Dashed-border empty state block. Distinct from the loading state
+ * (which uses table skeleton rows) so the two are visually unambiguous.
+ */
+function EmptyBlock({message}: { message: string }) {
+    return (
+        <div className="mt-6 rounded-lg border border-dashed border-neutral-300 py-12 text-center">
+            <p className="text-sm text-brand-ink/70">{message}</p>
         </div>
     );
 }

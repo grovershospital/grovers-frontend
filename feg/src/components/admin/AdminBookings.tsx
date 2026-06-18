@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import {useEffect, useState} from "react";
+import {useSearchParams} from "react-router-dom";
 import BookingsFilters from "../../components/admin/BookingsFilters";
 import BookingsTable from "../../components/admin/BookingsTable";
 import Pagination from "../../components/admin/Pagination";
@@ -26,6 +26,8 @@ const STATUS_TO_PARAM: Record<AdminBookingStatus, string> = {
     Cancelled: "cancelled",
 };
 
+type Status = "loading" | "error" | "ready";
+
 export default function AdminBookings() {
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -41,7 +43,8 @@ export default function AdminBookings() {
     const [page, setPage] = useState(1);
     const [bookings, setBookings] = useState<AdminBookingSummary[]>([]);
     const [total, setTotal] = useState(0);
-    const [loading, setLoading] = useState(true);
+    const [status, setStatus] = useState<Status>("loading");
+    const [reloadKey, setReloadKey] = useState(0);
 
     function handleFiltersChange(next: AdminBookingFilters) {
         setFilters(next);
@@ -52,7 +55,7 @@ export default function AdminBookings() {
         } else {
             params.delete("status");
         }
-        setSearchParams(params, { replace: true });
+        setSearchParams(params, {replace: true});
     }
 
     useEffect(() => {
@@ -61,20 +64,23 @@ export default function AdminBookings() {
 
     useEffect(() => {
         let alive = true;
-        setLoading(true);
+        setStatus("loading");
         fetchAdminBookings(filters, page, PAGE_SIZE)
             .then((res) => {
                 if (!alive) return;
                 setBookings(res.entries);
                 setTotal(res.total);
+                setStatus("ready");
             })
-            .finally(() => {
-                if (alive) setLoading(false);
+            .catch(() => {
+                if (alive) setStatus("error");
             });
         return () => {
             alive = false;
         };
-    }, [filters, page]);
+    }, [filters, page, reloadKey]);
+
+    const retry = () => setReloadKey((k) => k + 1);
 
     return (
         <>
@@ -86,9 +92,9 @@ export default function AdminBookings() {
                 </p>
             </div>
 
-            <BookingsFilters filters={filters} onChange={handleFiltersChange} />
+            <BookingsFilters filters={filters} onChange={handleFiltersChange}/>
 
-            <BookingsTable bookings={bookings} loading={loading} />
+            <BookingsTable bookings={bookings} status={status} onRetry={retry}/>
 
             <Pagination
                 page={page}

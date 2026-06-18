@@ -1,11 +1,15 @@
-import { Link } from "react-router-dom";
-import type { LabResultDetail, LabResultFlag } from "../../data/portal";
+import {Link} from "react-router-dom";
+import {Skeleton} from "../../ui/Skeleton";
+import type {LabResultDetail, LabResultFlag} from "../../data/portal";
+
+type Status = "idle" | "loading" | "error" | "ready";
 
 type Props = {
     detail: LabResultDetail | null;
-    loading: boolean;
-    error: string | null;
+    status: Status;
+    errorMessage?: string;
     onEmailLink: () => void;
+    onRetry?: () => void;
 };
 
 const FLAG_DISPLAY: Record<LabResultFlag, string> = {
@@ -14,21 +18,37 @@ const FLAG_DISPLAY: Record<LabResultFlag, string> = {
     Low: "Low ↓",
 };
 
-export default function ResultDetails({ detail, loading, error, onEmailLink }: Props) {
-
-
-
+export default function ResultDetails({detail, status, errorMessage, onEmailLink, onRetry}: Props) {
     return (
         <section className="mb-12">
             <h2 className="mb-6 text-2xl font-bold text-brand-ink">Result Details</h2>
 
-            {loading ? (
-                <p className="text-sm text-neutral-500">Loading…</p>
-            ) : error ? (
-                <p className="text-sm text-brand-red" role="alert">{error}</p>
-            ) : !detail ? (
-                <p className="text-sm text-neutral-500">Select a result to see details.</p>
-            ) : (
+            {status === "idle" && (
+                <p className="text-sm text-neutral-500">
+                    Select a result to see details.
+                </p>
+            )}
+
+            {status === "loading" && <ResultDetailsSkeleton/>}
+
+            {status === "error" && (
+                <div className="rounded-lg border border-dashed border-neutral-300 py-8 text-center">
+                    <p className="text-sm text-brand-red" role="alert">
+                        {errorMessage ?? "Could not load this result."}
+                    </p>
+                    {onRetry && (
+                        <button
+                            type="button"
+                            onClick={onRetry}
+                            className="mt-3 text-sm text-brand-ink underline underline-offset-2 hover:no-underline"
+                        >
+                            Try again
+                        </button>
+                    )}
+                </div>
+            )}
+
+            {status === "ready" && detail && (
                 <>
                     <div className="mb-6 text-sm text-brand-ink">
                         <p>
@@ -99,5 +119,56 @@ export default function ResultDetails({ detail, loading, error, onEmailLink }: P
                 </>
             )}
         </section>
+    );
+}
+
+function ResultDetailsSkeleton() {
+    const componentRows = 5;
+    return (
+        <>
+            {/* Test/Date info */}
+            <div className="mb-6 space-y-2">
+                <Skeleton className="h-4 w-64"/>
+                <Skeleton className="h-4 w-56"/>
+            </div>
+
+            {/* Components table — mirrors the real table layout */}
+            <div className="mb-8 overflow-x-auto">
+                <table className="w-full min-w-[560px] border-collapse">
+                    <thead>
+                    <tr className="text-left text-sm font-semibold text-brand-ink">
+                        <th className="pb-4 pr-6">Test Component</th>
+                        <th className="pb-4 pr-6">Your Result</th>
+                        <th className="pb-4 pr-6">Reference Range</th>
+                        <th className="pb-4">Flag</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {Array.from({length: componentRows}).map((_, i) => (
+                        <tr key={i} className="align-top text-sm">
+                            <td className="py-3 pr-6">
+                                <Skeleton className="h-4 w-32"/>
+                            </td>
+                            <td className="py-3 pr-6">
+                                <Skeleton className="h-4 w-20"/>
+                            </td>
+                            <td className="py-3 pr-6">
+                                <Skeleton className="h-4 w-28"/>
+                            </td>
+                            <td className="py-3">
+                                <Skeleton className="h-4 w-16"/>
+                            </td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex flex-wrap gap-4">
+                <Skeleton className="h-11 w-44 rounded-full"/>
+                <Skeleton className="h-11 w-60 rounded-full"/>
+            </div>
+        </>
     );
 }

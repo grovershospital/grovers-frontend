@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Search } from "lucide-react";
+import {useEffect, useState} from "react";
+import {Search} from "lucide-react";
 import PatientsTable from "../../components/admin/PatientsTable";
 import Pagination from "../../components/admin/Pagination";
 import {
@@ -9,12 +9,15 @@ import {
 
 const PAGE_SIZE = 10;
 
+type Status = "loading" | "error" | "ready";
+
 export default function AdminPatients() {
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
     const [patients, setPatients] = useState<AdminPatientSummary[]>([]);
     const [total, setTotal] = useState(0);
-    const [loading, setLoading] = useState(true);
+    const [status, setStatus] = useState<Status>("loading");
+    const [reloadKey, setReloadKey] = useState(0);
 
     useEffect(() => {
         setPage(1);
@@ -22,20 +25,23 @@ export default function AdminPatients() {
 
     useEffect(() => {
         let alive = true;
-        setLoading(true);
+        setStatus("loading");
         fetchAdminPatients(search, page, PAGE_SIZE)
             .then((res) => {
                 if (!alive) return;
                 setPatients(res.entries);
                 setTotal(res.total);
+                setStatus("ready");
             })
-            .finally(() => {
-                if (alive) setLoading(false);
+            .catch(() => {
+                if (alive) setStatus("error");
             });
         return () => {
             alive = false;
         };
-    }, [search, page]);
+    }, [search, page, reloadKey]);
+
+    const retry = () => setReloadKey((k) => k + 1);
 
     return (
         <>
@@ -63,7 +69,7 @@ export default function AdminPatients() {
                 </div>
             </div>
 
-            <PatientsTable patients={patients} loading={loading} />
+            <PatientsTable patients={patients} status={status} onRetry={retry}/>
 
             <Pagination
                 page={page}
