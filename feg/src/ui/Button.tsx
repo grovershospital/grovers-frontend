@@ -43,25 +43,24 @@ export function Button({
     const isExternal = href && /^(https?:|tel:|mailto:|#)/.test(href);
 
     if (href && isExternal) {
-        return <a href={href} className={classes}>{children}</a>;
+        return (
+            <a href={href} className={classes} onClick={onClick}>
+                {children}
+            </a>
+        );
     }
-    if (href) {
-        return <Link to={href} className={classes}>{children}</Link>;
-    }
-
-    return <button type="button" onClick={onClick} className={classes}>{children}</button>;
 
     if (href) {
         return (
-            <a href={href} className={classes}>
+            <Link to={href} className={classes} onClick={onClick}>
                 {children}
-            </a>
-        )
+            </Link>
+        );
     }
 
     return (
-        <button type={"button"} onClick={onClick} className={classes}>
+        <button type="button" onClick={onClick} className={classes}>
             {children}
         </button>
-    )
+    );
 }
