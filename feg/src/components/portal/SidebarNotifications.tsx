@@ -144,13 +144,6 @@ export default function SidebarNotifications({ onNavigate }: Props) {
             ) : (
                 <ul className="space-y-3">
                     {notifications.map((n) => {
-                        console.log("Rendering notification:", {
-                            id: n.id,
-                            type: n.type,
-                            hrefFromNotification: n.href,
-                            expectedHref: NOTIFICATION_HREF[n.type],
-                        });
-
                         return (
                             <li key={n.id}>
                                 <Link
