@@ -20,16 +20,22 @@ export function Footer() {
                         </p>
                     </div>
 
-                    {FOOTER_QUICK_LINKS.map((link) => (
-                        <li key={link.label}>
-                            <Link
-                                to={link.href}
-                                className="transition-colors hover:text-white"
-                            >
-                                {link.label}
-                            </Link>
-                        </li>
-                    ))}
+                    {/* Quick Links */}
+                    <div>
+                        <h3 className="text-sm font-bold">Quick Links</h3>
+                        <ul className="mt-4 space-y-2 text-sm text-white/80">
+                            {FOOTER_QUICK_LINKS.map((link) => (
+                                <li key={link.label}>
+                                    <Link
+                                        to={link.href}
+                                        className="transition-colors hover:text-white"
+                                    >
+                                        {link.label}
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
 
                     {/* Our Services */}
                     <div>
