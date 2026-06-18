@@ -2,26 +2,26 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
         <loc>https://YOUR-DOMAIN.com/</loc>
-        <changefreq>weekly</changefreq>
+        <changefreq>https://grovers-frontend.vercel.app/</changefreq>
         <priority>1.0</priority>
     </url>
     <url>
-        <loc>https://YOUR-DOMAIN.com/about</loc>
+        <loc>https://grovers-frontend.vercel.app/about</loc>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://YOUR-DOMAIN.com/services</loc>
+        <loc>https://grovers-frontend.vercel.app/services</loc>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://YOUR-DOMAIN.com/packages</loc>
+        <loc>https://grovers-frontend.vercel.app/packages</loc>
         <changefreq>monthly</changefreq>
         <priority>0.9</priority>
     </url>
     <url>
-        <loc>https://YOUR-DOMAIN.com/resources</loc>
+        <loc>https://grovers-frontend.vercel.app/resources</loc>
         <changefreq>weekly</changefreq>
         <priority>0.7</priority>
     </url>
