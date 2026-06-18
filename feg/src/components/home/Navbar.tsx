@@ -7,7 +7,7 @@ import logo from "../../assets/logo.png";
 function handleNavClick(e: React.MouseEvent<HTMLAnchorElement>, href: string) {
     if (href.startsWith('#')) {
         e.preventDefault();
-        document.getElementById(href.slice(1))?.scrollIntoView({ behavior: 'smooth' });
+        document.getElementById(href.slice(1))?.scrollIntoView({behavior: 'smooth'});
     }
 }
 
@@ -19,7 +19,8 @@ export function Navbar() {
         <header className={'w-full border-b border-black/5 bg-white'}>
             <nav className={"mx-auto flex max-w-content items-center justify-between px-4 py-4 md:px-8"}>
                 {/*  Logo  */}
-                <a href="/" className={"flex items-center"} aria-label={`Grover's Hospital home`}>
+                <a href="/" className={"flex items-center"} aria-label={`Grover's Hospital home`}
+                   onClick={() => setOpen(false)}>
                     <img src={logo} alt="Grover's Hospital" className={'h-12 w-auto'}/>
                 </a>
 
@@ -46,8 +47,10 @@ export function Navbar() {
                             </a>
 
                             {"children" in link && (
-                                <div className="invisible absolute left-0 top-full z-50 pt-3 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100">
-                                    <div className="min-w-[220px] rounded-xl border border-black/5 bg-white p-2 shadow-lg">
+                                <div
+                                    className="invisible absolute left-0 top-full z-50 pt-3 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100">
+                                    <div
+                                        className="min-w-[220px] rounded-xl border border-black/5 bg-white p-2 shadow-lg">
                                         {link.children.map((child) => (
                                             <a
                                                 key={child.label}
@@ -165,7 +168,8 @@ export function Navbar() {
                             );
                         })}
                         <li className='pt-2'>
-                            <Button href='/patient-portal' variant='primary' className="w-full">
+                            <Button href='/patient-portal' variant='primary' className="w-full"
+                                    onClick={() => setOpen(false)}>
                                 Patient Portal
                             </Button>
                         </li>
