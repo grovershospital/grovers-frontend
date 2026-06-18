@@ -146,14 +146,16 @@ export default function ScreeningPackage({pkg}: { pkg: PublicPackage }) {
 
                     {/* Right column — comparison table */}
                     <div className="mt-12 lg:col-span-3 lg:mt-0">
-                        <div className="overflow-x-auto overflow-hidden rounded-lg">
-                            <table className="w-full table-fixed border-collapse bg-brand-blue text-sm">
+                        <div className="relative overflow-x-auto rounded-lg">
+                            <table className="w-full table-fixed border-collapse bg-brand-blue text-sm"
+                                    style={{minWidth: `${320 + 90 * pkg.tiers.length}px`}}
+                            >
                                 <colgroup>
-                                    <col className={'w-[40%]'}/>
+                                    <col className={'w-[200px] lg:w-[40%]'}/>
                                     {pkg.tiers.map((tier) => (
                                         <col
                                             key={tier.id}
-                                            style={{width: `${60 / pkg.tiers.length}%`}}
+                                            className={'w-[90px] lg:w-auto'}
                                         />
                                     ))}
                                 </colgroup>
@@ -241,6 +243,10 @@ export default function ScreeningPackage({pkg}: { pkg: PublicPackage }) {
                                 </tbody>
                             </table>
                         </div>
+
+                        <p className="mt-2 text-xs text-neutral-500 lg:hidden">
+                            ← Swipe to see all tiers →
+                        </p>
 
                         {footnotes.list.length > 0 && (
                             <ul className="mt-4 space-y-1 text-xs text-brand-ink/80">

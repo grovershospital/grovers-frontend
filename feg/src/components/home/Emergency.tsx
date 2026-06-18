@@ -54,7 +54,12 @@ export function Emergency() {
                 {/* Frosted glass card — DOM-second, shows right on desktop. No ml-auto. */}
                 <div
                     className="order-1 w-full max-w-md bg-white/10 backdrop-blur-md md:order-2"
-                    style={{ clipPath: "url(#emergency-card-clip)" }}
+                    style={{
+                        clipPath:
+                            typeof window !== "undefined" && window.innerWidth >= 768
+                                ? "url(#emergency-card-clip)"
+                                : "none",
+                    }}
                 >
                     <div className="p-8 pt-10 md:p-10 md:pr-14 md:pt-12">
                         <h2 className="text-2xl font-extrabold leading-tight text-white sm:text-3xl">
