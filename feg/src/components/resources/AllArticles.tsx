@@ -1,38 +1,44 @@
-import { useEffect, useState } from "react";
-import { fetchArticles, type Article } from "../../data/articles";
+import {useEffect, useState} from "react";
+import {fetchArticles, type Article} from "../../data/articles";
 import ArticleCard from "./ArticleCard";
+import {Skeleton} from "../../ui/Skeleton";
 
 // Articles per page. "See more" reveals this many additional cards each click.
 const PAGE_SIZE = 4;
 
+type Status = "loading" | "error" | "empty" | "ready";
+
 export default function AllArticles() {
     const [articles, setArticles] = useState<Article[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [status, setStatus] = useState<Status>("loading");
     const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+    const [reloadKey, setReloadKey] = useState(0);
 
     useEffect(() => {
         let cancelled = false;
+        setStatus("loading");
         fetchArticles()
             .then((all) => {
-                if (!cancelled) {
-                    // The featured article is already shown in its own section above,
-                    // so exclude it here to avoid duplication.
-                    setArticles(all.filter((a) => !a.featured));
-                }
+                if (cancelled) return;
+                // The featured article is already shown in its own section above,
+                // so exclude it here to avoid duplication.
+                const nonFeatured = all.filter((a) => !a.featured);
+                setArticles(nonFeatured);
+                setStatus(nonFeatured.length === 0 ? "empty" : "ready");
             })
-            .catch((err) => {
-                console.error("Failed to load articles", err);
-            })
-            .finally(() => {
-                if (!cancelled) setLoading(false);
+            .catch(() => {
+                if (cancelled) return;
+                setStatus("error");
             });
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [reloadKey]);
+
+    const retry = () => setReloadKey((k) => k + 1);
 
     const visibleArticles = articles.slice(0, visibleCount);
-    const hasMore = !loading && visibleCount < articles.length;
+    const hasMore = status === "ready" && visibleCount < articles.length;
 
     return (
         <section
@@ -51,20 +57,46 @@ export default function AllArticles() {
                     Our latest articles.
                 </p>
 
-                <div className="mt-12 space-y-12 sm:space-y-16">
-                    {loading ? (
-                        // Two skeleton cards while loading — enough to convey list shape
-                        // without filling the whole viewport with placeholders.
-                        <>
-                            <ArticleCardSkeleton />
-                            <ArticleCardSkeleton />
-                        </>
-                    ) : (
-                        visibleArticles.map((article) => (
-                            <ArticleCard key={article.slug} article={article} />
-                        ))
-                    )}
-                </div>
+                {status === "loading" && (
+                    <div className="mt-12 space-y-12 sm:space-y-16">
+                        <ArticleCardSkeleton/>
+                        <ArticleCardSkeleton/>
+                    </div>
+                )}
+
+                {status === "error" && (
+                    <div className="mt-12 text-center">
+                        <h3 className="text-xl font-extrabold text-brand-ink sm:text-2xl">
+                            Couldn't load articles
+                        </h3>
+                        <p className="mt-2 text-sm text-brand-ink/70 sm:text-base">
+                            Check your connection and try again.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={retry}
+                            className="mt-6 inline-flex items-center rounded-full border border-neutral-300 bg-transparent px-8 py-3 text-sm font-bold text-brand-ink transition-colors hover:bg-white/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-ink"
+                        >
+                            Try again
+                        </button>
+                    </div>
+                )}
+
+                {status === "empty" && (
+                    <div className="mt-12 text-center">
+                        <p className="mx-auto max-w-md text-base text-brand-ink/70 sm:text-lg">
+                            Check back soon for exciting health and wellness articles.
+                        </p>
+                    </div>
+                )}
+
+                {status === "ready" && (
+                    <div className="mt-12 space-y-12 sm:space-y-16">
+                        {visibleArticles.map((article) => (
+                            <ArticleCard key={article.slug} article={article}/>
+                        ))}
+                    </div>
+                )}
 
                 {/* "See more" — plain <button>, not <Button>, because Button is */}
                 {/* router-aware (always renders as a link). This needs to be a real */}
@@ -88,14 +120,14 @@ export default function AllArticles() {
 function ArticleCardSkeleton() {
     return (
         <div className="grid gap-6 sm:grid-cols-[40%_1fr] sm:items-center sm:gap-10">
-            <div className="aspect-[4/3] w-full animate-pulse rounded-2xl bg-neutral-200" />
+            <Skeleton className="aspect-[4/3] w-full rounded-2xl"/>
             <div className="space-y-4">
-                <div className="h-7 w-32 animate-pulse rounded-full bg-neutral-200" />
-                <div className="h-7 w-full animate-pulse rounded bg-neutral-200" />
-                <div className="h-7 w-3/4 animate-pulse rounded bg-neutral-200" />
-                <div className="h-16 w-full animate-pulse rounded bg-neutral-200" />
-                <div className="h-4 w-20 animate-pulse rounded bg-neutral-200" />
-                <div className="h-11 w-32 animate-pulse rounded-full bg-neutral-200" />
+                <Skeleton className="h-7 w-32 rounded-full"/>
+                <Skeleton className="h-7 w-full"/>
+                <Skeleton className="h-7 w-3/4"/>
+                <Skeleton className="h-16 w-full"/>
+                <Skeleton className="h-4 w-20"/>
+                <Skeleton className="h-11 w-32 rounded-full"/>
             </div>
         </div>
     );

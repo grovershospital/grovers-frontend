@@ -1,36 +1,43 @@
-import { useEffect, useState } from "react";
-import { Button } from "../../ui/Button";
+import {useEffect, useState} from "react";
+import {Button} from "../../ui/Button";
+import {Skeleton} from "../../ui/Skeleton";
 import {
     fetchFeaturedArticle,
     getCategoryStyle,
     type Article,
 } from "../../data/articles";
 
+type Status = "loading" | "error" | "ready";
+
 export default function FeaturedArticle() {
     const [article, setArticle] = useState<Article | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [status, setStatus] = useState<Status>("loading");
+    const [reloadKey, setReloadKey] = useState(0);
 
     useEffect(() => {
         let cancelled = false;
+        setStatus("loading");
         fetchFeaturedArticle()
             .then((a) => {
-                if (!cancelled) setArticle(a);
+                if (cancelled) return;
+                setArticle(a);
+                setStatus("ready");
             })
-            .catch((err) => {
-                // Don't crash the page on a failed fetch — just log and render nothing.
-                console.error("Failed to load featured article", err);
-            })
-            .finally(() => {
-                if (!cancelled) setLoading(false);
+            .catch(() => {
+                if (cancelled) return;
+                setStatus("error");
             });
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [reloadKey]);
 
-    // Hide the section entirely if there's no featured article. The page
-    // shouldn't show a "Featured" heading with empty content under it.
-    if (!loading && !article) return null;
+    const retry = () => setReloadKey((k) => k + 1);
+
+    // Hide the section entirely if the fetch succeeded but no featured article
+    // exists. (Error state is handled separately below — we still want the user
+    // to see what failed and be able to retry.)
+    if (status === "ready" && !article) return null;
 
     return (
         <section
@@ -46,21 +53,39 @@ export default function FeaturedArticle() {
                     Featured
                 </h2>
 
-                {loading ? (
-                    // Skeleton — mirrors the real layout so there's no shift when the
-                    // article lands. Pulse animation gives it visual life.
+                {status === "loading" && (
                     <div className="mt-10 grid gap-10 lg:grid-cols-2 lg:items-center">
                         <div className="space-y-4">
-                            <div className="h-7 w-32 animate-pulse rounded-full bg-neutral-200" />
-                            <div className="h-8 w-full animate-pulse rounded bg-neutral-200" />
-                            <div className="h-8 w-3/4 animate-pulse rounded bg-neutral-200" />
-                            <div className="h-24 w-full animate-pulse rounded bg-neutral-200" />
-                            <div className="h-4 w-20 animate-pulse rounded bg-neutral-200" />
-                            <div className="h-11 w-32 animate-pulse rounded-full bg-neutral-200" />
+                            <Skeleton className="h-7 w-32 rounded-full"/>
+                            <Skeleton className="h-8 w-full"/>
+                            <Skeleton className="h-8 w-3/4"/>
+                            <Skeleton className="h-24 w-full"/>
+                            <Skeleton className="h-4 w-20"/>
+                            <Skeleton className="h-11 w-32 rounded-full"/>
                         </div>
-                        <div className="aspect-[4/3] animate-pulse rounded-2xl bg-neutral-200" />
+                        <Skeleton className="aspect-[4/3] w-full rounded-2xl"/>
                     </div>
-                ) : article ? (
+                )}
+
+                {status === "error" && (
+                    <div className="mt-10 text-center">
+                        <h3 className="text-xl font-extrabold text-brand-ink sm:text-2xl">
+                            Couldn't load featured article
+                        </h3>
+                        <p className="mt-2 text-sm text-brand-ink/70 sm:text-base">
+                            Check your connection and try again.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={retry}
+                            className="mt-6 inline-flex items-center rounded-full border border-neutral-300 bg-transparent px-8 py-3 text-sm font-bold text-brand-ink transition-colors hover:bg-white/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-ink"
+                        >
+                            Try again
+                        </button>
+                    </div>
+                )}
+
+                {status === "ready" && article && (
                     <div className="mt-10 grid gap-10 lg:grid-cols-2 lg:items-center">
                         {/* Content column */}
                         <div>
@@ -100,7 +125,7 @@ export default function FeaturedArticle() {
                             />
                         </div>
                     </div>
-                ) : null}
+                )}
             </div>
         </section>
     );
