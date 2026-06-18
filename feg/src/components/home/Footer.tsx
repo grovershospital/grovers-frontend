@@ -4,6 +4,7 @@ import ig from "../../assets/ig.png"
 import whatsapp from "../../assets/whatsapp.png"
 import x from "../../assets/x.png"
 import fb from '../../assets/fb.png'
+import { Link } from "react-router-dom";
 
 export function Footer() {
     return (
@@ -19,29 +20,29 @@ export function Footer() {
                         </p>
                     </div>
 
-                    {/* Quick Links */}
-                    <div>
-                        <h3 className="text-sm font-bold">Quick Links</h3>
-                        <ul className="mt-4 space-y-2 text-sm text-white/80">
-                            {FOOTER_QUICK_LINKS.map((link) => (
-                                <li key={link}>
-                                    <a href="#" className="transition-colors hover:text-white">
-                                        {link}
-                                    </a>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+                    {FOOTER_QUICK_LINKS.map((link) => (
+                        <li key={link.label}>
+                            <Link
+                                to={link.href}
+                                className="transition-colors hover:text-white"
+                            >
+                                {link.label}
+                            </Link>
+                        </li>
+                    ))}
 
                     {/* Our Services */}
                     <div>
                         <h3 className="text-sm font-bold">Our Services</h3>
                         <ul className="mt-4 space-y-2 text-sm text-white/80">
                             {FOOTER_SERVICES.map((service) => (
-                                <li key={service}>
-                                    <a href="#" className="transition-colors hover:text-white">
-                                        {service}
-                                    </a>
+                                <li key={service.label}>
+                                    <Link
+                                        to={service.href}
+                                        className="transition-colors hover:text-white"
+                                    >
+                                        {service.label}
+                                    </Link>
                                 </li>
                             ))}
                         </ul>

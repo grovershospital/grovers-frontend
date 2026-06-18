@@ -177,19 +177,20 @@ export const TESTIMONIALS = [
 ] as const;
 
 export const FOOTER_SERVICES = [
-    "Family Medicine",
-    "Obstetrics and Gynaecology",
-    "Paediatrics",
-    "Intensive Care Unit",
-    "Neonatal Intensive Care Unit",
-    "Health Screening Packages",
-    "Emergency Services",
+    { label: "Family Medicine", href: "/services#family-medicine" },
+    { label: "Obstetrics and Gynaecology", href: "/services#obgyn" },
+    { label: "Paediatrics", href: "/services#paediatrics" },
+    { label: "Cardiology", href: "/services#cardiology" },
+    { label: "Internal Medicine", href: "/services#internal-medicine" },
+    { label: "Mental Health Clinic", href: "/services#mental-health" },
+    { label: "Health Screening Packages", href: "/packages" },
 ] as const;
 
 // @ts-ignore
 export const FOOTER_QUICK_LINKS = [
-    "About Us",
-    "Services and Packages",
-    "Blog and Resources",
-    "Contact Us",
+    { label: "Home", href: "/" },
+    { label: "About", href: "/about" },
+    { label: "Services", href: "/services" },
+    { label: "Packages", href: "/packages" },
+    { label: "Resources", href: "/resources" },
 ] as const;
