@@ -161,7 +161,7 @@ export default function ArticleDetail() {
                                     img: ({alt, ...props}) => (
                                         <img
                                             alt={alt || ""}
-                                            className="mt-12 mb-12 block w-full rounded-2xl object-cover sm:mx-auto sm:w-[60%]"
+                                            className="mt-12 mb-12 block w-full rounded-2xl object-cover"
                                             {...props}
                                         />
                                     ),
