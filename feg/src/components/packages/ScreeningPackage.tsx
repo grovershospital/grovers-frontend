@@ -146,16 +146,21 @@ export default function ScreeningPackage({pkg}: { pkg: PublicPackage }) {
 
                     {/* Right column — comparison table */}
                     <div className="mt-12 lg:col-span-3 lg:mt-0">
+                        {/* --pkg-min-w is set via inline style below and consumed by   */}
+                        {/* the .pkg-matrix rule in index.css, which only applies the   */}
+                        {/* min-width below the lg breakpoint. At lg+ the table fills   */}
+                        {/* its grid column via table-fixed with no min-width needed.   */}
                         <div className="relative overflow-x-auto rounded-lg">
-                            <table className="w-full table-fixed border-collapse bg-brand-blue text-sm"
-                                    style={{minWidth: `${320 + 90 * pkg.tiers.length}px`}}
+                            <table
+                                className="pkg-matrix w-full table-fixed lg:table-auto border-collapse bg-brand-blue text-sm"
+                                style={{"--pkg-min-w": `${320 + 110 * pkg.tiers.length}px`} as React.CSSProperties}
                             >
                                 <colgroup>
-                                    <col className={'w-[200px] lg:w-[40%]'}/>
+                                    <col className="w-[200px] lg:w-[40%]"/>
                                     {pkg.tiers.map((tier) => (
                                         <col
                                             key={tier.id}
-                                            className={'w-[90px] lg:w-auto'}
+                                            className="w-[110px] lg:w-auto"
                                         />
                                     ))}
                                 </colgroup>
@@ -181,9 +186,7 @@ export default function ScreeningPackage({pkg}: { pkg: PublicPackage }) {
                                             {inclusion.label}
                                         </td>
                                         {pkg.tiers.map((tier) => {
-                                            const cell = cellLookup[
-                                                `${tier.id}::${inclusion.id}`
-                                                ];
+                                            const cell = cellLookup[`${tier.id}::${inclusion.id}`];
                                             const status = cell?.status ?? "EXCLUDED";
                                             const note = cell?.note ?? "";
                                             const footnoteNumber =
@@ -200,40 +203,31 @@ export default function ScreeningPackage({pkg}: { pkg: PublicPackage }) {
                                                             className="inline-flex h-5 w-5 items-center justify-center rounded-[3px] bg-brand-green"
                                                             aria-label="Included"
                                                         >
-                                <Check
-                                    className="h-3.5 w-3.5 text-white"
-                                    strokeWidth={3}
-                                />
-                              </span>
+                                                            <Check className="h-3.5 w-3.5 text-white" strokeWidth={3}/>
+                                                        </span>
                                                     )}
                                                     {status === "EXCLUDED" && (
                                                         <span
                                                             className="inline-flex h-5 w-5 items-center justify-center rounded-[3px] bg-brand-red"
                                                             aria-label="Not included"
                                                         >
-                                <X
-                                    className="h-3.5 w-3.5 text-white"
-                                    strokeWidth={3}
-                                />
-                              </span>
+                                                            <X className="h-3.5 w-3.5 text-white" strokeWidth={3}/>
+                                                        </span>
                                                     )}
                                                     {status === "CONDITIONAL" && (
                                                         <span className="inline-flex items-center gap-1">
-                                <span
-                                    className="inline-flex h-5 w-5 items-center justify-center rounded-[3px] bg-amber-400"
-                                    aria-label="Conditional"
-                                >
-                                  <Check
-                                      className="h-3.5 w-3.5 text-white"
-                                      strokeWidth={3}
-                                  />
-                                </span>
+                                                            <span
+                                                                className="inline-flex h-5 w-5 items-center justify-center rounded-[3px] bg-amber-400"
+                                                                aria-label="Conditional"
+                                                            >
+                                                                <Check className="h-3.5 w-3.5 text-white" strokeWidth={3}/>
+                                                            </span>
                                                             {footnoteNumber && (
                                                                 <sup className="text-xs font-bold text-brand-ink">
                                                                     {footnoteNumber}
                                                                 </sup>
                                                             )}
-                              </span>
+                                                        </span>
                                                     )}
                                                 </td>
                                             );

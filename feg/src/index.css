@@ -31,3 +31,9 @@ section[id] {
 @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
 }
+
+@media (max-width: 1023px) {
+    .pkg-matrix {
+        min-width: var(--pkg-min-w);
+    }
+}
