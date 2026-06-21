@@ -180,7 +180,8 @@ async function parseEnvelope<T>(res: Response): Promise<T> {
 // ─── Public API ──────────────────────────────────────────────
 
 export const api = {
-    get: <T>(path: string) => request<T>(path),
+    get: <T>(path: string, opts?: Pick<RequestOpts, "skipAuth">) =>
+        request<T>(path, opts),
 
     post: <T>(path: string, body?: unknown, opts?: Pick<RequestOpts, "skipAuth">) =>
         request<T>(path, { method: "POST", body, ...opts }),

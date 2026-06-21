@@ -18,7 +18,7 @@ export default function Resources() {
                 {/* Open Graph */}
                 <meta property="og:type" content="website" />
                 <meta property="og:title" content="Grover's Hospital — Private Healthcare in Victoria Island, Lagos" />
-                <meta property="og:description" content="Resources, vast array of health articles for health living" />
+                <meta property="og:description" content="Resources, vast array of health artiacles for health living" />
                 <meta property="og:image" content="https://YOUR-DOMAIN.com/og-image.png" />
                 <meta property="og:url" content="https://YOUR-DOMAIN.com/" />
 
