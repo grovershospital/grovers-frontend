@@ -90,6 +90,24 @@ function computeReadMinutes(content: string | null | undefined): number {
     return Math.max(1, Math.ceil(words / 200));
 }
 
+// ─── Body URL normalization ──────────────────────────────────
+// Images uploaded during local dev have http://localhost:8080 baked into the
+// markdown body. On production this causes mixed-content errors. Rewrite any
+// known dev origins to the current API_ORIGIN so images load from the correct
+// backend. In local dev this is a no-op (same origin → same origin).
+const DEV_ORIGINS = [
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+];
+
+function normalizeBodyUrls(body: string): string {
+    let result = body;
+    for (const devOrigin of DEV_ORIGINS) {
+        result = result.replaceAll(devOrigin, API_ORIGIN);
+    }
+    return result;
+}
+
 // ─── Shape mapper ─────────────────────────────────────────────
 function mapPost(post: BlogPostResponse, featured?: boolean): Article {
     return {
@@ -99,11 +117,13 @@ function mapPost(post: BlogPostResponse, featured?: boolean): Article {
         category: mapCategory(post.category),
         readMinutes: computeReadMinutes(post.content),
         heroImage: post.featuredImage
-            ? post.featuredImage.startsWith("http")
-                ? post.featuredImage
-                : `${API_ORIGIN}${post.featuredImage}`
+            ? normalizeBodyUrls(
+                post.featuredImage.startsWith("http")
+                    ? post.featuredImage
+                    : `${API_ORIGIN}${post.featuredImage}`
+            )
             : "",
-        body: post.content ?? "",
+        body: normalizeBodyUrls(post.content ?? ""),
         publishedAt: post.publishedAt,
         featured,
     };
