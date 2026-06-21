@@ -6,7 +6,7 @@ export default function PatientPortal() {
     return (
         <section
             id="patient-portal"
-            className="bg-[#f9f7f0] py-12 sm:py-16 lg:py-20"
+            className="bg-[#f9f7f0] py-12 sm:py-16 lg:py-15"
             aria-labelledby="patient-portal-heading"
         >
             <div className="mx-auto w-full max-w-5xl px-6 lg:px-10">
