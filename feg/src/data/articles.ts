@@ -9,6 +9,10 @@
 
 import { api } from "../lib/api";
 
+const API_ORIGIN = (
+    import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080/api/v1"
+).replace(/\/api\/v1$/, "");
+
 export type Article = {
     slug: string;
     title: string;
@@ -94,7 +98,11 @@ function mapPost(post: BlogPostResponse, featured?: boolean): Article {
         excerpt: post.excerpt,
         category: mapCategory(post.category),
         readMinutes: computeReadMinutes(post.content),
-        heroImage: post.featuredImage ?? "",
+        heroImage: post.featuredImage
+            ? post.featuredImage.startsWith("http")
+                ? post.featuredImage
+                : `${API_ORIGIN}${post.featuredImage}`
+            : "",
         body: post.content ?? "",
         publishedAt: post.publishedAt,
         featured,

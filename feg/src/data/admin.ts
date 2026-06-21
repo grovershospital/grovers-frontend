@@ -2006,7 +2006,10 @@ export async function fetchAdminBlogPosts(
         size: number;
     };
 
-const API_ORIGIN = "http://localhost:8080"
+
+const API_ORIGIN = (
+    import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080/api/v1"
+).replace(/\/api\/v1$/, "");
 
     export async function uploadAdminImage(file: File): Promise<string> {
         const data = await api.upload<ImageUploadResponse>(`/admin/upload/image`, file);

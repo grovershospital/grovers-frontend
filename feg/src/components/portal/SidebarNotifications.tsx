@@ -99,7 +99,7 @@ export default function SidebarNotifications({onNavigate}: Props) {
     }
 
     return (
-        <div>
+        <div className={'pt-6'}>
             <div className="mb-4 flex items-center justify-between">
                 <div className="relative flex items-center gap-3">
                     <Bell className="h-5 w-5 text-white" strokeWidth={2}/>
