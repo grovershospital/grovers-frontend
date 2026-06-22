@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import {useEffect, useState} from "react";
+import {Link, useNavigate, useParams} from "react-router-dom";
+import {ChevronDown, ChevronLeft} from "lucide-react";
 import MarkdownBody from "../../components/admin/MarkdownBody";
 import BlogPostEditorSidebar from "../../components/admin/BlogPostEditorSidebar";
-import { slugify } from "../../lib/slugify";
+import {slugify} from "../../lib/slugify";
 import {
     BLOG_POST_CATEGORIES,
     createAdminBlogPost,
@@ -29,7 +29,7 @@ const EMPTY: BlogPostInput = {
 };
 
 export default function AdminBlogPostEditor() {
-    const { id: routeId } = useParams<{ id: string }>();
+    const {id: routeId} = useParams<{ id: string }>();
     const isEdit = Boolean(routeId);
     const navigate = useNavigate();
 
@@ -71,7 +71,7 @@ export default function AdminBlogPostEditor() {
     }, [isEdit, routeId]);
 
     function update<K extends keyof BlogPostInput>(key: K, value: BlogPostInput[K]) {
-        setForm((f) => ({ ...f, [key]: value }));
+        setForm((f) => ({...f, [key]: value}));
         if (success) setSuccess(false);
     }
 
@@ -122,7 +122,7 @@ export default function AdminBlogPostEditor() {
                 toast.success("Post saved.")
             } else {
                 const created = await createAdminBlogPost(form);
-                navigate(`/admin/blog-posts/${created.id}/edit`, { replace: true });
+                navigate(`/admin/blog-posts/${created.id}/edit`, {replace: true});
             }
         } catch (err) {
             toast.error(
@@ -169,7 +169,7 @@ export default function AdminBlogPostEditor() {
     if (loading) {
         return (
             <>
-                <BackLink />
+                <BackLink/>
                 <p className="text-sm text-neutral-500">Loading…</p>
             </>
         );
@@ -178,7 +178,7 @@ export default function AdminBlogPostEditor() {
     if (error && !loaded && isEdit) {
         return (
             <>
-                <BackLink />
+                <BackLink/>
                 <p className="text-sm text-brand-red">{error}</p>
             </>
         );
@@ -191,7 +191,7 @@ export default function AdminBlogPostEditor() {
 
     return (
         <>
-            <BackLink />
+            <BackLink/>
 
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-brand-ink sm:text-4xl">
@@ -225,20 +225,26 @@ export default function AdminBlogPostEditor() {
                     </div>
 
                     <Field label="Category" htmlFor="bp-category" required>
-                        <select
-                            id="bp-category"
-                            value={form.category}
-                            onChange={(e) =>
-                                update("category", e.target.value as BlogPostCategory)
-                            }
-                            className={inputClass}
-                        >
-                            {BLOG_POST_CATEGORIES.map((c) => (
-                                <option key={c} value={c}>
-                                    {c}
-                                </option>
-                            ))}
-                        </select>
+                        <div className="relative">
+                            <select
+                                id="bp-category"
+                                value={form.category}
+                                onChange={(e) =>
+                                    update("category", e.target.value as BlogPostCategory)
+                                }
+                                className={`${inputClass} appearance-none cursor-pointer pr-10`}
+                            >
+                                {BLOG_POST_CATEGORIES.map((c) => (
+                                    <option key={c} value={c}>
+                                        {c}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown
+                                className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500"
+                                strokeWidth={2}
+                            />
+                        </div>
                     </Field>
 
                     <Field label="Excerpt" htmlFor="bp-excerpt">
@@ -300,7 +306,7 @@ function BackLink() {
             to="/admin/blog-posts"
             className="mb-6 inline-flex items-center gap-1 text-sm text-brand-ink hover:text-brand-blue"
         >
-            <ChevronLeft className="h-4 w-4" strokeWidth={2} />
+            <ChevronLeft className="h-4 w-4" strokeWidth={2}/>
             All posts
         </Link>
     );

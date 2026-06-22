@@ -311,15 +311,15 @@ export default function AdminPackageEditor() {
                             </p>
                         </Field>
 
-                        <div className={'relative'}>
-                            <Field label="Department" htmlFor="pkg-dept">
+                        <Field label="Department" htmlFor="pkg-dept">
+                            <div className="relative">
                                 <select
                                     id="pkg-dept"
                                     value={form.departmentId ?? ""}
                                     onChange={(e) =>
                                         update("departmentId", e.target.value || null)
                                     }
-                                    className={`${inputClass} appearance-none cursor-pointer`}
+                                    className={`${inputClass} appearance-none cursor-pointer pr-10`}
                                 >
                                     <option value="">—</option>
                                     {departments.map((d) => (
@@ -332,8 +332,8 @@ export default function AdminPackageEditor() {
                                     className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500"
                                     strokeWidth={2}
                                 />
-                            </Field>
-                        </div>
+                            </div>
+                        </Field>
 
                     </div>
 
@@ -384,7 +384,7 @@ export default function AdminPackageEditor() {
                             onChange={(e) =>
                                 update("pricingNote", e.target.value)
                             }
-                            className={inputClass}
+                            className={`${inputClass} appearance-none cursor-pointer pr-10`}
                         />
                         <p className="mt-1 text-xs text-neutral-500">
                             Short note shown below the pricing table on the public page. Use it to explain pricing logic
@@ -394,43 +394,56 @@ export default function AdminPackageEditor() {
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                         <Field label="Heading tone" htmlFor="pkg-h-tone">
-                            <select
-                                id="pkg-h-tone"
-                                value={form.headingTone}
-                                onChange={(e) =>
-                                    update(
-                                        "headingTone",
-                                        e.target.value as PackageTone,
-                                    )
-                                }
-                                className={inputClass}
-                            >
-                                {PACKAGE_TONES.map((t) => (
-                                    <option key={t} value={t}>
-                                        {t}
-                                    </option>
-                                ))}
-                            </select>
+                            <div className="relative">
+                                <select
+                                    id="pkg-h-tone"
+                                    value={form.headingTone}
+                                    onChange={(e) =>
+                                        update(
+                                            "headingTone",
+                                            e.target.value as PackageTone,
+                                        )
+                                    }
+                                    className={`${inputClass} appearance-none cursor-pointer pr-10`}
+                                >
+                                    {PACKAGE_TONES.map((t) => (
+                                        <option key={t} value={t}>
+                                            {t}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown
+                                    className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500"
+                                    strokeWidth={2}
+                                />
+                            </div>
                         </Field>
 
+
                         <Field label="Pricing tone" htmlFor="pkg-p-tone">
-                            <select
-                                id="pkg-p-tone"
-                                value={form.pricingTone}
-                                onChange={(e) =>
-                                    update(
-                                        "pricingTone",
-                                        e.target.value as PackageTone,
-                                    )
-                                }
-                                className={inputClass}
-                            >
-                                {PACKAGE_TONES.map((t) => (
-                                    <option key={t} value={t}>
-                                        {t}
-                                    </option>
-                                ))}
-                            </select>
+                            <div className="relative">
+                                <select
+                                    id="pkg-p-tone"
+                                    value={form.pricingTone}
+                                    onChange={(e) =>
+                                        update(
+                                            "pricingTone",
+                                            e.target.value as PackageTone,
+                                        )
+                                    }
+                                    className={`${inputClass} appearance-none cursor-pointer pr-10`}
+                                >
+                                    {PACKAGE_TONES.map((t) => (
+                                        <option key={t} value={t}>
+                                            {t}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown
+                                    className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500"
+                                    strokeWidth={2}
+                                />
+                            </div>
                         </Field>
 
                         <Field label="Display order" htmlFor="pkg-order">
