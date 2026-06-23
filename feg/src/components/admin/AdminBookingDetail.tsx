@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import {useEffect, useState} from "react";
+import {Link, useNavigate, useParams} from "react-router-dom";
+import {ChevronLeft} from "lucide-react";
 import BookingStatusPill from "../../components/admin/BookingStatusPill";
 import BookingPatientCard from "../../components/admin/BookingPatientCard";
 import BookingDetailsCard from "../../components/admin/BookingDetailsCard";
 import BookingNotesCard from "../../components/admin/BookingNotesCard";
 import BookingActivityCard from "../../components/admin/BookingActivityCard";
 import BookingStatusActions from "../../components/admin/BookingStatusActions";
-import { toast } from "sonner";
+import ConfirmTimeModal from "../../components/admin/ConfirmTimeModal";
+import {toast} from "sonner";
 import {
     fetchAdminBookingActivity,
     fetchAdminBookingDetail,
@@ -18,13 +19,19 @@ import {
     type AdminBookingStatus,
 } from "../../data/admin";
 
-export default function AdminBookingDetail() {
-    const { id } = useParams<{ id: string }>();
+type ModalState =
+    | { open: false }
+    | { open: true; mode: "confirm" | "update-time" };
+
+export default function AdminBookingDetailPage() {
+    const {id} = useParams<{ id: string }>();
     const navigate = useNavigate();
 
     const [booking, setBooking] = useState<AdminBookingDetail | null>(null);
     const [activity, setActivity] = useState<AdminBookingActivity[]>([]);
     const [error, setError] = useState<string | null>(null);
+
+    const [modal, setModal] = useState<ModalState>({open: false});
 
     useEffect(() => {
         if (!id) return;
@@ -56,10 +63,6 @@ export default function AdminBookingDetail() {
             });
             setBooking(result.booking);
 
-            // Visits integration not wired yet — result.visitId is undefined.
-            // Once it lands, COMPLETED flips will deep-link straight into the
-            // visit edit form. Until then the admin reaches the new visit
-            // stub via the patient's Visits tab.
             if (newStatus === "Completed" && result.visitId) {
                 navigate(`/admin/visits/${result.visitId}/edit`);
             }
@@ -76,14 +79,18 @@ export default function AdminBookingDetail() {
             toast.success("Notes saved.");
         } catch {
             toast.error("Could not save the notes. Please try again.");
-            throw new Error("notes save failed");  // surface to BookingNotesCard
+            throw new Error("notes save failed");
         }
+    }
+
+    function handleModalSuccess(updated: AdminBookingDetail) {
+        setBooking(updated);
     }
 
     if (error) {
         return (
             <>
-                <BackLink />
+                <BackLink/>
                 <p className="text-sm text-brand-red">{error}</p>
             </>
         );
@@ -92,7 +99,7 @@ export default function AdminBookingDetail() {
     if (!booking) {
         return (
             <>
-                <BackLink />
+                <BackLink/>
                 <p className="text-sm text-neutral-500">Loading…</p>
             </>
         );
@@ -100,7 +107,7 @@ export default function AdminBookingDetail() {
 
     return (
         <>
-            <BackLink />
+            <BackLink/>
 
             <div className="mb-10 flex flex-wrap items-start justify-between gap-4">
                 <div>
@@ -114,18 +121,18 @@ export default function AdminBookingDetail() {
                         {booking.type} · {booking.department}
                     </p>
                 </div>
-                <BookingStatusPill status={booking.status} size="md" />
+                <BookingStatusPill status={booking.status} size="md"/>
             </div>
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
                 <div className="space-y-6">
-                    <BookingPatientCard booking={booking} />
-                    <BookingDetailsCard booking={booking} />
+                    <BookingPatientCard booking={booking}/>
+                    <BookingDetailsCard booking={booking}/>
                     <BookingNotesCard
                         adminNotes={booking.adminNotes}
                         onSave={handleSaveNotes}
                     />
-                    <BookingActivityCard activity={activity} />
+                    <BookingActivityCard activity={activity}/>
                 </div>
 
                 <div>
@@ -133,10 +140,26 @@ export default function AdminBookingDetail() {
                         <BookingStatusActions
                             currentStatus={booking.status}
                             onAction={handleStatusAction}
+                            onConfirm={() => setModal({open: true, mode: "confirm"})}
+                            onUpdateTime={() => setModal({open: true, mode: "update-time"})}
                         />
                     </div>
                 </div>
             </div>
+
+            {/* Time-picker modal — shared by confirm and update-time flows */}
+            {modal.open && (
+                <ConfirmTimeModal
+                    open
+                    onClose={() => setModal({open: false})}
+                    mode={modal.mode}
+                    bookingId={booking.id}
+                    departmentId={booking.departmentId}
+                    preferredDateIso={booking.preferredDateIso}
+                    currentTime={modal.mode === "update-time" ? booking.appointmentTime : null}
+                    onSuccess={handleModalSuccess}
+                />
+            )}
         </>
     );
 }
@@ -147,7 +170,7 @@ function BackLink() {
             to="/admin/bookings"
             className="mb-6 inline-flex items-center gap-1 text-sm text-brand-ink hover:text-brand-blue"
         >
-            <ChevronLeft className="h-4 w-4" strokeWidth={2} />
+            <ChevronLeft className="h-4 w-4" strokeWidth={2}/>
             All bookings
         </Link>
     );

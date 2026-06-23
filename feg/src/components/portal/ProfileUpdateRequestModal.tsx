@@ -119,7 +119,7 @@ export default function ProfileUpdateRequestModal({
 
                 {field === "OTHER" && (
                     <Field
-                        label="Field description"
+                        label="What changes would you like to add?"
                         htmlFor="pur-other-description"
                         required
                     >
@@ -136,7 +136,7 @@ export default function ProfileUpdateRequestModal({
 
                 <Field
                     label={
-                        field === "OTHER" ? "Change details" : "New value"
+                        field === "OTHER" ? "Give us more details on the changes" : "New value"
                     }
                     htmlFor="pur-proposed"
                     required

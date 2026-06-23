@@ -100,6 +100,7 @@ type AdminBookingResponse = {
     packageTierName: string | null;
     notes: string | null;
     adminNotes: string | null;
+    appointmentTime: string | null;
     createdAt: string;
     updatedAt: string;
 };
@@ -431,6 +432,9 @@ export type AdminBookingDetail = AdminBookingSummary & {
     patientPhone: string;
     patientNotes: string | null;
     adminNotes: string;
+    appointmentTime: string | null;
+    departmentId: string | null;
+    preferredDateIso: string;
 };
 
 const BOOKING_TYPE_FROM_BACKEND: Record<
@@ -477,6 +481,9 @@ function toAdminBookingDetail(b: AdminBookingResponse): AdminBookingDetail {
         patientPhone: b.patientPhone,
         patientNotes: b.notes,
         adminNotes: b.adminNotes ?? "",
+        appointmentTime: b.appointmentTime ?? null,
+        departmentId: b.departmentId ? String(b.departmentId) : null,
+        preferredDateIso: b.preferredDate,
     };
 }
 
@@ -584,6 +591,32 @@ export async function updateBookingNotes(
         {adminNotes},
     );
     return toAdminBookingDetail(data);
+}
+
+export async function confirmBooking(
+    id: string,
+    appointmentTime: string,
+    adminNotes?: string,
+): Promise<AdminBookingDetail> {
+    await api.put<unknown>(
+        `/admin/bookings/${id}/confirm`,
+        { appointmentTime, adminNotes: adminNotes || undefined },
+    );
+    // Confirm response doesn't include patient fields — re-fetch full detail.
+    return fetchAdminBookingDetail(id);
+}
+
+export async function updateAppointmentTime(
+    id: string,
+    appointmentTime: string,
+    reason?: string,
+): Promise<AdminBookingDetail> {
+    await api.put<unknown>(
+        `/admin/bookings/${id}/appointment-time`,
+        { appointmentTime, reason: reason || undefined },
+    );
+    // Update response doesn't include patient fields — re-fetch full detail.
+    return fetchAdminBookingDetail(id);
 }
 
 export async function fetchAdminBookingActivity(
