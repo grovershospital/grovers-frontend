@@ -45,6 +45,7 @@ import {HelmetProvider} from "react-helmet-async";
 import {Toaster} from "sonner";
 import Legal from "./pages/Legal.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
+import AdminSchedules from "./components/admin/AdminSchedules.tsx";
 
 export default function App() {
     return (
@@ -141,6 +142,7 @@ export default function App() {
                         <Route path="/admin/packages" element={<AdminPackages/>}/>
                         <Route path="/admin/packages/new" element={<AdminPackageEditor/>}/>
                         <Route path="/admin/packages/:id/edit" element={<AdminPackageEditor/>}/>
+                        <Route path="/admin/schedules" element={<AdminSchedules/>}/>
 
                         <Route
                             path="/admin/profile-update-requests"

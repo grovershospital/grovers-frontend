@@ -2376,3 +2376,67 @@ export async function savePackageCells(
         })),
     });
 }
+
+// ─── Department schedules ───────────────────────────────────
+
+export type DayOfWeek =
+    | "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY"
+    | "FRIDAY" | "SATURDAY" | "SUNDAY";
+
+export type AdminDepartmentSchedule = {
+    id: string;
+    departmentId: string;
+    departmentName: string;
+    dayOfWeek: DayOfWeek;
+    startTime: string;
+    endTime: string;
+};
+
+type AdminScheduleResponse = {
+    id: number;
+    departmentId: number;
+    departmentName: string;
+    dayOfWeek: DayOfWeek;
+    startTime: string;
+    endTime: string;
+};
+
+export type ScheduleInput = {
+    dayOfWeek: DayOfWeek;
+    startTime: string;
+    endTime: string;
+};
+
+export async function fetchAdminDepartmentSchedule(
+    departmentId: string,
+): Promise<AdminDepartmentSchedule[]> {
+    const data = await api.get<AdminScheduleResponse[]>(
+        `/admin/departments/${departmentId}/schedule`,
+    );
+    return data.map((s) => ({
+        id: String(s.id),
+        departmentId: String(s.departmentId),
+        departmentName: s.departmentName,
+        dayOfWeek: s.dayOfWeek,
+        startTime: s.startTime,
+        endTime: s.endTime,
+    }));
+}
+
+export async function updateDepartmentSchedule(
+    departmentId: string,
+    schedules: ScheduleInput[],
+): Promise<AdminDepartmentSchedule[]> {
+    const data = await api.put<AdminScheduleResponse[]>(
+        `/admin/departments/${departmentId}/schedule`,
+        { schedules },
+    );
+    return data.map((s) => ({
+        id: String(s.id),
+        departmentId: String(s.departmentId),
+        departmentName: s.departmentName,
+        dayOfWeek: s.dayOfWeek,
+        startTime: s.startTime,
+        endTime: s.endTime,
+    }));
+}

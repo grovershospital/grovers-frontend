@@ -855,3 +855,51 @@ export async function fetchPublicPackage(slug: string): Promise<PublicPackage> {
     const data = await api.get<PublicPackageResponse>(`/packages/${slug}`);
     return toPublicPackage(data);
 }
+
+// ─── Department schedules ───────────────────────────────────
+
+export type DayOfWeek =
+    | "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY"
+    | "FRIDAY" | "SATURDAY" | "SUNDAY";
+
+export type DepartmentSchedule = {
+    id: string;
+    departmentId: string;
+    departmentName: string;
+    dayOfWeek: DayOfWeek;
+    startTime: string;
+    endTime: string;
+};
+
+type ScheduleResponse = {
+    id: number;
+    departmentId: number;
+    departmentName: string;
+    dayOfWeek: DayOfWeek;
+    startTime: string;
+    endTime: string;
+};
+
+const DAY_ORDER: Record<DayOfWeek, number> = {
+    MONDAY: 0, TUESDAY: 1, WEDNESDAY: 2, THURSDAY: 3,
+    FRIDAY: 4, SATURDAY: 5, SUNDAY: 6,
+};
+
+export async function fetchDepartmentSchedule(
+    departmentId: string,
+): Promise<DepartmentSchedule[]> {
+    const data = await api.get<ScheduleResponse[]>(
+        `/public/departments/${departmentId}/schedule`,
+        { skipAuth: true },
+    );
+    return data
+        .map((s) => ({
+            id: String(s.id),
+            departmentId: String(s.departmentId),
+            departmentName: s.departmentName,
+            dayOfWeek: s.dayOfWeek,
+            startTime: s.startTime,
+            endTime: s.endTime,
+        }))
+        .sort((a, b) => DAY_ORDER[a.dayOfWeek] - DAY_ORDER[b.dayOfWeek]);
+}
