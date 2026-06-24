@@ -91,7 +91,7 @@ export const CLINICS = [
         name: "ENT",
         blurb:
             "Ears, nose, and throat care for adults and children. Sinus issues, hearing loss, tonsils, and more.",
-        days: "Wed",
+        days: "Wednesday",
         hours: "12:00 PM to 3:00 PM",
     },
     {
@@ -112,14 +112,14 @@ export const CLINICS = [
         name: "Paediatrics",
         blurb:
             "Specialist care for babies, children and teenagers. Immunisations, developmental checks and illness management.",
-        days: "Tue",
+        days: "Tuesday",
         hours: "4:00 PM to 6:00 PM",
     },
     {
         name: "Mental Health Clinic",
         blurb:
             "A dedicated space for mental and emotional health support. Assessment, counselling and management of anxiety, depression, stress and mood disorders.",
-        days: "Wed",
+        days: "Wednesday",
         hours: "10:00 AM to 1:00 PM",
     },
     {
