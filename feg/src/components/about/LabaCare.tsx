@@ -1,6 +1,6 @@
 import { Button } from "../../ui/Button";
 import learnMoreBg from "../../assets/about-page/learnMoreBg.png";
-import labacareAbout from "../../assets/about-page/labacareAbout.png";
+import topbarLabacare from '../../assets/topbarLabacare.png'
 
 // Top-right chamfered card — same path used by Founders / Emergency / Testimonials.
 const CARD_CLIP =
@@ -78,7 +78,7 @@ export default function LabaCare() {
                     {/* via the parent's items-end. Hidden on mobile where it would */}
                     {/* crowd the card. */}
                     <img
-                        src={labacareAbout}
+                        src={topbarLabacare}
                         alt="Operated by LABACare"
                         className="hidden h-12 w-auto shrink-0 sm:block lg:h-20"
                     />

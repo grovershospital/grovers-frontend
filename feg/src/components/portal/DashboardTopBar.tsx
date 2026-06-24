@@ -19,7 +19,7 @@ export default function DashboardTopBar({ onMenuClick }: Props) {
         <header className="sticky top-0 z-30 h-16 border-b border-neutral-200 bg-white">
             <div className="flex h-full items-center justify-between px-4 sm:px-6 lg:px-8">
                 <Link to="/" className="flex items-center" aria-label="Grover's Hospital">
-                    <img src={logo} alt="Grover's Hospital" className="h-12 w-auto" />
+                    <img src={logo} alt="Grover's Hospital" className="h-14 w-auto" />
                 </Link>
 
                 <div className="flex items-center gap-4">

@@ -1,6 +1,6 @@
 import phonelogoheader from '../../assets/phonelogoheader.png'
 import clockheader from '../../assets/clockheader.png'
-import labacare from '../../assets/labacare.png'
+import topbarLabacare from '../../assets/topbarLabacare.png'
 import emergencylogo from '../../assets/emergencylogo.png'
 
 export function TopBar() {
@@ -43,7 +43,7 @@ export function TopBar() {
                     </div>
                 </div>
 
-                <img src={labacare} alt="Operated by LABARCare" className={'h-7 w-auto'}/>
+                <img src={topbarLabacare} alt="Operated by LABARCare" className={'h-7 w-auto'}/>
             </div>
         </div>
     )

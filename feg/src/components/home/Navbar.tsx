@@ -21,7 +21,7 @@ export function Navbar() {
                 {/*  Logo  */}
                 <a href="/" className={"flex items-center"} aria-label={`Grover's Hospital home`}
                    onClick={() => setOpen(false)}>
-                    <img src={logo} alt="Grover's Hospital" className={'h-12 w-auto'}/>
+                    <img src={logo} alt="Grover's Hospital" className={'h-15 w-auto'}/>
                 </a>
 
                 {/* Desktop links   */}
