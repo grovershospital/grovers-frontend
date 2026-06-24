@@ -84,21 +84,21 @@ export const CLINICS = [
         name: "Obstetrics and Gynaecology",
         blurb:
             "Full women's health care. Antenatal clinic, cancer screening, family planning and safe deliveries.",
-        days: "Tue, Wed, Thu",
+        days: "Mon, Wed, Thu",
         hours: "12:00 PM to 3:00 PM",
     },
     {
         name: "ENT",
         blurb:
             "Ears, nose, and throat care for adults and children. Sinus issues, hearing loss, tonsils, and more.",
-        days: "Tue, Wed, Thu",
+        days: "Wed",
         hours: "12:00 PM to 3:00 PM",
     },
     {
         name: "Physiotherapy",
         blurb:
             "Recovery done properly. Post-surgery rehab, chronic pain, and mobility restoration.",
-        days: "Mon to Fri",
+        days: "Mon to Sat",
         hours: "9:00 AM to 5:00 PM",
     },
     {
@@ -112,7 +112,7 @@ export const CLINICS = [
         name: "Paediatrics",
         blurb:
             "Specialist care for babies, children and teenagers. Immunisations, developmental checks and illness management.",
-        days: "Mon, Tue, Thu, Fri",
+        days: "Tue",
         hours: "4:00 PM to 6:00 PM",
     },
     {
