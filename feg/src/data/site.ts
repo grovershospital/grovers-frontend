@@ -77,35 +77,35 @@ export const CLINICS = [
         name: "Family Medicine",
         blurb:
             "Your primary doctor for all ages. We manage chronic conditions, lifestyle diseases and everyday health concerns.",
-        days: "Mon to Sat.",
-        hours: "10:00 AM to 6:00 PM",
+        days: "Mon, Wed, Fri",
+        hours: "Mon: 11:00 AM to 1:00 PM; Wed & Fri: 11:00 AM to 5:00 PM",
     },
     {
         name: "Obstetrics and Gynaecology",
         blurb:
             "Full women's health care. Antenatal clinic, cancer screening, family planning and safe deliveries.",
-        days: "Mon, Wed, Thu",
-        hours: "12:00 PM to 3:00 PM",
+        days: "Mon, Thu",
+        hours: "Mon: 3:00 PM to 8:00 PM; Thu: 11:00 AM to 3:00 PM",
     },
     {
         name: "ENT",
         blurb:
             "Ears, nose, and throat care for adults and children. Sinus issues, hearing loss, tonsils, and more.",
         days: "Wednesday",
-        hours: "12:00 PM to 3:00 PM",
+        hours: "2:00 PM to 6:00 PM",
     },
     {
         name: "Physiotherapy",
         blurb:
             "Recovery done properly. Post-surgery rehab, chronic pain, and mobility restoration.",
-        days: "Mon to Sat",
-        hours: "9:00 AM to 5:00 PM",
+        days: "Mon to Fri",
+        hours: "9:00 AM to 4:00 PM",
     },
     {
         name: "Cardiology",
         blurb:
             "Heart health, properly managed. ECG, echocardiography and heart disease care.",
-        days: "Wed, Thu",
+        days: "Thursday",
         hours: "3:00 PM to 6:00 PM",
     },
     {
@@ -113,7 +113,7 @@ export const CLINICS = [
         blurb:
             "Specialist care for babies, children and teenagers. Immunisations, developmental checks and illness management.",
         days: "Tuesday",
-        hours: "4:00 PM to 6:00 PM",
+        hours: "3:00 PM to 6:00 PM",
     },
     {
         name: "Mental Health Clinic",
@@ -126,8 +126,8 @@ export const CLINICS = [
         name: "Internal Medicine",
         blurb:
             "For complex chronic conditions. Diabetes, hypertension, HIV management and more.",
-        days: "Mon to Fri",
-        hours: "1:00 PM to 7:00 PM",
+        days: "Mon, Wed, Fri",
+        hours: "Mon: 11:00 AM to 1:00 PM; Wed & Fri: 11:00 AM to 5:00 PM",
     },
 ] as const;
 

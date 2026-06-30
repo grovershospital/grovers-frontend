@@ -1,16 +1,16 @@
 export type ClinicBodyParagraph =
     | string
-    | { prefix: string; text: string }
+    | { prefix: string; text: string };
 
 export type ClinicDetail = {
     slug: string;
-    name: string;          // uppercase clinic name, e.g. "OBSTETRICS AND GYNAECOLOGY"
-    headline: string;      // large green headline
+    name: string;
+    headline: string;
     schedule: ReadonlyArray<{ days: string; hours: string }>;
-    body: ReadonlyArray<ClinicBodyParagraph>;       // paragraph(s) above "What we cover"
+    body: ReadonlyArray<ClinicBodyParagraph>;
     whatWeCover: ReadonlyArray<string>;
     whatToExpect: string;
-    image: string;         // filename in src/assets/services/clinics/
+    image: string;
     imagePosition: "left" | "right";
 };
 
@@ -19,10 +19,10 @@ export const CLINIC_DETAILS: ReadonlyArray<ClinicDetail> = [
         slug: "obgyn",
         name: "OBSTETRICS AND GYNAECOLOGY",
         headline:
-            "Full women\u2019s health care, from adolescence through menopause.",
+            "Full women’s health care, from adolescence through menopause.",
         schedule: [
-            {days: "Monday and Tuesday", hours: "3:00 PM to 5:00 PM"},
-            {days: "Thursday", hours: "11:00 AM to 3:00 PM"},
+            { days: "Monday", hours: "3:00 PM to 8:00 PM" },
+            { days: "Thursday", hours: "11:00 AM to 3:00 PM" },
         ],
         body: [
             "Our Obstetrics and Gynaecology department provides comprehensive care for women at every stage of life. Whether you are planning a pregnancy, currently expecting, managing a gynaecological condition or navigating menopause, our consultant is here with the expertise and the time you need.",
@@ -50,7 +50,7 @@ export const CLINIC_DETAILS: ReadonlyArray<ClinicDetail> = [
         slug: "paediatrics",
         name: "PAEDIATRICS",
         headline: "Specialist care for every child, at every stage.",
-        schedule: [{days: "Tuesday", hours: "3:00 PM to 6:00 PM"}],
+        schedule: [{ days: "Tuesday", hours: "3:00 PM to 6:00 PM" }],
         body: [
             "Children need care that is not just clinically excellent but delivered with patience, warmth and an understanding of how children and families actually experience illness. Our Paediatrics department is dedicated to the health of infants, children and adolescents, treating both common and complex conditions with the same level of attention and care.",
             "Beyond treating illness, we focus heavily on prevention. We run essential childhood immunisation programs and place a strong emphasis on developmental milestone monitoring and nutritional guidance, ensuring every child gets the best possible start.",
@@ -74,11 +74,11 @@ export const CLINIC_DETAILS: ReadonlyArray<ClinicDetail> = [
         name: "FAMILY MEDICINE",
         headline: "Your primary doctor for everything.",
         schedule: [
-            {days: "Monday", hours: "11:00 AM to 12:00 PM"},
-            {days: "Wednesday and Friday", hours: "11:00 AM to 5:00 PM"},
+            { days: "Monday", hours: "11:00 AM to 1:00 PM" },
+            { days: "Wednesday and Friday", hours: "11:00 AM to 5:00 PM" },
         ],
         body: [
-            "The Family Medicine department is the first point of contact for most patients at Grover\u2019s Hospital. Our physicians take the time to understand your full health picture before making any decisions. We manage a wide range of conditions across all age groups, with a particular focus on lifestyle diseases that are increasingly common across Lagos. We do not just treat you when you are unwell. We partner with you to stay well.",
+            "The Family Medicine department is the first point of contact for most patients at Grover’s Hospital. Our physicians take the time to understand your full health picture before making any decisions. We manage a wide range of conditions across all age groups, with a particular focus on lifestyle diseases that are increasingly common across Lagos. We do not just treat you when you are unwell. We partner with you to stay well.",
             "A visit to our Family Medicine clinic might involve a routine check-up, a consultation for an ongoing condition, a request for a referral to a specialist, or simply a conversation about your health and how to protect it. Whatever brings you in, you will leave with clarity.",
         ],
         whatWeCover: [
@@ -100,11 +100,11 @@ export const CLINIC_DETAILS: ReadonlyArray<ClinicDetail> = [
         name: "INTERNAL MEDICINE",
         headline: "Advanced management of complex adult conditions.",
         schedule: [
-            {days: "Monday", hours: "11:00 AM to 12:00 PM"},
-            {days: "Wednesday and Friday", hours: "11:00 AM to 5:00 PM"},
+            { days: "Monday", hours: "11:00 AM to 1:00 PM" },
+            { days: "Wednesday and Friday", hours: "11:00 AM to 5:00 PM" },
         ],
         body: [
-            "Internal Medicine at Grover\u2019s Hospital is where complex, chronic and multi-system conditions are properly investigated and managed. Our physicians take a thorough, investigative approach to conditions that require more than a routine consultation. Nothing is rushed. Every aspect of your health is considered.",
+            "Internal Medicine at Grover’s Hospital is where complex, chronic and multi-system conditions are properly investigated and managed. Our physicians take a thorough, investigative approach to conditions that require more than a routine consultation. Nothing is rushed. Every aspect of your health is considered.",
             "This department is particularly important for patients managing lifestyle-related diseases, which are among the most prevalent health challenges facing Lagos adults today. If you have been living with a condition that has not been fully controlled elsewhere, our Internal Medicine team will take the time to understand why and build a better management plan.",
         ],
         whatWeCover: [
@@ -127,7 +127,7 @@ export const CLINIC_DETAILS: ReadonlyArray<ClinicDetail> = [
         slug: "cardiology",
         name: "CARDIOLOGY",
         headline: "Your heart health, in expert hands.",
-        schedule: [{days: "Tuesday", hours: "3:00 PM to 6:00 PM"}],
+        schedule: [{ days: "Thursday", hours: "3:00 PM to 6:00 PM" }],
         body: [
             "Heart disease is one of the leading causes of death in Nigeria and one of the most preventable. Our Cardiology department combines advanced diagnostic technology with personalised, attentive care to assess, manage and treat conditions affecting the heart and cardiovascular system.",
             "Whether you have been referred by another physician, are experiencing symptoms that concern you, or simply want to understand your cardiovascular risk, our cardiology team will give you clear answers and a clear path forward.",
@@ -152,10 +152,10 @@ export const CLINIC_DETAILS: ReadonlyArray<ClinicDetail> = [
         slug: "nephrology",
         name: "NEPHROLOGY",
         headline: "Comprehensive care for every kidney condition.",
-        schedule: [{days: "Tuesday", hours: "3:00 PM to 6:00 PM"}],
+        schedule: [{ days: "Tuesday", hours: "9:00 AM to 12:00 PM" }],
         body: [
             "Our Nephrology department provides specialist care for all kidney-related conditions, from early-stage chronic kidney disease to advanced renal failure requiring ongoing dialysis support.",
-            "Kidney disease is often detected late because its early stages come without obvious symptoms. If you have been told your kidney function is reduced, if you have persistent high blood pressure, or if you are at risk due to diabetes, a nephrology consultation at Grover\u2019s Hospital is an important next step.",
+            "Kidney disease is often detected late because its early stages come without obvious symptoms. If you have been told your kidney function is reduced, if you have persistent high blood pressure, or if you are at risk due to diabetes, a nephrology consultation at Grover’s Hospital is an important next step.",
         ],
         whatWeCover: [
             "Diagnosis and management of chronic kidney disease",
@@ -178,7 +178,7 @@ export const CLINIC_DETAILS: ReadonlyArray<ClinicDetail> = [
         name: "UROLOGY",
         headline:
             "Specialist care for kidney, bladder and male reproductive health.",
-        schedule: [{days: "Friday", hours: "9:00 AM to 2:00 PM"}],
+        schedule: [{ days: "Friday", hours: "9:00 AM to 2:00 PM" }],
         body: [
             "Many urological conditions go untreated simply because patients are unsure when to seek help or feel uncomfortable raising the issue. Our Urology department provides a confidential, professional environment where these conditions are addressed with the seriousness and expertise they deserve.",
             {
@@ -204,7 +204,7 @@ export const CLINIC_DETAILS: ReadonlyArray<ClinicDetail> = [
         slug: "orthopaedic-surgery",
         name: "ORTHOPAEDIC SURGERY",
         headline: "Restoring movement and quality of life.",
-        schedule: [{days: "Thursday", hours: "1:00 PM to 6:00 PM"}],
+        schedule: [{ days: "Thursday", hours: "1:00 PM to 6:00 PM" }],
         body: [
             "Our Orthopaedic Surgery department specialises in the diagnosis and treatment of conditions affecting the bones, joints and musculoskeletal system. Whether you are managing chronic joint pain that has been limiting your daily life, recovering from a fracture, or require surgical intervention such as joint replacement, our team is focused on one goal: getting you back to full mobility.",
             "We use advanced surgical techniques including arthroscopy and joint replacement surgery, and work closely with our Physiotherapy department to ensure your recovery is as complete as possible.",
@@ -228,7 +228,7 @@ export const CLINIC_DETAILS: ReadonlyArray<ClinicDetail> = [
         slug: "neurology",
         name: "NEUROLOGY",
         headline: "Expert care for the brain, spine and nervous system.",
-        schedule: [{days: "Tuesday", hours: "3:00 PM to 6:00 PM"}],
+        schedule: [{ days: "Tuesday", hours: "3:00 PM to 6:00 PM" }],
         body: [
             "Neurological conditions require careful, specialist attention. Our Neurology department manages a wide range of conditions affecting the brain, spinal cord and peripheral nervous system, with a focus on accurate diagnosis, evidence-based treatment and effective long-term management.",
             "If you have been experiencing unexplained headaches, episodes of weakness or numbness, memory difficulties, seizures or any other neurological symptoms, a neurology consultation is the right step.",
@@ -237,7 +237,7 @@ export const CLINIC_DETAILS: ReadonlyArray<ClinicDetail> = [
             "Stroke assessment and management",
             "Epilepsy and seizure disorder management",
             "Headache and migraine clinics",
-            "Parkinson\u2019s disease management",
+            "Parkinson’s disease management",
             "Multiple sclerosis evaluation",
             "Memory disorders and dementia evaluation",
             "Peripheral neuropathy assessment",
@@ -253,7 +253,7 @@ export const CLINIC_DETAILS: ReadonlyArray<ClinicDetail> = [
         slug: "ent",
         name: "ENT (EAR, NOSE AND THROAT)",
         headline: "Hear better. Breathe better. Feel better.",
-        schedule: [{days: "Wednesday", hours: "2:00 PM to 6:00 PM"}],
+        schedule: [{ days: "Wednesday", hours: "2:00 PM to 6:00 PM" }],
         body: [
             "Our ENT department provides comprehensive medical and surgical care for conditions affecting the ear, nose, throat and the wider head and neck region. We see both adult and paediatric patients and manage everything from persistent sinus problems and hearing difficulties to complex surgical cases requiring specialist intervention.",
         ],
@@ -276,7 +276,7 @@ export const CLINIC_DETAILS: ReadonlyArray<ClinicDetail> = [
         slug: "endocrinology",
         name: "ENDOCRINOLOGY",
         headline: "Specialist care for hormonal and metabolic conditions.",
-        schedule: [{days: "Tuesday and Thursday", hours: "11:00 AM to 2:00 PM"}],
+        schedule: [{ days: "Tuesday and Thursday", hours: "11:00 AM to 2:00 PM" }],
         body: [
             "The endocrine system controls some of the most important functions in the body, from energy levels and metabolism to reproductive health and bone density. When something goes wrong with this system, the effects can be wide-ranging and easy to miss.",
             "Our Endocrinology department manages the full range of hormonal and metabolic conditions with precision and a thorough understanding of how these conditions interact with the rest of the body.",
@@ -301,17 +301,14 @@ export const CLINIC_DETAILS: ReadonlyArray<ClinicDetail> = [
         slug: "gastroenterology",
         name: "GASTROENTEROLOGY",
         headline: "Digestive problems are common. Ignoring them is not the answer.",
-        schedule: [
-            {days: "Sunday", hours: "3:00 PM to 6:00 PM"},
-            {days: "Monday", hours: "2:00 PM to 5:00 PM"}
-        ],
+        schedule: [{ days: "Monday", hours: "2:00 PM to 5:00 PM" }],
         body: [
             "Digestive problems are among the most common health issues affecting Lagos adults and among the most commonly dismissed. From persistent bloating and acid reflux to more complex conditions affecting the liver and bowel, our Gastroenterology department provides expert diagnosis and treatment using advanced endoscopic and investigative techniques.",
         ],
         whatWeCover: [
             "Acid reflux and GERD management",
             "Irritable bowel syndrome management",
-            "Inflammatory bowel disease including Crohn\u2019s disease and ulcerative colitis",
+            "Inflammatory bowel disease including Crohn’s disease and ulcerative colitis",
             "Liver disease assessment including hepatitis, fatty liver and cirrhosis",
             "H. pylori testing and treatment",
             "Peptic ulcer disease",
@@ -329,7 +326,7 @@ export const CLINIC_DETAILS: ReadonlyArray<ClinicDetail> = [
         slug: "dermatology",
         name: "DERMATOLOGY",
         headline: "Specialist care for skin, hair and nails.",
-        schedule: [{days: "Wednesday", hours: "10:00 AM to 12:00 PM"}],
+        schedule: [{ days: "Wednesday", hours: "10:00 AM to 1:00 PM" }],
         body: [
             "Your skin is your largest organ and it deserves proper medical attention, not just cosmetic fixes. Our Dermatology department handles the full spectrum of skin, hair and nail conditions, from everyday concerns like acne and eczema to more complex conditions requiring thorough investigation and specialist management.",
             "Whether you have been dealing with a persistent skin issue that has not responded to over-the-counter treatments, you are concerned about a mole or skin growth, or you are experiencing unexplained hair loss, our dermatologist will give you a proper diagnosis and a treatment plan that works.",
@@ -354,12 +351,9 @@ export const CLINIC_DETAILS: ReadonlyArray<ClinicDetail> = [
         slug: "physiotherapy",
         name: "PHYSIOTHERAPY",
         headline: "Recovery done properly, every time.",
-        schedule: [
-            {days: "Monday to Friday", hours: "9:00 AM to 4:00 PM"},
-            {days: "Saturday", hours: "9:00 AM to 3:00 PM"},
-        ],
+        schedule: [{ days: "Monday to Friday", hours: "9:00 AM to 4:00 PM" }],
         body: [
-            "Physiotherapy at Grover\u2019s Hospital is evidence-based, personalised and focused on results. Whether you are recovering from surgery, managing chronic pain, rebuilding strength and mobility after a serious illness, or dealing with a sports injury, our physiotherapist designs a program built specifically around your body, your condition and your goals.",
+            "Physiotherapy at Grover’s Hospital is evidence-based, personalised and focused on results. Whether you are recovering from surgery, managing chronic pain, rebuilding strength and mobility after a serious illness, or dealing with a sports injury, our physiotherapist designs a program built specifically around your body, your condition and your goals.",
             "We work closely with our surgical and medical departments to ensure that physiotherapy is integrated into your overall care plan from the start, not added as an afterthought.",
         ],
         whatWeCover: [
@@ -382,7 +376,7 @@ export const CLINIC_DETAILS: ReadonlyArray<ClinicDetail> = [
         slug: "hematology",
         name: "HEMATOLOGY",
         headline: "Diagnosis and management of blood disorders.",
-        schedule: [{days: "Saturday", hours: "11:00 AM to 2:00 PM"}],
+        schedule: [{ days: "Saturday", hours: "11:00 AM to 2:00 PM" }],
         body: [
             "Blood disorders affect millions of Nigerians and many go undiagnosed for years. Our Hematology department provides specialist diagnosis and management for the full range of conditions affecting the blood and blood-forming organs.",
             "From sickle cell disease management to the investigation of unexplained anaemia, our team handles every case with thoroughness and care.",
@@ -406,9 +400,9 @@ export const CLINIC_DETAILS: ReadonlyArray<ClinicDetail> = [
         name: "MENTAL HEALTH CLINIC",
         headline:
             "A dedicated space for your mental and emotional well-being.",
-        schedule: [{days: "Wednesday", hours: "10:00 AM to 1:00 PM"}],
+        schedule: [{ days: "Wednesday", hours: "10:00 AM to 1:00 PM" }],
         body: [
-            "Mental health is as important as physical health, and at Grover\u2019s Hospital we treat it that way. Our Mental Health Clinic provides a confidential, non-judgemental space for patients dealing with a wide range of mental and emotional health concerns. Whether you are experiencing anxiety, depression, stress-related conditions or something you have not yet been able to name, our team is here to listen, assess and support.",
+            "Mental health is as important as physical health, and at Grover’s Hospital we treat it that way. Our Mental Health Clinic provides a confidential, non-judgemental space for patients dealing with a wide range of mental and emotional health concerns. Whether you are experiencing anxiety, depression, stress-related conditions or something you have not yet been able to name, our team is here to listen, assess and support.",
             "We understand that taking the first step towards mental health support can be difficult. Our clinic is designed to make that step as straightforward and comfortable as possible.",
         ],
         whatWeCover: [
@@ -428,10 +422,10 @@ export const CLINIC_DETAILS: ReadonlyArray<ClinicDetail> = [
         slug: "psychiatry",
         name: "PSYCHIATRY",
         headline: "Psychiatric care for mental health conditions.",
-        schedule: [{days: "Sunday", hours: "3:00 PM to 6:00 PM"}],
+        schedule: [{ days: "Sunday", hours: "3:00 PM to 6:00 PM" }],
         body: [
             "Our Psychiatry department provides specialist assessment and management for patients with more complex mental health needs. Working closely with our Mental Health Clinic, our psychiatrist offers a higher level of clinical intervention for conditions that require specialist psychiatric expertise.",
-            "Psychiatric care at Grover\u2019s Hospital is delivered with the same confidentiality, dignity and respect that underpins all of our clinical work. You will not be judged. You will be heard.",
+            "Psychiatric care at Grover’s Hospital is delivered with the same confidentiality, dignity and respect that underpins all of our clinical work. You will not be judged. You will be heard.",
         ],
         whatWeCover: [
             "Diagnosis and management of complex psychiatric conditions",
@@ -449,7 +443,7 @@ export const CLINIC_DETAILS: ReadonlyArray<ClinicDetail> = [
         slug: "dietician",
         name: "DIETICIAN",
         headline: "Expert nutritional guidance for better health outcomes.",
-        schedule: [{days: "Thursday", hours: "9:00 AM to 1:00 PM"}],
+        schedule: [{ days: "Thursday", hours: "9:00 AM to 1:00 PM" }],
         body: [
             "Good nutrition is one of the most powerful tools in managing and preventing chronic disease. Our Dietician works with patients across all departments to develop personalised nutritional plans that support their health goals, whether that is managing diabetes, losing weight, recovering from surgery or simply building better eating habits for long-term well-being.",
             "Nutrition is rarely one-size-fits-all. Our Dietician takes the time to understand your health history, your lifestyle and your goals before developing a plan that is practical and sustainable for you specifically.",
@@ -471,9 +465,9 @@ export const CLINIC_DETAILS: ReadonlyArray<ClinicDetail> = [
         slug: "general-surgery",
         name: "GENERAL SURGERY",
         headline: "Essential surgical procedures, done with precision.",
-        schedule: [{days: "Tuesday", hours: "10:00 AM to 2:00 PM"}],
+        schedule: [{ days: "Tuesday", hours: "10:00 AM to 2:00 PM" }],
         body: [
-            "All surgical procedures at Grover\u2019s Hospital are performed in our Standard Surgical Theatre, which is continuously updated with the latest monitoring and instrumentation and meets stringent international standards.",
+            "All surgical procedures at Grover’s Hospital are performed in our Standard Surgical Theatre, which is continuously updated with the latest monitoring and instrumentation and meets stringent international standards.",
             "Our surgical team focuses not just on the procedure itself but on your comfort, safety and speed of recovery throughout the entire process.",
         ],
         whatWeCover: [
@@ -485,7 +479,7 @@ export const CLINIC_DETAILS: ReadonlyArray<ClinicDetail> = [
             "Other general surgical interventions",
         ],
         whatToExpect:
-            "Your surgical consultation will include a full assessment of your condition, a discussion of the recommended procedure and what to expect before, during and after surgery. Post-operative care is taken seriously at Grover\u2019s and your recovery will be monitored closely.",
+            "Your surgical consultation will include a full assessment of your condition, a discussion of the recommended procedure and what to expect before, during and after surgery. Post-operative care is taken seriously at Grover’s and your recovery will be monitored closely.",
         image: "general-surgery.jpg",
         imagePosition: "left",
     },

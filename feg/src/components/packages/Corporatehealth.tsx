@@ -1,4 +1,4 @@
-import { Button } from "../../ui/Button";
+import {Button} from "../../ui/Button";
 import wwo from "../../assets/packages-page/wwo.jpg";
 
 const WHAT_WE_OFFER = [
@@ -67,7 +67,11 @@ export default function CorporateHealth() {
                         </ul>
 
                         <div className="mt-8">
-                            <Button variant="primary" href="/patient-portal/login" className={"lg:px-10"}>
+                            <Button
+                                variant="primary"
+                                href="https://forms.gle/oxQSYvq3Fdjy4KvV9"
+                                className="lg:px-10"
+                            >
                                 Talk To Us
                             </Button>
                         </div>
