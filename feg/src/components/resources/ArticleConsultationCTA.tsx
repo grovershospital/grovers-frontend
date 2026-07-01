@@ -55,7 +55,7 @@ export default function ArticleConsultationCTA() {
                         </p>
 
                         <div className="mt-8 flex flex-col gap-5">
-                            <Button variant="primary" href="/contact">
+                            <Button variant="primary" href="/patient-portal">
                                 Book an appointment
                             </Button>
                             <Button variant="red" href="tel:09022012109">
