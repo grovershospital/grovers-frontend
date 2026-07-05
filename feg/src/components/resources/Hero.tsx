@@ -8,7 +8,6 @@ export default function Hero() {
             className="relative isolate overflow-hidden"
             aria-labelledby="resources-hero-heading"
         >
-            {/* Background photo — globe with stethoscope */}
             <img
                 src={resourcesHero}
                 alt=""
@@ -17,19 +16,27 @@ export default function Hero() {
             />
             <div className="absolute inset-0 -z-10 bg-black/40" aria-hidden="true" />
 
-            <div className="mx-auto w-full lg:w-[80%] max-w-content px-6 py-20 sm:py-24 lg:px-10 lg:py-28">
-                {/* Content column — right-aligned on desktop (mirror of Services hero). */}
+            <div className="mx-auto w-full max-w-content px-6 py-20 sm:py-24 lg:w-[80%] lg:px-10 lg:py-28">
                 <div className="max-w-md lg:ml-auto">
-                    {/* Headline — three lines forced via <br />, matching the design's */}
-                    {/* intentional wrap. No pill badge on this hero. */}
                     <h1
                         id="resources-hero-heading"
-                        className="text-4xl text-left lg:w-[94%]  font-extrabold leading-[1.1] tracking-tight text-white sm:text-5xl"
+                        className="text-left text-4xl font-extrabold leading-[1.1] tracking-tight text-white sm:text-5xl lg:w-[94%]"
                     >
-                        Health resources for
-                        Lagos <br/>  families and
-                        <br />
-                        professionals.
+                        <span className="block sm:hidden">
+                            Health resources for
+                            <br />
+                            Lagos families
+                            <br />
+                            and professionals.
+                        </span>
+
+                        <span className="hidden sm:block">
+                            Health resources for
+                            <br />
+                            Lagos families and
+                            <br />
+                            professionals.
+                        </span>
                     </h1>
 
                     <p className="mt-6 text-base leading-relaxed text-white/85 sm:text-lg">
