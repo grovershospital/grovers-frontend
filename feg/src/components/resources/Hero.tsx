@@ -1,5 +1,5 @@
 import { Button } from "../../ui/Button";
-import resourcesHero from "../../assets/resources/resourcesHero.jpg";
+import resourcesHero from "../../assets/resources/resourcesHero.jpg"
 
 export default function Hero() {
     return (
