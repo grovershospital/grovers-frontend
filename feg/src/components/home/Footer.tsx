@@ -68,7 +68,7 @@ export function Footer() {
                             {/* Replace these with your <img> icon exports */}
                             <a href="https://www.instagram.com/grovershospital/?hl=en" aria-label="Instagram" className="opacity-90 hover:opacity-100"><img src={ig}
                                                                                                              alt="" className={'h-4 w-4 object-contain'}/></a>
-                            <a href="https://ng.linkedin.com/company/grovers-hospital" aria-label="X" className="opacity-90 hover:opacity-100"><img src={x} alt=""/></a>
+                            <a href="x.com/grovershospital" aria-label="X" className="opacity-90 hover:opacity-100"><img src={x} alt=""/></a>
                             <a href="https://www.facebook.com/GroversHospital/" aria-label="Facebook" className="opacity-90 hover:opacity-100"><img src={fb}
                                                                                                             alt=""/></a>
                             <a href="#" aria-label="WhatsApp" className="opacity-90 hover:opacity-100"><img src={whatsapp}
